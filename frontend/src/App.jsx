@@ -4,37 +4,82 @@ import Prices from "./pages/Prices";
 
 function Home() {
   return (
-    <main className="hero">
-      <h1>🌾 Farmezy</h1>
+    <main>
+      {/* Hero */}
+      <section className="hero">
+        <div className="hero-content">
+          <p className="tagline">🌱 Technology for better farming</p>
 
-      <h2>Connecting Farmers to Better Opportunities</h2>
+          <h1>
+            Smart farming.
+            <br />
+            Better opportunities.
+          </h1>
 
-      <p>
-        Check current mandi prices, predict crop prices,
-        find buyers and get assistance from Farmezy.
-      </p>
+          <p className="hero-text">
+            Farmezy helps farmers check market prices, predict crop prices,
+            connect with buyers and get useful information — all in one place.
+          </p>
 
-      <div className="button-container">
+          <div className="hero-buttons">
+            <Link to="/prices" className="primary-button">
+              💰 Check Mandi Prices
+            </Link>
 
-        <Link to="/prices">
-          <button className="action-button">
-            💰 Check Mandi Prices
-          </button>
-        </Link>
+            <button className="secondary-button">
+              🤖 Ask Farmezy
+            </button>
+          </div>
+        </div>
+      </section>
 
-        <button className="action-button">
-          📈 Predict Crop Price
-        </button>
+      {/* Features */}
+      <section className="features">
+        <div className="section-heading">
+          <p>WHAT FARMEZY OFFERS</p>
+          <h2>Everything a farmer needs</h2>
+        </div>
 
-        <button className="action-button">
-          🛒 Find Buyers
-        </button>
+        <div className="feature-grid">
 
-        <button className="action-button">
-          🤖 Ask Farmezy
-        </button>
+          <div className="feature-card">
+            <div className="feature-icon">💰</div>
+            <h3>Mandi Prices</h3>
+            <p>
+              Check current crop prices from different markets.
+            </p>
+            <Link to="/prices">View prices →</Link>
+          </div>
 
-      </div>
+          <div className="feature-card">
+            <div className="feature-icon">📈</div>
+            <h3>Price Prediction</h3>
+            <p>
+              Get an estimated future crop price using ML.
+            </p>
+            <button>Coming soon →</button>
+          </div>
+
+          <div className="feature-card">
+            <div className="feature-icon">🛒</div>
+            <h3>Find Buyers</h3>
+            <p>
+              Connect directly with potential buyers for your crops.
+            </p>
+            <button>Coming soon →</button>
+          </div>
+
+          <div className="feature-card">
+            <div className="feature-icon">🤖</div>
+            <h3>Ask Farmezy</h3>
+            <p>
+              Ask questions about prices, markets and farming.
+            </p>
+            <button>Coming soon →</button>
+          </div>
+
+        </div>
+      </section>
     </main>
   );
 }
@@ -45,22 +90,24 @@ function App() {
 
       <div className="app">
 
+        {/* Navbar */}
         <nav className="navbar">
+
           <Link to="/" className="logo">
-            🌾 Farmezy
+            🌾 <span>Farmezy</span>
           </Link>
 
-          <button className="language">
-            🌐 English
-          </button>
+          <div className="nav-links">
+            <Link to="/prices">Prices</Link>
+            <a href="#features">Features</a>
+            <button>🌐 English</button>
+          </div>
+
         </nav>
 
         <Routes>
-
           <Route path="/" element={<Home />} />
-
           <Route path="/prices" element={<Prices />} />
-
         </Routes>
 
       </div>
@@ -68,6 +115,5 @@ function App() {
     </BrowserRouter>
   );
 }
-
 
 export default App;
