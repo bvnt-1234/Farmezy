@@ -1,0 +1,76 @@
+/* Main page */
+.app {
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #f5f8f2;
+  color: #26351f;
+}
+
+/* Top navigation */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 50px;
+  background: white;
+  border-bottom: 1px solid #e0e6dc;
+}
+
+.logo {
+  font-size: 28px;
+  font-weight: bold;
+}
+
+/* Language button */
+.language {
+  padding: 10px 16px;
+  border: 1px solid #cbd5c5;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+/* Hero section */
+.hero {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.hero h1 {
+  font-size: 52px;
+  margin-bottom: 15px;
+}
+
+.hero h2 {
+  font-size: 30px;
+  margin-bottom: 20px;
+}
+
+.hero p {
+  max-width: 650px;
+  margin: 0 auto 35px;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+/* Buttons */
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.action-button {
+  padding: 14px 22px;
+  border: none;
+  border-radius: 10px;
+  background: #4f7d3a;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.action-button:hover {
+  opacity: 0.9;
+}
