@@ -1,73 +1,45 @@
-import "./App.css";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import Prices from "./pages/Prices";
+﻿import { useState } from "react"
+import OfficialPrices from "./OfficialPrices.jsx"
+import "./App.css"
 
-function Home() {
-  return (
-    <main className="hero">
-      <h1>🌾 Farmezy</h1>
-
-      <h2>Connecting Farmers to Better Opportunities</h2>
-
-      <p>
-        Check current mandi prices, predict crop prices,
-        find buyers and get assistance from Farmezy.
-      </p>
-
-      <div className="button-container">
-
-        <Link to="/prices">
-          <button className="action-button">
-            💰 Check Mandi Prices
-          </button>
-        </Link>
-
-        <button className="action-button">
-          📈 Predict Crop Price
-        </button>
-
-        <button className="action-button">
-          🛒 Find Buyers
-        </button>
-
-        <button className="action-button">
-          🤖 Ask Farmezy
-        </button>
-
-      </div>
-    </main>
-  );
+const words = {English:["Home","Market prices","Price outlook","Find a mandi","List your harvest","Good morning","A fairer market starts here."],"हिन्दी":["होम","मंडी भाव","भाव का अनुमान","मंडी खोजें","फसल बेचें","सुप्रभात","बेहतर बाज़ार, बेहतर कमाई।"],"தமிழ்":["முகப்பு","சந்தை விலை","விலை கணிப்பு","சந்தையை காண்க","விளைபொருள் பட்டியலிடு","காலை வணக்கம்","நியாயமான சந்தை இங்கே தொடங்குகிறது."]}
+function App(){
+ const [role,setRole]=useState(null),[selectedRole,setSelectedRole]=useState(null),[profile,setProfile]=useState(null),[listing,setListing]=useState(null),[listings,setListings]=useState(()=>{try{return JSON.parse(localStorage.getItem("farmezyListings")||"[]")}catch{return []}}),[page,setPage]=useState("Home"),[lang,setLang]=useState("English"),[listed,setListed]=useState(false),[chat,setChat]=useState(false),[msg,setMsg]=useState(""),[messages,setMessages]=useState(["Vanakkam! Ask about crop prices, mandis, or selling your harvest."])
+ if(!role){if(!selectedRole)return <RoleChooser onChoose={setSelectedRole} lang={lang} setLang={setLang}/>;return <ProfileSetup role={selectedRole} lang={lang} setLang={setLang} onBack={()=>setSelectedRole(null)} onSave={data=>{localStorage.setItem("farmezyProfile-"+selectedRole,JSON.stringify(data));setProfile(data);setRole(selectedRole);setSelectedRole(null)}}/>}
+ const w=words[lang],nav=[[w[0],"Home","⌂"],[w[1],"Prices","↗"],...(role==="Farmer"?[[w[2],"Forecast","◷"]]:[]),[w[3],"Mandi","⌖"],...(role==="Farmer"?[[w[4],"Sell","+"]]:[])]
+ const askPrice=async question=>{setMessages(current=>[...current,question]);const reply=await getOfficialPriceAnswer(question,profile);setMessages(current=>[...current,reply])}
+ const send=e=>{e.preventDefault();const question=msg.trim();if(!question)return;setMsg("");askPrice(question)}
+ return <div className="app-shell"><aside className="sidebar"><a className="brand" href="#" onClick={e=>{e.preventDefault();setPage("Home")}}><span className="brand-mark">f</span>farmezy<span className="brand-dot">.</span></a><div className="side-label">YOUR WORKSPACE</div><div className="role-switch"><button className={role==="Farmer"?"active":""} onClick={()=>{setProfile(readProfile("Farmer"));setRole("Farmer");setPage("Home")}}>🌾 Farmer</button><button className={role==="Customer"?"active":""} onClick={()=>{setProfile(readProfile("Customer"));setRole("Customer");setPage("Home")}}>🧺 Customer</button></div><div className="side-label menu-label">MENU</div><nav>{nav.map(([label,id,icon])=><button key={id} className={page===id?"selected":""} onClick={()=>setPage(id)}><span>{icon}</span>{label}</button>)}</nav><div className="sidebar-bottom"><div className="help-card"><b>✳ &nbsp; Here to help</b><p>Ask Farmezy about your crops.</p><button onClick={()=>setChat(true)}>Chat with us ↗</button></div><div className="profile"><span className="avatar">{role==="Farmer"?"RK":"AS"}</span><span><b>{profile?.name||role}</b><small>{profile?.location||profile?.district||"Set your location"}</small></span><span className="dots">···</span></div></div></aside>
+ <main className="main-area"><header className="topbar"><div>Workspace <span>/</span> <b>{page==="Home"?w[0]:nav.find(n=>n[1]===page)?.[0]}</b></div><div className="top-tools"><select value={lang} onChange={e=>setLang(e.target.value)} aria-label="Language">{Object.keys(words).map(x=><option key={x}>{x}</option>)}</select><button className="bell">♧</button><span className="avatar">RK</span></div></header><div className="page">
+  {page==="Home"&&<><div className="welcome"><div><div className="eyebrow">{w[5]}, {profile?.name|| (role==="Farmer"?"Farmer":"Customer")} *</div><h1>{role==="Farmer"?"Your harvest, your business.":"Find fresh crops from Indian mandis."}</h1><p>{role==="Farmer"?"Add the crops you are selling, then check official market prices across India.":"Browse daily reported mandi prices from the Government of India."}</p></div></div><section className="workspace-hero"><div><span className="hero-tag">{role==="Farmer"?"FARMER WORKSPACE":"CUSTOMER MARKETPLACE"}</span><h2>{role==="Farmer"?"Ready to list a crop?":"Find the right market price."}</h2><p>{role==="Farmer"?"Add crop, variety, quantity, price, harvest date, and pickup location. Your listings are saved in this browser.":"Search reported commodity prices by state, district, and mandi. Rates are shown as reported by AGMARKNET."}</p><button onClick={()=>setPage(role==="Farmer"?"Sell":"Prices")}>{role==="Farmer"?"Add crops for sale":"Browse official mandi prices"} →</button></div><span className="workspace-art">{role==="Farmer"?"🌾":"🧺"}</span></section>{role==="Farmer"?<section className="panel inventory-preview"><div className="panel-head"><div><h3>My crop listings</h3><p>{listings.length} crop{listings.length===1?"":"s"} saved in this browser</p></div><button className="link" onClick={()=>setPage("Sell")}>Manage listings →</button></div>{listings.length?listings.slice(0,4).map(item=><div className="saved-row" key={item.id}><b>{item.crop}</b><span>{item.variety||"—"}</span><span>{item.quantity} {item.unit}</span><strong>₹{item.price}/{item.unit}</strong><span>{item.address}</span></div>):<p className="empty-list">You have not added crops yet. Use Add crops for sale to create your first listing.</p>}</section>:<section className="panel customer-prompt"><h3>Official market data from across India</h3><p>See reported min, modal, and max wholesale prices for the commodity and mandi you choose.</p><button className="link" onClick={()=>setPage("Prices")}>Search state, district & mandi →</button></section>}<OfficialPrices location={profile} preview onViewAll={()=>setPage("Prices")}/></>}
+ {page==="Prices"&&<OfficialPrices location={profile} />}
+  {page==="Forecast"&&<><Title eyebrow="PRICE FORECAST" title="Price trends need verified data." sub="Forecasting is unavailable until Farmezy has a connected historical price feed and a validated model."/><section className="panel no-demo"><h3>Use official prices first</h3><p>Check the latest AGMARKNET mandi reports while we prepare historical observations for price forecasting.</p><button className="link" onClick={()=>setPage("Prices")}>Open official market prices →</button></section></>}
+  {page==="Mandi"&&<><Title eyebrow="INDIA-WIDE MARKET DATA" title="Explore reported mandis." sub="Filter the Government of India daily market-price feed by commodity, state, district, and mandi."/><section className="panel no-demo"><h3>Official mandi reports</h3><p>Farmezy does not estimate transport charges or calculate net returns yet. Compare the reported wholesale prices and confirm logistics directly with the mandi.</p><button className="link" onClick={()=>setPage("Prices")}>Browse official prices →</button></section></>}
+  {page==="Sell"&&<><Title eyebrow="FARMER SELLING SPACE" title="Manage your crop listings." sub="Add each crop separately with its own quantity, price, harvest date, and pickup location."/>{listed&&<section className="success"><h2>✓ &nbsp; Crop saved in your listings</h2><p>{listing?.crop} · {listing?.quantity} {listing?.unit} · ₹{listing?.price}/{listing?.unit}</p><button onClick={()=>setListed(false)}>Add another crop</button></section>}{!listed&&<section className="panel form-panel"><h3>Add a crop for sale</h3><p>Enter the details buyers need to understand what is available.</p><form onSubmit={e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.currentTarget));const item={...data,id:Date.now()};setListing(item);setListings(prev=>{const next=[item,...prev];localStorage.setItem("farmezyListings",JSON.stringify(next));return next});setListed(true)}}><div className="form-grid"><label>Crop name<input name="crop" required placeholder="e.g. Tomato"/></label><label>Variety / grade<input name="variety" placeholder="e.g. Local · Grade A"/></label><label>Available quantity<input name="quantity" type="number" min="1" required placeholder="250"/></label><label>Unit<select name="unit"><option>kg</option><option>quintal</option><option>tonne</option><option>crate</option></select></label><label>Your asking price (₹ / selected unit)<input name="price" min="1" step="0.01" required type="number" placeholder="32"/></label><label>Harvest / ready date<input name="date" type="date"/></label><label className="wide">Pickup address<input name="address" required placeholder="Village, district, state"/></label><label className="wide">Notes for buyers<textarea name="notes" placeholder="Freshness, delivery, minimum order…"/></label></div><div className="form-foot"><small>Listing is saved locally in this browser.</small><button>Save crop listing →</button></div></form></section>}{listings.length>0&&<section className="panel farmer-listings"><div className="panel-head"><div><h3>My listed crops</h3><p>{listings.length} saved listing{listings.length===1?"":"s"}</p></div></div>{listings.map(item=><article className="listing-card" key={item.id}><div><small>CROP</small><b>{item.crop}</b><span>{item.variety||"Variety not specified"}</span></div><div><small>AVAILABLE</small><b>{item.quantity} {item.unit}</b><span>{item.date||"Ready date not specified"}</span></div><div><small>ASKING PRICE</small><b>₹{item.price} / {item.unit}</b><span>Farmer set price</span></div><div><small>PICKUP</small><b>{item.address}</b><span>{item.notes||"No additional notes"}</span></div></article>)}</section>}</>}
+ <footer className="footer"><span>© 2026 Farmezy</span><span>Grown with care, shared with trust ✳</span><button onClick={()=>setChat(true)}>Need a hand? <b>Chat with us ↗</b></button></footer></div></main>
+ <button className="chat-launch" onClick={()=>setChat(!chat)}>✳</button>{chat&&<div className="chat-box"><header><b>✳ &nbsp; Farmezy assistant</b><button onClick={()=>setChat(false)}>×</button><small>Official mandi-price replies</small></header><div className="chat-messages">{messages.map((m,i)=><p key={i}>{m}</p>)}<button onClick={()=>askPrice("What is today's tomato price?")}>Today's tomato price</button> <button onClick={()=>setPage("Mandi")}>Find a mandi</button></div><form onSubmit={send}><input value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Ask about crops or prices…"/><button>↑</button></form></div>}</div>
 }
-
-function App() {
-  return (
-    <BrowserRouter>
-
-      <div className="app">
-
-        <nav className="navbar">
-          <Link to="/" className="logo">
-            🌾 Farmezy
-          </Link>
-
-          <button className="language">
-            🌐 English
-          </button>
-        </nav>
-
-        <Routes>
-
-          <Route path="/" element={<Home />} />
-
-          <Route path="/prices" element={<Prices />} />
-
-        </Routes>
-
-      </div>
-
-    </BrowserRouter>
-  );
-}
+function RoleChooser({onChoose,lang,setLang}){return <main className="role-entry"><header><a className="brand" href="#"><span className="brand-mark">f</span>farmezy<span className="brand-dot">.</span></a><label>Language <select value={lang} onChange={e=>setLang(e.target.value)}>{Object.keys(words).map(x=><option key={x}>{x}</option>)}</select></label></header><section><div className="eyebrow">A FAIRER WAY TO TRADE</div><h1>Welcome to Farmezy.</h1><p>Choose your space, then tell us who you are and where you are based to see local prices first.</p><div className="role-cards"><article><span>🌾</span><small>FOR FARMERS & GROWERS</small><h2>Sell your harvest.</h2><p>Manage your crop listings and check official mandi rates in your area.</p><button onClick={()=>onChoose("Farmer")}>Continue as Farmer <b>→</b></button></article><article><span>🧺</span><small>FOR CUSTOMERS & BUYERS</small><h2>Buy fresh, locally.</h2><p>Find vegetables and official wholesale prices near your home.</p><button onClick={()=>onChoose("Customer")}>Continue as Customer <b>→</b></button></article></div></section><footer>Grown with care, shared with trust ✳</footer></main>}
+function ProfileSetup({role,lang,setLang,onBack,onSave}){const [form,setForm]=useState(()=>readProfile(role));const [error,setError]=useState("");function submit(e){e.preventDefault();if(form.phone.replace(/\D/g,"").length<10){setError("Enter a valid 10-digit phone number.");return}onSave(form)}return <main className="role-entry"><header><a className="brand" href="#"><span className="brand-mark">f</span>farmezy<span className="brand-dot">.</span></a><label>Language <select value={lang} onChange={e=>setLang(e.target.value)}>{Object.keys(words).map(x=><option key={x}>{x}</option>)}</select></label></header><section className="profile-entry"><button className="back-link" onClick={onBack}>← Change role</button><div className="eyebrow">{role==="Farmer"?"FARMER PROFILE":"CUSTOMER PROFILE"}</div><h1>Set up your local profile.</h1><p>We will remember these details in this browser and use your area to preselect mandi prices next time.</p><form className="profile-form" onSubmit={submit}><label>Your name<input required value={form.name||""} onChange={e=>setForm({...form,name:e.target.value})} placeholder="Full name"/></label><label>Phone number<input required type="tel" inputMode="numeric" value={form.phone||""} onChange={e=>setForm({...form,phone:e.target.value})} placeholder="10-digit mobile number"/></label><label>Village / town or PIN code<input required value={form.location||""} onChange={e=>setForm({...form,location:e.target.value})} placeholder="e.g. Velachery or 600042"/></label><label>District<input required value={form.district||""} onChange={e=>setForm({...form,district:e.target.value})} placeholder="Your district"/></label><label className="profile-state">State / Union Territory<select required value={form.state||""} onChange={e=>setForm({...form,state:e.target.value})}><option value="">Choose your state</option>{profileStates.map(s=><option key={s}>{s}</option>)}</select></label>{error&&<p className="profile-error">{error}</p>}<button className="profile-submit">Continue to {role==="Farmer"?"Farmer workspace":"Customer marketplace"} →</button></form><small className="profile-privacy">Your name, phone, and location are saved only in this browser for now.</small></section><footer>Grown with care, shared with trust ✳</footer></main>}
+function readProfile(role){try{return JSON.parse(localStorage.getItem("farmezyProfile-"+role)||"{}")}catch{return {}}}
+const profileStates=["Andaman and Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh","Dadra and Nagar Haveli and Daman and Diu","Delhi","Goa","Gujarat","Haryana","Himachal Pradesh","Jammu and Kashmir","Jharkhand","Karnataka","Kerala","Ladakh","Lakshadweep","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal"]
+function Title({eyebrow,title,sub}){return <div className="page-title"><div className="eyebrow">{eyebrow}</div><h1>{title}</h1><p>{sub}</p></div>}
+function Note({children}){return <p className="note">ⓘ &nbsp; {children}</p>}
+const commodityAliases=[{name:"Tomato",aliases:["tomato","tamatar"]},{name:"Onion",aliases:["onion","pyaz"]},{name:"Potato",aliases:["potato","aloo"]},{name:"Green Chilli",aliases:["chilli","chili","mirchi"]},{name:"Brinjal",aliases:["brinjal","eggplant","baingan"]},{name:"Cabbage",aliases:["cabbage","patta"]}]
+function editDistance(left,right){const row=Array.from({length:right.length+1},(_,index)=>index);for(let i=1;i<=left.length;i++){let previous=row[0];row[0]=i;for(let j=1;j<=right.length;j++){const current=row[j];row[j]=Math.min(row[j]+1,row[j-1]+1,previous+(left[i-1]===right[j-1]?0:1));previous=current}}return row[right.length]}
+function findCommodity(message){const words=message.toLowerCase().match(/[a-z]+/g)||[];for(const commodity of commodityAliases){if(words.some(word=>commodity.aliases.some(alias=>word===alias||editDistance(word,alias)<=2)))return commodity.name}return null}
+const stateAliases={ap:"Andhra Pradesh",ar:"Arunachal Pradesh",as:"Assam",br:"Bihar",cg:"Chhattisgarh",dl:"Delhi",ga:"Goa",gj:"Gujarat",hr:"Haryana",hp:"Himachal Pradesh",jh:"Jharkhand",ka:"Karnataka",kl:"Kerala",mp:"Madhya Pradesh",mh:"Maharashtra",od:"Odisha",pb:"Punjab",rj:"Rajasthan",tn:"Tamil Nadu",ts:"Telangana",up:"Uttar Pradesh",uk:"Uttarakhand",wb:"West Bengal"}
+function findState(message){const lower=message.toLowerCase();const full=profileStates.find(state=>lower.includes(state.toLowerCase()));if(full)return full;const words=lower.match(/[a-z]+/g)||[];return words.map(word=>stateAliases[word]).find(Boolean)||null}
+function cleanStateRecords(records,state){return state?records.filter(record=>String(record.state||"").toLowerCase()===state.toLowerCase()):records}
+async function getOfficialPriceAnswer(question,profile){const commodity=findCommodity(question);if(!commodity)return "Tell me the crop name, for example: What is today's tomato price?";const requestedState=findState(question);const state=requestedState||profile?.state||"";const district=requestedState?"":(profile?.district||"");const params=new URLSearchParams({limit:"100",commodity});if(state)params.set("state",state);if(district)params.set("district",district);try{let response=await fetch("/api/mandi-prices?"+params);let data=await response.json();if(!response.ok)throw new Error(data.error||"The official price service is unavailable.");let records=cleanStateRecords(Array.isArray(data.records)?data.records:[],state);let locationLabel=district?(district+", "+state):(state||"India");if(!records.length&&district&&state){params.delete("district");response=await fetch("/api/mandi-prices?"+params);data=await response.json();if(!response.ok)throw new Error(data.error||"The official price service is unavailable.");records=cleanStateRecords(Array.isArray(data.records)?data.records:[],state);locationLabel=state+" (state-wide)"}const record=records.find(item=>Number(String(item.modal_price||"").replace(/,/g,""))>0);if(!record)return "AGMARKNET has no reported "+commodity+" price for "+locationLabel+" right now.";const modal=Number(String(record.modal_price).replace(/,/g,"")).toLocaleString("en-IN");return "Latest reported "+commodity+" modal price: ₹"+modal+" per quintal at "+record.market+", "+record.district+", "+record.state+" ("+(record.arrival_date||"report date unavailable")+")."}catch(error){return "I could not get the official "+commodity+" price right now: "+error.message}}
+export default App
 
 
-export default App;
+
+
+
+
+
+
+
+
