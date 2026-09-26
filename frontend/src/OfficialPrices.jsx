@@ -23,7 +23,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
       const params = new URLSearchParams({ limit: "100", offset: String(nextOffset) })
       Object.entries(applied).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()) })
       let response = await fetch("/api/mandi-prices?" + params.toString())
-      let payload = await response.json()
+      let payload = await readPriceResponse(response)
       if (!response.ok) throw new Error(payload.error || "The Government market-price service is unavailable.")
       let rows = Array.isArray(payload.records) ? payload.records : []
       if (!rows.length && applied.state && applied.district) {
@@ -31,7 +31,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
         if (applied.commodity.trim()) stateParams.set("commodity", applied.commodity.trim())
         if (applied.market.trim()) stateParams.set("market", applied.market.trim())
         const stateResponse = await fetch("/api/mandi-prices?" + stateParams.toString())
-        const statePayload = await stateResponse.json()
+        const statePayload = await readPriceResponse(stateResponse)
         if (stateResponse.ok && Array.isArray(statePayload.records) && statePayload.records.length) {
           response = stateResponse
           payload = statePayload
@@ -111,3 +111,15 @@ function money(value) {
 
 
 
+
+async function readPriceResponse(response) {
+  const body = await response.text()
+  if (!body.trim()) {
+    throw new Error("The local price API did not respond. Run npm run api in the frontend folder, then refresh this page.")
+  }
+  try {
+    return JSON.parse(body)
+  } catch {
+    throw new Error("The local price API returned an invalid response. Restart it with npm run api, then refresh this page.")
+  }
+}
