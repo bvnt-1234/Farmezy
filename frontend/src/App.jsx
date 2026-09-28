@@ -45,7 +45,45 @@ function findCommodity(message){const words=message.toLowerCase().match(/[a-z]+/
 const stateAliases={ap:"Andhra Pradesh",ar:"Arunachal Pradesh",as:"Assam",br:"Bihar",cg:"Chhattisgarh",dl:"Delhi",ga:"Goa",gj:"Gujarat",hr:"Haryana",hp:"Himachal Pradesh",jh:"Jharkhand",ka:"Karnataka",kl:"Kerala",mp:"Madhya Pradesh",mh:"Maharashtra",od:"Odisha",pb:"Punjab",rj:"Rajasthan",tn:"Tamil Nadu",ts:"Telangana",up:"Uttar Pradesh",uk:"Uttarakhand",wb:"West Bengal"}
 function findState(message){const lower=message.toLowerCase();const full=profileStates.find(state=>lower.includes(state.toLowerCase()));if(full)return full;const words=lower.match(/[a-z]+/g)||[];return words.map(word=>stateAliases[word]).find(Boolean)||null}
 function cleanStateRecords(records,state){return state?records.filter(record=>String(record.state||"").toLowerCase()===state.toLowerCase()):records}
-async function getOfficialPriceAnswer(question,profile){const commodity=findCommodity(question);if(!commodity)return "Tell me the crop name, for example: What is today's tomato price?";const requestedState=findState(question);const state=requestedState||profile?.state||"";const district=requestedState?"":(profile?.district||"");const params=new URLSearchParams({limit:"100",commodity});if(state)params.set("state",state);if(district)params.set("district",district);try{let response=await fetch("/api/mandi-prices?"+params);let data=await response.json();if(!response.ok)throw new Error(data.error||"The official price service is unavailable.");let records=cleanStateRecords(Array.isArray(data.records)?data.records:[],state);let locationLabel=district?(district+", "+state):(state||"India");if(!records.length&&district&&state){params.delete("district");response=await fetch("/api/mandi-prices?"+params);data=await response.json();if(!response.ok)throw new Error(data.error||"The official price service is unavailable.");records=cleanStateRecords(Array.isArray(data.records)?data.records:[],state);locationLabel=state+" (state-wide)"}const record=records.find(item=>Number(String(item.modal_price||"").replace(/,/g,""))>0);if(!record)return "AGMARKNET has no reported "+commodity+" price for "+locationLabel+" right now.";const modal=Number(String(record.modal_price).replace(/,/g,"")).toLocaleString("en-IN");return "Latest reported "+commodity+" modal price: ₹"+modal+" per quintal at "+record.market+", "+record.district+", "+record.state+" ("+(record.arrival_date||"report date unavailable")+")."}catch(error){return "I could not get the official "+commodity+" price right now: "+error.message}}
+async function getOfficialPriceAnswer(question,profile){
+  const q=question.toLowerCase().trim()
+  if(/how.*(sell|list)|list.*crop|sell.*crop/.test(q)) return "To sell on Farmezy: open List your harvest → add the crop, quantity, unit, asking price and pickup address → save it. Customers can then see your listing and send a request."
+  if(/how.*(buy|request)|request.*crop|buy.*crop/.test(q)) return "To buy: open Browse produce → choose a farmer → select Buy / Request → enter the quantity. Farmezy saves the request and can open WhatsApp so you can contact the farmer."
+  if(/whatsapp|contact.*farmer|call.*farmer/.test(q)) return "Open Browse produce and use WhatsApp or Call on a farmer's listing. A valid mobile number is required for direct WhatsApp contact."
+  if(/find.*mandi|near.*mandi|mandi.*near/.test(q)) return "Open Find a mandi to explore the official mandi-price area. You can also use the Market prices page to filter by state, district, mandi and commodity."
+  const commodity=findCommodity(question)
+  if(!commodity) return "I can help with official crop prices, finding a mandi, selling a crop, or requesting produce. Try: “tomato price in Karnataka”."
+  const requestedState=findState(question)
+  const state=requestedState||profile?.state||""
+  const district=requestedState?"":(profile?.district||"")
+  const params=new URLSearchParams({limit:"100",commodity})
+  if(state)params.set("state",state)
+  if(district)params.set("district",district)
+  try{
+    let response=await fetch("/api/mandi-prices?"+params)
+    let body=await response.text()
+    let data
+    try{data=JSON.parse(body)}catch{throw new Error("The official market-price service returned an invalid response. Check the backend price-feed configuration.")}
+    if(!response.ok)throw new Error(data.error||"The official price service is unavailable.")
+    let records=cleanStateRecords(Array.isArray(data.records)?data.records:[],state)
+    let locationLabel=district?(district+", "+state):(state||"India")
+    if(!records.length&&district&&state){
+      params.delete("district")
+      response=await fetch("/api/mandi-prices?"+params)
+      body=await response.text()
+      try{data=JSON.parse(body)}catch{throw new Error("The official market-price service returned an invalid response.")}
+      if(!response.ok)throw new Error(data.error||"The official price service is unavailable.")
+      records=cleanStateRecords(Array.isArray(data.records)?data.records:[],state)
+      locationLabel=state+" (state-wide)"
+    }
+    const record=records.find(item=>Number(String(item.modal_price||"").replace(/,/g,""))>0)
+    if(!record)return "AGMARKNET has no reported "+commodity+" price for "+locationLabel+" right now."
+    const modal=Number(String(record.modal_price).replace(/,/g,"")).toLocaleString("en-IN")
+    return "Latest reported "+commodity+" modal price: ₹"+modal+" per quintal at "+record.market+", "+record.district+", "+record.state+" ("+(record.arrival_date||"report date unavailable")+")."
+  }catch(error){
+    return "I couldn't get the official "+commodity+" price right now. "+error.message
+  }
+}
 export default App
 
 
