@@ -92,7 +92,6 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
-   = new URL(req.url, "http://localhost")
   if (requestUrl.pathname === "/api/crop-images") {
     const crops = [...new Set((requestUrl.searchParams.get("crops") || "").split(",").map(value => value.trim()).filter(Boolean))].slice(0, 6)
     if (!crops.length) {
