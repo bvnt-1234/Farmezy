@@ -11,6 +11,7 @@ const imageCache = new Map()
 const imageTtlMs = 24 * 60 * 60 * 1000
 const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "data")
 const listingsFile = path.join(dataDir, "listings.json")
+const ordersFile = path.join(dataDir, "orders.json")
 
 function loadListings() {
   try {
@@ -29,6 +30,21 @@ function saveListings(listings) {
 
 let listings = loadListings()
 
+function loadOrders() {
+  try {
+    if (!existsSync(ordersFile)) return []
+    const data = JSON.parse(readFileSync(ordersFile, "utf8"))
+    return Array.isArray(data) ? data : []
+  } catch { return [] }
+}
+
+function saveOrders(orders) {
+  mkdirSync(dataDir, { recursive: true })
+  writeFileSync(ordersFile, JSON.stringify(orders, null, 2))
+}
+
+let orders = loadOrders()
+
 try {
   const envPath = path.join(path.dirname(fileURLToPath(import.meta.url)), ".env")
   for (const line of readFileSync(envPath, "utf8").split(/\r?\n/)) {
@@ -44,6 +60,87 @@ const server = http.createServer(async (req, res) => {
 
   if (requestUrl.pathname === "/api/listings" && req.method === "GET") {
     res.writeHead(200).end(JSON.stringify({ listings }))
+    return
+  }
+
+  if (requestUrl.pathname === "/api/orders" && req.method === "GET") {
+    const farmerId = requestUrl.searchParams.get("farmerId")
+    const customerId = requestUrl.searchParams.get("customerId")
+    let result = orders
+    if (farmerId) result = result.filter(order => order.farmerId === farmerId)
+    if (customerId) result = result.filter(order => order.customerId === customerId)
+    res.writeHead(200).end(JSON.stringify({ orders: result }))
+    return
+  }
+
+  if (requestUrl.pathname === "/api/orders" && req.method === "POST") {
+    try {
+      let body = ""
+      for await (const chunk of req) body += chunk
+      const data = JSON.parse(body || "{}")
+      const required = ["listingId", "farmerId", "farmerName", "customerId", "customerName", "quantity"]
+      const missing = required.filter(field => !String(data[field] ?? "").trim())
+      if (missing.length) {
+        res.writeHead(400).end(JSON.stringify({ error: "Missing required fields: " + missing.join(", ") }))
+        return
+      }
+
+      const quantity = Number(data.quantity)
+      const available = Number(data.availableQuantity)
+      if (!Number.isFinite(quantity) || quantity <= 0 || (Number.isFinite(available) && quantity > available)) {
+        res.writeHead(400).end(JSON.stringify({ error: "Requested quantity is not valid." }))
+        return
+      }
+
+      const order = {
+        id: Date.now().toString(),
+        listingId: String(data.listingId),
+        crop: String(data.crop || ""),
+        unit: String(data.unit || ""),
+        price: String(data.price || ""),
+        quantity: String(data.quantity),
+        farmerId: String(data.farmerId),
+        farmerName: String(data.farmerName),
+        farmerPhone: String(data.farmerPhone || ""),
+        customerId: String(data.customerId),
+        customerName: String(data.customerName),
+        customerPhone: String(data.customerPhone || ""),
+        customerLocation: String(data.customerLocation || ""),
+        status: "Requested",
+        createdAt: new Date().toISOString(),
+      }
+
+      orders = [order, ...orders]
+      saveOrders(orders)
+      res.writeHead(201).end(JSON.stringify({ order }))
+    } catch {
+      res.writeHead(400).end(JSON.stringify({ error: "Invalid order data." }))
+    }
+    return
+  }
+
+  if (requestUrl.pathname.startsWith("/api/orders/") && req.method === "PATCH") {
+    try {
+      const id = requestUrl.pathname.split("/").pop()
+      let body = ""
+      for await (const chunk of req) body += chunk
+      const data = JSON.parse(body || "{}")
+      const order = orders.find(item => item.id === id)
+      if (!order) {
+        res.writeHead(404).end(JSON.stringify({ error: "Order not found." }))
+        return
+      }
+      if (!["Accepted", "Rejected", "Ready", "Completed"].includes(data.status)) {
+        res.writeHead(400).end(JSON.stringify({ error: "Invalid order status." }))
+        return
+      }
+      order.status = data.status
+      order.updatedAt = new Date().toISOString()
+      saveOrders(orders)
+      res.writeHead(200).end(JSON.stringify({ order }))
+    } catch {
+      res.writeHead(400).end(JSON.stringify({ error: "Invalid order update." }))
+    }
     return
   }
 
