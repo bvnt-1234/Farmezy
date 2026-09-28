@@ -169,9 +169,12 @@ const server = http.createServer(async (req, res) => {
         notes: String(data.notes || "").trim(),
         farmerId: String(data.farmerId).trim(),
         farmerName: String(data.farmerName).trim(),
+        farmerPhone: String(data.farmerPhone || "").trim(),
         farmerLocation: String(data.farmerLocation || "").trim(),
         farmerDistrict: String(data.farmerDistrict || "").trim(),
         farmerState: String(data.farmerState || "").trim(),
+        farmerLat: String(data.farmerLat || "").trim(),
+        farmerLng: String(data.farmerLng || "").trim(),
         createdAt: new Date().toISOString(),
       }
 
