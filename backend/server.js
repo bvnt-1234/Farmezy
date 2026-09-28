@@ -59,7 +59,12 @@ const server = http.createServer(async (req, res) => {
   const requestUrl = new URL(req.url, "http://localhost")
 
   if (requestUrl.pathname === "/api/listings" && req.method === "GET") {
-    res.writeHead(200).end(JSON.stringify({ listings }))
+    const safeListings = listings.map(listing => {
+      if (listing.farmerPhone) return listing
+      const digits = String(listing.farmerId || "").replace(/\D/g, "")
+      return digits.length === 10 ? { ...listing, farmerPhone: digits } : listing
+    })
+    res.writeHead(200).end(JSON.stringify({ listings: safeListings }))
     return
   }
 
