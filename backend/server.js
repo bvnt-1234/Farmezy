@@ -1,5 +1,5 @@
 ﻿import http from "node:http"
-import { readFileSync } from "node:fs"
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
 
@@ -9,6 +9,25 @@ const cache = new Map()
 const ttlMs = 5 * 60 * 1000
 const imageCache = new Map()
 const imageTtlMs = 24 * 60 * 60 * 1000
+const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "data")
+const listingsFile = path.join(dataDir, "listings.json")
+
+function loadListings() {
+  try {
+    if (!existsSync(listingsFile)) return []
+    const data = JSON.parse(readFileSync(listingsFile, "utf8"))
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+function saveListings(listings) {
+  mkdirSync(dataDir, { recursive: true })
+  writeFileSync(listingsFile, JSON.stringify(listings, null, 2))
+}
+
+let listings = loadListings()
 
 try {
   const envPath = path.join(path.dirname(fileURLToPath(import.meta.url)), ".env")
@@ -21,12 +40,59 @@ try {
 const server = http.createServer(async (req, res) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8")
   res.setHeader("Cache-Control", "no-store")
-  if (req.method !== "GET") {
-    res.writeHead(405).end(JSON.stringify({ error: "GET requests only." }))
+  const requestUrl = new URL(req.url, "http://localhost")
+
+  if (requestUrl.pathname === "/api/listings" && req.method === "GET") {
+    res.writeHead(200).end(JSON.stringify({ listings }))
     return
   }
 
-  const requestUrl = new URL(req.url, "http://localhost")
+  if (requestUrl.pathname === "/api/listings" && req.method === "POST") {
+    try {
+      let body = ""
+      for await (const chunk of req) body += chunk
+      const data = JSON.parse(body || "{}")
+
+      const required = ["crop", "quantity", "unit", "price", "address", "farmerId", "farmerName"]
+      const missing = required.filter(field => !String(data[field] ?? "").trim())
+      if (missing.length) {
+        res.writeHead(400).end(JSON.stringify({ error: "Missing required fields: " + missing.join(", ") }))
+        return
+      }
+
+      const item = {
+        id: Date.now().toString(),
+        crop: String(data.crop).trim(),
+        variety: String(data.variety || "").trim(),
+        quantity: String(data.quantity).trim(),
+        unit: String(data.unit).trim(),
+        price: String(data.price).trim(),
+        date: String(data.date || "").trim(),
+        address: String(data.address).trim(),
+        notes: String(data.notes || "").trim(),
+        farmerId: String(data.farmerId).trim(),
+        farmerName: String(data.farmerName).trim(),
+        farmerLocation: String(data.farmerLocation || "").trim(),
+        farmerDistrict: String(data.farmerDistrict || "").trim(),
+        farmerState: String(data.farmerState || "").trim(),
+        createdAt: new Date().toISOString(),
+      }
+
+      listings = [item, ...listings]
+      saveListings(listings)
+      res.writeHead(201).end(JSON.stringify({ listing: item }))
+    } catch {
+      res.writeHead(400).end(JSON.stringify({ error: "Invalid listing data." }))
+    }
+    return
+  }
+
+  if (req.method !== "GET") {
+    res.writeHead(405).end(JSON.stringify({ error: "Method not allowed." }))
+    return
+  }
+
+   = new URL(req.url, "http://localhost")
   if (requestUrl.pathname === "/api/crop-images") {
     const crops = [...new Set((requestUrl.searchParams.get("crops") || "").split(",").map(value => value.trim()).filter(Boolean))].slice(0, 6)
     if (!crops.length) {
