@@ -246,6 +246,162 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  if (requestUrl.pathname === "/api/price-history" && req.method === "GET") {
+    const commodityName = (requestUrl.searchParams.get("commodity") || "").trim()
+    const stateName = (requestUrl.searchParams.get("state") || "").trim()
+    const months = Math.min(12, Math.max(3, Number(requestUrl.searchParams.get("months") || 6)))
+    if (!commodityName) {
+      res.writeHead(400).end(JSON.stringify({ error: "Add a commodity name." }))
+      return
+    }
+
+    const agmarkHeaders = {
+      Accept: "application/json, text/plain, */*",
+      Origin: "https://agmarknet.gov.in",
+      Referer: "https://agmarknet.gov.in/",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/142.0.0.0 Safari/537.36",
+    }
+    const agmarkFetch = async (path, params = {}) => {
+      const url = new URL("https://api.agmarknet.gov.in/v1" + path)
+      for (const [key, value] of Object.entries(params)) url.searchParams.set(key, String(value))
+      const response = await fetch(url, { headers: agmarkHeaders, signal: AbortSignal.timeout(20000) })
+      const text = await response.text()
+      let data
+      try { data = JSON.parse(text) } catch { throw new Error("Agmarknet returned a non-JSON response.") }
+      if (!response.ok) throw new Error("Agmarknet returned HTTP " + response.status + ".")
+      return data
+    }
+    const findId = (value, wanted, kind) => {
+      const target = String(wanted).trim().toLowerCase()
+      if (!value || typeof value !== "object") return null
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          const found = findId(item, wanted, kind)
+          if (found !== null) return found
+        }
+        return null
+      }
+      const nameKeys = kind === "state"
+        ? ["name", "stateName", "state_name", "label"]
+        : ["name", "commodityName", "commodity_name", "commodity", "label"]
+      const idKeys = kind === "state"
+        ? ["id", "stateId", "state_id", "value"]
+        : ["id", "commodityId", "commodity_id", "value"]
+      const name = nameKeys.map(key => value[key]).find(item => typeof item === "string")
+      if (name && name.trim().toLowerCase() === target) {
+        const id = idKeys.map(key => value[key]).find(item => item !== undefined && item !== null && String(item) !== "")
+        if (id !== undefined) return id
+      }
+      for (const child of Object.values(value)) {
+        const found = findId(child, wanted, kind)
+        if (found !== null) return found
+      }
+      return null
+    }
+
+    try {
+      const stateData = await agmarkFetch("/location/state", { page: 1 })
+      const commodityData = await agmarkFetch("/commodities", { page_size: 500 })
+      const stateId = stateName ? findId(stateData, stateName, "state") : null
+      const commodityId = findId(commodityData, commodityName, "commodity")
+      if (!commodityId) {
+        res.writeHead(404).end(JSON.stringify({ error: "Agmarknet could not find the commodity '" + commodityName + "'." }))
+        return
+      }
+      if (stateName && !stateId) {
+        res.writeHead(404).end(JSON.stringify({ error: "Agmarknet could not find the state '" + stateName + "'." }))
+        return
+      }
+
+      const points = []
+      const today = new Date()
+      for (let offset = months - 1; offset >= 0; offset--) {
+        const date = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - offset, 1))
+        const year = date.getUTCFullYear()
+        const month = date.getUTCMonth() + 1
+        const data = await agmarkFetch("/prices-and-arrivals/date-wise/specific-commodity", {
+          year,
+          month,
+          stateId: stateId || 1,
+          commodityId,
+          includeExcel: false,
+        })
+        const markets = Array.isArray(data?.markets) ? data.markets : []
+        for (const market of markets) {
+          const dates = Array.isArray(market?.dates) ? market.dates : []
+          for (const day of dates) {
+            const prices = Array.isArray(day?.data) ? day.data
+              .map(item => Number(item?.modalPrice))
+              .filter(value => Number.isFinite(value) && value > 0) : []
+            if (!prices.length) continue
+            points.push({
+              date: String(day.arrivalDate || "").trim(),
+              price: prices.reduce((sum, value) => sum + value, 0) / prices.length,
+            })
+          }
+        }
+      }
+
+      const byDate = new Map()
+      for (const point of points) {
+        if (!point.date) continue
+        const current = byDate.get(point.date) || []
+        current.push(point.price)
+        byDate.set(point.date, current)
+      }
+      const history = [...byDate.entries()].map(([date, values]) => ({
+        date,
+        price: Number((values.reduce((sum, value) => sum + value, 0) / values.length).toFixed(2)),
+      })).sort((a, b) => {
+        const parse = value => {
+          const [day, month, year] = value.split("/").map(Number)
+          return new Date(year, month - 1, day).getTime()
+        }
+        return parse(a.date) - parse(b.date)
+      })
+
+      if (history.length < 5) {
+        res.writeHead(502).end(JSON.stringify({ error: "Agmarknet returned too little historical data to build a forecast." }))
+        return
+      }
+
+      const n = history.length
+      const meanX = (n - 1) / 2
+      const meanY = history.reduce((sum, item) => sum + item.price, 0) / n
+      let numerator = 0
+      let denominator = 0
+      history.forEach((item, index) => {
+        numerator += (index - meanX) * (item.price - meanY)
+        denominator += (index - meanX) ** 2
+      })
+      const slope = denominator ? numerator / denominator : 0
+      const intercept = meanY - slope * meanX
+      const forecast = Array.from({ length: 7 }, (_, index) => {
+        const x = n + index
+        const lastDate = new Date()
+        lastDate.setDate(lastDate.getDate() + index + 1)
+        return {
+          date: lastDate.toLocaleDateString("en-IN", { day: "2-digit", month: "short" }),
+          price: Number(Math.max(0, intercept + slope * x).toFixed(2)),
+        }
+      })
+
+      res.writeHead(200).end(JSON.stringify({
+        commodity: commodityName,
+        state: stateName || "India-wide",
+        history: history.slice(-60),
+        forecast,
+        model: "Linear regression trend baseline",
+        unit: "₹/quintal",
+        source: "Agmarknet 2.0 API",
+        note: "Forecast is a baseline trend estimate from recent reported modal prices, not a guaranteed market price.",
+      }))
+    } catch (error) {
+      res.writeHead(502).end(JSON.stringify({ error: error.message || "Could not load historical Agmarknet prices." }))
+    }
+    return
+  }
+
   if (requestUrl.pathname !== "/api/mandi-prices") {
     res.writeHead(404).end(JSON.stringify({ error: "Endpoint not found." }))
     return
