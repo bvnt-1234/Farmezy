@@ -61,6 +61,9 @@ const server = http.createServer(async (req, res) => {
   if (requestUrl.pathname === "/api/listings" && req.method === "GET") {
     const safeListings = listings.map(listing => {
       if (listing.farmerPhone) return listing
+      const existingContactPhone = listing.contact?.phone || listing.contact?.whatsapp || ""
+      const contactDigits = String(existingContactPhone).replace(/\D/g, "")
+      if (contactDigits.length === 10) return { ...listing, farmerPhone: contactDigits }
       const digits = String(listing.farmerId || "").replace(/\D/g, "")
       return digits.length === 10 ? { ...listing, farmerPhone: digits } : listing
     })
