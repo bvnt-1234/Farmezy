@@ -50,7 +50,15 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
     }
   }, [applied])
 
-  useEffect(() => {\n    if (!applied.commodity || !applied.state) {\n      setRecords([])\n      setTotal(null)\n      setError(\"\")\n      return\n    }\n    fetchPage(0, false)\n  }, [fetchPage, applied.commodity, applied.state])
+  useEffect(() => {
+    if (!applied.commodity || !applied.state) {
+      setRecords([])
+      setTotal(null)
+      setError("")
+      return
+    }
+    fetchPage(0, false)
+  }, [fetchPage, applied.commodity, applied.state])
   const cropCards = [...new Map(records.filter(r => r.commodity).map(r => [r.commodity, r])).values()].slice(0, 4)
   const cropNames = cropCards.map(record => record.commodity).join(",")
 
