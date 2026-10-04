@@ -390,14 +390,14 @@ const server = http.createServer(async (req, res) => {
         ? districtMatches
         : districtsInState.filter(item => normalize(item.census_district_name).includes(districtName))
 
-      if (!partialDistricts.length) {
-        res.writeHead(400).end(JSON.stringify({
-          error: "CEDA does not have a district matching \"" + district + "\" in " + stateMatch.census_state_name + "."
-        }))
-        return
+      if (partialDistricts.length) {
+        districtId = partialDistricts[0].census_district_id
+      } else {
+        // District names entered by users often differ from AGMARKNET/ Census naming
+        // (for example "banglore rural" vs "Bangalore Rural"). If no district matches,
+        // return the state-wide official data instead of failing the entire price page.
+        districtId = null
       }
-
-      districtId = partialDistricts[0].census_district_id
     }
 
     const today = new Date()
