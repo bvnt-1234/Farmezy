@@ -254,13 +254,8 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  const dataGovKey = process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY
   const apiKey = process.env.CEDA_API_KEY
-  if (!apiKey) {
-    res.writeHead(503).end(JSON.stringify({
-      error: "CEDA price feed is not configured. Add CEDA_API_KEY to backend/.env."
-    }))
-    return
-  }
 
   const commodity = requestUrl.searchParams.get("commodity")?.trim() || ""
   const state = requestUrl.searchParams.get("state")?.trim() || ""
@@ -278,7 +273,117 @@ const server = http.createServer(async (req, res) => {
 
   if (!state) {
     res.writeHead(400).end(JSON.stringify({
-      error: "Choose a state first. CEDA requires a state for price queries."
+      error: "Choose a state first. A state is required for official price queries."
+    }))
+    return
+  }
+
+  // Prefer the Government of India's live data.gov.in feed.
+  // CEDA remains a fallback for installations that only have a CEDA key.
+  if (dataGovKey) {
+    try {
+      const govUrl = new URL("https://api.data.gov.in/resource/" + resourceId)
+      govUrl.searchParams.set("api-key", dataGovKey)
+      govUrl.searchParams.set("format", "json")
+      govUrl.searchParams.set("limit", String(Math.min(1000, limit)))
+      govUrl.searchParams.set("offset", String(offset))
+      govUrl.searchParams.set("sort[arrival_date]", "desc")
+      govUrl.searchParams.set("filters[state.keyword]", state)
+      govUrl.searchParams.set("filters[commodity]", commodity)
+      if (district) govUrl.searchParams.set("filters[district]", district)
+      if (market) govUrl.searchParams.set("filters[market]", market)
+
+      const govResponse = await fetch(govUrl, {
+        headers: { Accept: "application/json", "User-Agent": "Farmezy/1.0" },
+        signal: AbortSignal.timeout(20000)
+      })
+      const raw = await govResponse.text()
+      let govPayload = {}
+      try { govPayload = raw ? JSON.parse(raw) : {} } catch {
+        throw new Error("Government price API returned a non-JSON response.")
+      }
+
+      if (!govResponse.ok) {
+        throw new Error(
+          govPayload?.error?.message ||
+          govPayload?.message ||
+          "Government price API returned HTTP " + govResponse.status + "."
+        )
+      }
+
+      const govRows = Array.isArray(govPayload.records) ? govPayload.records : []
+      govRows.sort((a,b) => String(b.arrival_date || "").localeCompare(String(a.arrival_date || "")))
+
+      const govData = {
+        records: govRows.map(row => ({
+          arrival_date: String(row.arrival_date || ""),
+          commodity: row.commodity || commodity,
+          state: row.state || state,
+          district: row.district || "",
+          market: row.market || "",
+          min_price: row.min_price,
+          modal_price: row.modal_price,
+          max_price: row.max_price,
+          variety: row.variety || "",
+          grade: row.grade || ""
+        })),
+        total: Number(govPayload.total ?? govPayload.count ?? govRows.length),
+        total_count: Number(govPayload.total ?? govPayload.count ?? govRows.length),
+        source: "AGMARKNET via Government of India data.gov.in",
+        live: true,
+        cached: false
+      }
+
+      // If a user typed a non-standard district such as "banglore"/"bengaluru"
+      // and it produced no rows, retry at state + commodity level.
+      if (!govData.records.length && district) {
+        const stateUrl = new URL(govUrl)
+        stateUrl.searchParams.delete("filters[district]")
+        const stateResponse = await fetch(stateUrl, {
+          headers: { Accept: "application/json", "User-Agent": "Farmezy/1.0" },
+          signal: AbortSignal.timeout(20000)
+        })
+        const stateRaw = await stateResponse.text()
+        let statePayload = {}
+        try { statePayload = stateRaw ? JSON.parse(stateRaw) : {} } catch {}
+        if (stateResponse.ok && Array.isArray(statePayload.records)) {
+          const stateRows = statePayload.records.sort((a,b) =>
+            String(b.arrival_date || "").localeCompare(String(a.arrival_date || ""))
+          )
+          govData.records = stateRows.map(row => ({
+            arrival_date: String(row.arrival_date || ""),
+            commodity: row.commodity || commodity,
+            state: row.state || state,
+            district: row.district || "",
+            market: row.market || "",
+            min_price: row.min_price,
+            modal_price: row.modal_price,
+            max_price: row.max_price,
+            variety: row.variety || "",
+            grade: row.grade || ""
+          }))
+          govData.total = Number(statePayload.total ?? statePayload.count ?? govData.records.length)
+          govData.total_count = govData.total
+          govData.district_fallback = true
+        }
+      }
+
+      res.writeHead(200).end(JSON.stringify(govData))
+      return
+    } catch (error) {
+      // Only fall through to CEDA when a CEDA key exists.
+      if (!apiKey) {
+        res.writeHead(502).end(JSON.stringify({
+          error: error?.message || "Could not reach the Government mandi-price service."
+        }))
+        return
+      }
+    }
+  }
+
+  if (!apiKey) {
+    res.writeHead(503).end(JSON.stringify({
+      error: "No mandi price API key is configured. Add DATA_GOV_API_KEY to backend/.env for the live Government feed."
     }))
     return
   }
