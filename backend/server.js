@@ -406,13 +406,11 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200).end(JSON.stringify(govData))
       return
     } catch (error) {
-      // Only fall through to CEDA when a CEDA key exists.
-      if (!apiKey) {
-        res.writeHead(502).end(JSON.stringify({
-          error: error?.message || "Could not reach the Government mandi-price service."
-        }))
-        return
-      }
+      // Do not silently switch to CEDA: it can return stale/aggregated data or 429s.
+      res.writeHead(502).end(JSON.stringify({
+        error: error?.message || "Could not reach the Government mandi-price service."
+      }))
+      return
     }
   }
 
