@@ -5,8 +5,8 @@ const states = [
 ]
 
 export default function OfficialPrices({ location, preview = false, onViewAll }) {
-  const [filters, setFilters] = useState(() => ({ commodity: "", state: location?.state || "", district: location?.district || "", market: "" }))
-  const [applied, setApplied] = useState(() => ({ commodity: "", state: location?.state || "", district: location?.district || "", market: "" }))
+  const [filters, setFilters] = useState(() => ({ commodity: preview ? "Tomato" : "", state: location?.state || "", district: location?.district || "", market: "" }))
+  const [applied, setApplied] = useState(() => ({ commodity: preview ? "Tomato" : "", state: location?.state || "", district: location?.district || "", market: "" }))
   const [records, setRecords] = useState([])
   const [total, setTotal] = useState(null)
   const [offset, setOffset] = useState(0)
@@ -50,7 +50,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
     }
   }, [applied])
 
-  useEffect(() => { fetchPage(0, false) }, [fetchPage])
+  useEffect(() => {\n    if (!applied.commodity || !applied.state) {\n      setRecords([])\n      setTotal(null)\n      setError(\"\")\n      return\n    }\n    fetchPage(0, false)\n  }, [fetchPage, applied.commodity, applied.state])
   const cropCards = [...new Map(records.filter(r => r.commodity).map(r => [r.commodity, r])).values()].slice(0, 4)
   const cropNames = cropCards.map(record => record.commodity).join(",")
 
@@ -84,7 +84,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
       <label>Mandi<input value={filters.market} onChange={e=>setFilters({...filters,market:e.target.value})} placeholder="All mandis"/></label>
       <button type="submit" disabled={loading}>{loading?"Loading…":"Apply filters"}</button>
     </form>}
-    <div className="official-result-bar"><div><b>{preview?"Latest reported crop prices":(total===null?"":total.toLocaleString("en-IN")+" reported records")}</b><span>{applied.state || "All India"}{applied.district?" · "+applied.district:""}{applied.market?" · "+applied.market:""}{applied.commodity?" · "+applied.commodity:""}</span></div>{!preview&&<button onClick={()=>fetchPage(0,false)} disabled={loading}>↻ Refresh</button>}</div>
+    {!applied.commodity || !applied.state ? <div className="official-empty"><b>Choose a crop and state to load official prices.</b><p>Farmezy sends the selected commodity and state to the CEDA market-data service. No sample prices are used.</p></div> : null}\n    <div className="official-result-bar"><div><b>{preview?"Latest reported crop prices":(total===null?"":total.toLocaleString("en-IN")+" reported records")}</b><span>{applied.state || "All India"}{applied.district?" · "+applied.district:""}{applied.market?" · "+applied.market:""}{applied.commodity?" · "+applied.commodity:""}</span></div>{!preview&&<button onClick={()=>fetchPage(0,false)} disabled={loading}>↻ Refresh</button>}</div>
     {stateFallback && <p className="official-fallback">No daily records were returned for {applied.district}. Showing official prices from across {applied.state} instead.</p>}
     {error && <div className="official-error"><b>Prices could not be loaded.</b><p>{error}</p><span>Start the API server and set your data.gov.in key in <code>backend/.env</code>. This page never substitutes sample prices.</span></div>}
     {!error && records.length>0 && <section className="crop-price-cards">{cropCards.map(r => {
