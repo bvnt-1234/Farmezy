@@ -1,5 +1,6 @@
 import http from "node:http"
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs"
+import { spawn } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
 
@@ -52,6 +53,18 @@ try {
     if (match && !process.env[match[1]]) process.env[match[1]] = match[2].replace(/^["']|["']$/g, "")
   }
 } catch {}
+
+function startHistoricalCollector() {
+  if (!(process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY)) return
+  const historyFile = path.join(dataDir, "mandi-history.json")
+  if (existsSync(historyFile)) return
+  const script = path.join(path.dirname(fileURLToPath(import.meta.url)), "scripts", "collect-mandi-history.js")
+  const child = spawn(process.execPath, [script], { stdio: "inherit" })
+  child.on("error", error => console.error("Historical mandi collector:", error.message))
+  child.on("exit", code => console.log("Historical mandi collector finished with code", code))
+}
+
+startHistoricalCollector()
 
 const server = http.createServer(async (req, res) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8")
@@ -245,6 +258,24 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200).end(JSON.stringify({ images }))
     } catch {
       res.writeHead(502).end(JSON.stringify({ error: "Could not load crop images." }))
+    }
+    return
+  }
+
+  if (requestUrl.pathname === "/api/price-forecast" && req.method === "GET") {
+    try {
+      const { forecastPrice } = await import("./scripts/forecast.js")
+      const result = forecastPrice({
+        commodity: requestUrl.searchParams.get("commodity") || "",
+        state: requestUrl.searchParams.get("state") || "",
+        district: requestUrl.searchParams.get("district") || "",
+        days: Number(requestUrl.searchParams.get("days") || 7)
+      })
+      res.writeHead(200).end(JSON.stringify(result))
+    } catch (error) {
+      res.writeHead(503).end(JSON.stringify({
+        error: error?.message || "Forecasting is not ready yet. Historical mandi data is still being collected."
+      }))
     }
     return
   }
