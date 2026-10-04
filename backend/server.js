@@ -287,14 +287,15 @@ const server = http.createServer(async (req, res) => {
 
   const dataGovKey = process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY
   const apiKey = process.env.CEDA_API_KEY
-  const normalizedState = state
-  const normalizedDistrict = district
-  const normalizedCommodity = commodity
 
   const commodity = requestUrl.searchParams.get("commodity")?.trim() || ""
   const state = requestUrl.searchParams.get("state")?.trim() || ""
   const district = requestUrl.searchParams.get("district")?.trim() || ""
   const market = requestUrl.searchParams.get("market")?.trim() || ""
+
+  const normalizedState = state
+  const normalizedDistrict = district
+  const normalizedCommodity = commodity
   const limit = Math.min(100, Math.max(1, Number(requestUrl.searchParams.get("limit") || 100)))
   const offset = Math.max(0, Number(requestUrl.searchParams.get("offset") || 0))
 
