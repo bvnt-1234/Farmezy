@@ -24,20 +24,33 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
       Object.entries(applied).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()) })
       let response = await fetch("/api/mandi-prices?" + params.toString())
       let payload = await readPriceResponse(response)
-      if (!response.ok) throw new Error(payload.error || "The Government market-price service is unavailable.")
       let rows = Array.isArray(payload.records) ? payload.records : []
-      if (!rows.length && applied.state && applied.district) {
-        const stateParams = new URLSearchParams({ limit: "100", offset: String(nextOffset), state: applied.state })
-        if (applied.commodity.trim()) stateParams.set("commodity", applied.commodity.trim())
+
+      // Some CEDA geography versions do not recognize user-entered Bengaluru/Bangalore
+      // district names. Retry without district whenever the district-specific request fails
+      // or returns no records. This keeps the official state-level data usable.
+      if ((!response.ok || !rows.length) && applied.state && applied.district) {
+        const stateParams = new URLSearchParams({
+          limit: "100",
+          offset: String(nextOffset),
+          state: applied.state,
+          commodity: applied.commodity.trim()
+        })
         if (applied.market.trim()) stateParams.set("market", applied.market.trim())
+
         const stateResponse = await fetch("/api/mandi-prices?" + stateParams.toString())
         const statePayload = await readPriceResponse(stateResponse)
-        if (stateResponse.ok && Array.isArray(statePayload.records) && statePayload.records.length) {
+
+        if (stateResponse.ok && Array.isArray(statePayload.records)) {
           response = stateResponse
           payload = statePayload
           rows = statePayload.records
           setStateFallback(true)
         }
+      }
+
+      if (!response.ok) {
+        throw new Error(payload.error || "The Government market-price service is unavailable.")
       }
       setRecords(current => append ? [...current, ...rows] : rows)
       setTotal(Number(payload.total ?? payload.total_count ?? rows.length))
