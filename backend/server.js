@@ -287,6 +287,9 @@ const server = http.createServer(async (req, res) => {
 
   const dataGovKey = process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY
   const apiKey = process.env.CEDA_API_KEY
+  const normalizedState = state
+  const normalizedDistrict = district
+  const normalizedCommodity = commodity
 
   const commodity = requestUrl.searchParams.get("commodity")?.trim() || ""
   const state = requestUrl.searchParams.get("state")?.trim() || ""
@@ -319,9 +322,9 @@ const server = http.createServer(async (req, res) => {
       govUrl.searchParams.set("limit", String(Math.min(1000, limit)))
       govUrl.searchParams.set("offset", String(offset))
       govUrl.searchParams.set("sort[arrival_date]", "desc")
-      govUrl.searchParams.set("filters[state.keyword]", state)
-      govUrl.searchParams.set("filters[commodity]", commodity)
-      if (district) govUrl.searchParams.set("filters[district]", district)
+      govUrl.searchParams.set("filters[state]", normalizedState)
+      govUrl.searchParams.set("filters[commodity]", normalizedCommodity)
+      if (normalizedDistrict) govUrl.searchParams.set("filters[district]", normalizedDistrict)
       if (market) govUrl.searchParams.set("filters[market]", market)
 
       const govResponse = await fetch(govUrl, {
