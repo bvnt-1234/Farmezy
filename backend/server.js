@@ -1,4 +1,4 @@
-﻿import http from "node:http"
+import http from "node:http"
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
@@ -253,40 +253,242 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(404).end(JSON.stringify({ error: "Endpoint not found." }))
     return
   }
-  const apiKey = process.env.DATA_GOV_API_KEY
+
+  const apiKey = process.env.CEDA_API_KEY
   if (!apiKey) {
-    res.writeHead(503).end(JSON.stringify({ error: "Official price feed is not configured. Add DATA_GOV_API_KEY to backend/.env." }))
+    res.writeHead(503).end(JSON.stringify({
+      error: "CEDA price feed is not configured. Add CEDA_API_KEY to backend/.env."
+    }))
     return
   }
 
-  const limit = Math.min(1000, Math.max(1, Number(requestUrl.searchParams.get("limit") || 100)))
+  const commodity = requestUrl.searchParams.get("commodity")?.trim() || ""
+  const state = requestUrl.searchParams.get("state")?.trim() || ""
+  const district = requestUrl.searchParams.get("district")?.trim() || ""
+  const market = requestUrl.searchParams.get("market")?.trim() || ""
+  const limit = Math.min(100, Math.max(1, Number(requestUrl.searchParams.get("limit") || 100)))
   const offset = Math.max(0, Number(requestUrl.searchParams.get("offset") || 0))
-  const filters = ["state", "district", "market", "commodity"].filter(k => requestUrl.searchParams.get(k)?.trim())
-  const query = new URLSearchParams({ "api-key": apiKey, format: "json", limit: String(limit), offset: String(offset) })
-  for (const field of filters) query.set("filters[" + field + "]", requestUrl.searchParams.get(field).trim())
-  const cacheKey = query.toString().replace(apiKey, "private-key")
-  const cached = cache.get(cacheKey)
-  if (cached && Date.now() - cached.savedAt < ttlMs) {
-    res.writeHead(200).end(JSON.stringify({ ...cached.data, source: "AGMARKNET via data.gov.in", cached: true }))
+
+  if (!commodity) {
+    res.writeHead(400).end(JSON.stringify({
+      error: "Choose a crop / commodity first. CEDA requires a commodity for price queries."
+    }))
     return
+  }
+
+  if (!state) {
+    res.writeHead(400).end(JSON.stringify({
+      error: "Choose a state first. CEDA requires a state for price queries."
+    }))
+    return
+  }
+
+  const cedaBase = "https://api.ceda.ashoka.edu.in/v1"
+  const cedaHeaders = {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "Authorization": "Bearer " + apiKey
+  }
+
+  async function cedaRequest(method, endpoint, body) {
+    const options = {
+      method,
+      headers: cedaHeaders,
+      signal: AbortSignal.timeout(20000)
+    }
+    if (body !== undefined) options.body = JSON.stringify(body)
+
+    const response = await fetch(cedaBase + endpoint, options)
+    const raw = await response.text()
+    let payload = {}
+    try {
+      payload = raw ? JSON.parse(raw) : {}
+    } catch {
+      throw new Error("CEDA returned a non-JSON response (HTTP " + response.status + ").")
+    }
+
+    if (!response.ok) {
+      const message = payload?.output?.message || payload?.message || payload?.error
+      throw new Error(message
+        ? "CEDA API returned HTTP " + response.status + ": " + message
+        : "CEDA API returned HTTP " + response.status + ".")
+    }
+
+    if (payload?.output?.type && payload.output.type !== "success") {
+      throw new Error(payload.output.message || "CEDA API returned an error.")
+    }
+
+    return payload?.output?.data ?? payload?.data ?? []
   }
 
   try {
-    const response = await fetch("https://api.data.gov.in/resource/" + resourceId + "?" + query, { signal: AbortSignal.timeout(15000) })
-    const text = await response.text()
-    let payload
-    try { payload = JSON.parse(text) } catch { throw new Error("Government API returned a non-JSON response.") }
-    if (!response.ok) {
-      const message = payload?.message || payload?.error || ("Government API returned HTTP " + response.status + ".")
-      res.writeHead(response.status === 429 ? 429 : 502).end(JSON.stringify({ error: String(message) }))
+    const cacheKey = JSON.stringify({
+      commodity: commodity.toLowerCase(),
+      state: state.toLowerCase(),
+      district: district.toLowerCase(),
+      market: market.toLowerCase()
+    })
+    const cached = cache.get("ceda:" + cacheKey)
+    if (cached && Date.now() - cached.savedAt < ttlMs && offset === 0) {
+      res.writeHead(200).end(JSON.stringify({ ...cached.data, cached: true }))
       return
     }
-    if (!Array.isArray(payload.records)) throw new Error(payload?.message || "The official API response did not include records.")
-    cache.set(cacheKey, { data: payload, savedAt: Date.now() })
-    res.writeHead(200).end(JSON.stringify({ ...payload, source: "AGMARKNET via data.gov.in", cached: false }))
+
+    const [commodities, geographies] = await Promise.all([
+      cedaRequest("GET", "/agmarknet/commodities"),
+      cedaRequest("GET", "/agmarknet/geographies")
+    ])
+
+    const normalize = value => String(value || "").trim().toLowerCase()
+
+    const commodityName = normalize(commodity)
+    const exactCommodity = commodities.find(item =>
+      normalize(item.commodity_name) === commodityName
+    )
+    const partialCommodities = commodities.filter(item =>
+      normalize(item.commodity_name).includes(commodityName)
+    )
+    const commodityMatch = exactCommodity || (partialCommodities.length === 1 ? partialCommodities[0] : null)
+
+    if (!commodityMatch) {
+      res.writeHead(400).end(JSON.stringify({
+        error: partialCommodities.length > 1
+          ? "Commodity name is ambiguous. Please use a more specific crop name."
+          : "CEDA does not have a commodity matching \"" + commodity + "\"."
+      }))
+      return
+    }
+
+    const stateName = normalize(state)
+    const stateMatches = geographies.filter(item =>
+      normalize(item.census_state_name) === stateName
+    )
+    const partialStates = stateMatches.length
+      ? stateMatches
+      : geographies.filter(item => normalize(item.census_state_name).includes(stateName))
+
+    if (!partialStates.length) {
+      res.writeHead(400).end(JSON.stringify({
+        error: "CEDA does not have a state matching \"" + state + "\"."
+      }))
+      return
+    }
+
+    const stateMatch = partialStates[0]
+    const stateId = stateMatch.census_state_id
+
+    let districtId = null
+    if (district) {
+      const districtName = normalize(district)
+      const districtsInState = geographies.filter(item =>
+        item.census_state_id === stateId
+      )
+      const districtMatches = districtsInState.filter(item =>
+        normalize(item.census_district_name) === districtName
+      )
+      const partialDistricts = districtMatches.length
+        ? districtMatches
+        : districtsInState.filter(item => normalize(item.census_district_name).includes(districtName))
+
+      if (!partialDistricts.length) {
+        res.writeHead(400).end(JSON.stringify({
+          error: "CEDA does not have a district matching \"" + district + "\" in " + stateMatch.census_state_name + "."
+        }))
+        return
+      }
+
+      districtId = partialDistricts[0].census_district_id
+    }
+
+    const today = new Date()
+    const toDate = today.toISOString().slice(0, 10)
+    const from = new Date(today)
+    from.setDate(from.getDate() - 365)
+    const fromDate = from.toISOString().slice(0, 10)
+
+    const priceBody = {
+      commodity_id: commodityMatch.commodity_id,
+      state_id: stateId,
+      from_date: fromDate,
+      to_date: toDate
+    }
+    if (districtId !== null) priceBody.district_id = [districtId]
+
+    const rows = await cedaRequest("POST", "/agmarknet/prices", priceBody)
+
+    const districtNames = new Map(
+      geographies.map(item => [item.census_district_id, item.census_district_name])
+    )
+    const stateNames = new Map(
+      geographies.map(item => [item.census_state_id, item.census_state_name])
+    )
+
+    const districtIds = [...new Set(
+      rows.map(row => row.census_district_id).filter(Boolean)
+    )]
+
+    const marketMap = new Map()
+
+    await Promise.all(districtIds.map(async currentDistrictId => {
+      try {
+        const markets = await cedaRequest("POST", "/agmarknet/markets", {
+          commodity_id: commodityMatch.commodity_id,
+          state_id: stateId,
+          district_id: currentDistrictId,
+          indicator: "price"
+        })
+        for (const item of markets) {
+          marketMap.set(item.market_id, item.market_name)
+        }
+      } catch {
+        // Market names are optional enrichment. Price rows are still useful.
+      }
+    }))
+
+    let records = rows.map(row => ({
+      arrival_date: String(row.date || "").slice(0, 10),
+      commodity: commodityMatch.commodity_name,
+      state: stateNames.get(row.census_state_id) || stateMatch.census_state_name,
+      district: row.census_district_id
+        ? (districtNames.get(row.census_district_id) || String(row.census_district_id))
+        : "(all districts)",
+      market: row.market_id
+        ? (marketMap.get(row.market_id) || "Reported mandi")
+        : "(state average)",
+      min_price: row.min_price,
+      modal_price: row.modal_price,
+      max_price: row.max_price,
+      variety: "",
+      grade: ""
+    }))
+
+    if (market) {
+      const marketName = normalize(market)
+      records = records.filter(row => normalize(row.market).includes(marketName))
+    }
+
+    records.sort((a, b) =>
+      String(b.arrival_date).localeCompare(String(a.arrival_date))
+    )
+
+    const total = records.length
+    const page = records.slice(offset, offset + limit)
+    const responseData = {
+      records: page,
+      total,
+      total_count: total,
+      source: "AGMARKNET via CEDA Ashoka University",
+      cached: false
+    }
+
+    if (offset === 0) cache.set("ceda:" + cacheKey, { data: responseData, savedAt: Date.now() })
+    res.writeHead(200).end(JSON.stringify(responseData))
   } catch (error) {
-    res.writeHead(502).end(JSON.stringify({ error: error.message || "Could not reach the official market-price service." }))
+    res.writeHead(502).end(JSON.stringify({
+      error: error?.message || "Could not reach the CEDA market-price service."
+    }))
   }
+
 })
 
 server.listen(port, () => console.log("Farmezy official mandi API listening on http://localhost:" + port))
