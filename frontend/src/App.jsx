@@ -27,7 +27,7 @@ function App(){
 
  {page==="Orders"&&<><Title eyebrow="MY REQUESTS" title="Track your purchases." sub="See requests you have sent to farmers."/><section className="panel farmer-listings">{orders.length?orders.map(order=><article className="listing-card" key={order.id}><div><small>CROP</small><b>{order.crop}</b><span>{order.quantity} {order.unit} · ₹{order.price}/{order.unit}</span></div><div><small>FARMER</small><b>{order.farmerName}</b><span>{order.farmerPhone||"Phone not provided"}</span></div><div><small>STATUS</small><b>{order.status}</b><span>Request #{order.id}</span></div><div><small>CONTACT</small>{order.farmerPhone&&<a href={whatsappUrl(order.farmerPhone)} target="_blank" rel="noreferrer" className="link">WhatsApp farmer ↗</a>}</div></article>):<p className="empty-list">You have not requested any crops yet. Browse farmer produce to start.</p>}</section></>}
 
- {page==="Forecast"&&<><Title eyebrow="PRICE FORECAST" title="Price trends need verified data." sub="Forecasting is unavailable until Farmezy has a connected historical price feed and a validated model."/><section className="panel no-demo"><h3>Use official prices first</h3><p>Check the latest AGMARKNET mandi reports while we prepare historical observations for price forecasting.</p><button className="link" onClick={()=>setPage("Prices")}>Open official market prices →</button></section></>}
+ {page==="Forecast"&&<><Title eyebrow="PRICE FORECAST" title="Predict the next mandi price." sub="Farmezy trains on official AGMARKNET observations collected from the Government of India feed. No sample prices are used."/><PriceForecast location={profile} onPrices={()=>setPage("Prices")}/></>}
   {page==="Mandi"&&<><Title eyebrow="INDIA-WIDE MARKET DATA" title="Explore reported mandis." sub="Filter the Government of India daily market-price feed by commodity, state, district, and mandi."/><section className="panel no-demo"><h3>Official mandi reports</h3><p>Farmezy does not estimate transport charges or calculate net returns yet. Compare the reported wholesale prices and confirm logistics directly with the mandi.</p><button className="link" onClick={()=>setPage("Prices")}>Browse official prices →</button></section></>}
   {page==="Sell"&&<><Title eyebrow="FARMER SELLING SPACE" title="Manage your crop listings." sub="Add each crop separately with its own quantity, price, harvest date, and pickup location."/>{listingError&&<section className="official-error"><b>Could not save the listing.</b><p>{listingError}</p></section>}{listed&&<section className="success"><h2>✓ &nbsp; Crop saved in your listings</h2><p>{listing?.crop} · {listing?.quantity} {listing?.unit} · ₹{listing?.price}/{listing?.unit}</p><button onClick={()=>setListed(false)}>Add another crop</button></section>}{!listed&&<section className="panel form-panel"><h3>Add a crop for sale</h3><p>Enter the details buyers need to understand what is available.</p><form onSubmit={async e=>{e.preventDefault();setListingError("");setListingLoading(true);const form=e.currentTarget;const data=Object.fromEntries(new FormData(form));const saveListing=async coords=>{const item={...data,farmerId,farmerName:profile?.name||"Farmer",farmerPhone:profile?.phone||"",farmerLocation:profile?.location||"",farmerDistrict:profile?.district||"",farmerState:profile?.state||"",farmerLat:coords?.lat||"",farmerLng:coords?.lng||""};try{const response=await fetch("/api/listings",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(item)});const result=await response.json();if(!response.ok)throw new Error(result.error||"Could not save listing.");setListing(result.listing);setListings(prev=>[result.listing,...prev]);setListed(true);form.reset()}catch(error){setListingError(error.message)}finally{setListingLoading(false)}};if(navigator.geolocation){navigator.geolocation.getCurrentPosition(position=>saveListing({lat:position.coords.latitude,lng:position.coords.longitude}),()=>saveListing(null))}else saveListing(null)}}><div className="form-grid"><label>Crop name<input name="crop" required placeholder="e.g. Tomato"/></label><label>Variety / grade<input name="variety" placeholder="e.g. Local · Grade A"/></label><label>Available quantity<input name="quantity" type="number" min="1" required placeholder="250"/></label><label>Unit<select name="unit"><option>kg</option><option>quintal</option><option>tonne</option><option>crate</option></select></label><label>Your asking price (₹ / selected unit)<input name="price" min="1" step="0.01" required type="number" placeholder="32"/></label><label>Harvest / ready date<input name="date" type="date"/></label><label className="wide">Pickup address<input name="address" required placeholder="Village, district, state"/></label><label className="wide">Notes for buyers<textarea name="notes" placeholder="Freshness, delivery, minimum order…"/></label></div><div className="form-foot"><small>Listing will be saved to the Farmezy backend and shown to customers.</small><button disabled={listingLoading}>{listingLoading?"Saving…":"Save crop listing →"}</button></div></form></section>}{myListings.length>0&&<section className="panel farmer-listings"><div className="panel-head"><div><h3>My listed crops</h3><p>{myListings.length} saved listing{myListings.length===1?"":"s"}</p></div></div>{myListings.map(item=><article className="listing-card" key={item.id}><div><small>CROP</small><b>{item.crop}</b><span>{item.variety||"Variety not specified"}</span></div><div><small>AVAILABLE</small><b>{item.quantity} {item.unit}</b><span>{item.date||"Ready date not specified"}</span></div><div><small>ASKING PRICE</small><b>₹{item.price} / {item.unit}</b><span>Farmer set price</span></div><div><small>PICKUP</small><b>{item.address}</b><span>{item.notes||"No additional notes"}</span></div></article>)}</section>}</>}
  <footer className="footer"><span>© 2026 Farmezy</span><span>Grown with care, shared with trust ✳</span><button onClick={()=>setChat(true)}>Need a hand? <b>Chat with us ↗</b></button></footer></div></main>
@@ -96,3 +96,39 @@ export default App
 
 
 
+
+
+function PriceForecast({ location, onPrices }) {
+ const [commodity,setCommodity]=useState("Tomato")
+ const [state,setState]=useState(location?.state||"Karnataka")
+ const [district,setDistrict]=useState(location?.district||"")
+ const [result,setResult]=useState(null)
+ const [loading,setLoading]=useState(false)
+ const [error,setError]=useState("")
+ const run=async()=>{
+   setLoading(true);setError("");setResult(null)
+   try{
+     const params=new URLSearchParams({commodity,state,district,days:"7"})
+     const response=await fetch("/api/price-forecast?"+params.toString())
+     const data=await response.json()
+     if(!response.ok)throw new Error(data.error||"Forecast is not ready.")
+     setResult(data)
+   }catch(e){setError(e.message)}finally{setLoading(false)}
+ }
+ return <section className="panel">
+   <div className="official-filters">
+    <label>Crop / commodity<input value={commodity} onChange={e=>setCommodity(e.target.value)} placeholder="Tomato"/></label>
+    <label>State<input value={state} onChange={e=>setState(e.target.value)} placeholder="Karnataka"/></label>
+    <label>District<input value={district} onChange={e=>setDistrict(e.target.value)} placeholder="Optional"/></label>
+    <button onClick={run} disabled={loading||!commodity||!state}>{loading?"Preparing…":"Predict price"}</button>
+   </div>
+   {error&&<div className="official-error"><b>Forecast not ready yet.</b><p>{error}</p><span>Farmezy is collecting the official historical mandi dataset automatically in the background.</span></div>}
+   {result&&<div className="forecast-result">
+    <h3>{result.commodity} · {result.state}</h3>
+    <p>Last observed: <b>₹{Number(result.lastObserved.price).toLocaleString("en-IN")}/quintal</b> on {result.lastObserved.date}</p>
+    <p><small>{result.observations} daily observations · {result.trainingRows.toLocaleString("en-IN")} training rows · {result.model}</small></p>
+    <div className="forecast-cards">{result.predictions.map(item=><article key={item.day}><small>Day {item.day}</small><b>₹{item.price.toLocaleString("en-IN")}</b><span>Range ₹{item.lower.toLocaleString("en-IN")}–₹{item.upper.toLocaleString("en-IN")}</span></article>)}</div>
+   </div>}
+   <button className="link" onClick={onPrices}>Check official observed prices →</button>
+ </section>
+}
