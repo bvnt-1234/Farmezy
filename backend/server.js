@@ -411,9 +411,9 @@ const server = http.createServer(async (req, res) => {
     for (let i = 0; i < 5 && !rows.length; i++) {
       const date = new Date(base)
       date.setDate(base.getDate() - i)
-      const payload = await agmarknetRequest("GET", "/prices-and-arrivals/commodity-market/daily-report-state", {
+      const payload = await agmarknetRequest("GET", "/prices-and-arrivals/commodity-wise/daily-report-state", {
         date: date.toISOString().slice(0, 10),
-        state: stateId,
+        stateIds: stateId,
         includeExcel: "false"
       })
       rows = extractPriceRows(payload)
@@ -454,6 +454,44 @@ const server = http.createServer(async (req, res) => {
     return
   } catch (error) {
     console.warn("Agmarknet live source failed:", error.message)
+  }
+
+  // If live providers are unavailable, use the locally collected official history.
+  // This is explicitly marked as cached and never presented as live.
+  try {
+    const historyFile = path.join(dataDir, "mandi-history.json")
+    if (existsSync(historyFile)) {
+      const history = JSON.parse(readFileSync(historyFile, "utf8"))
+      const historyRows = Array.isArray(history.rows) ? history.rows : []
+      const wantedCommodity = commodity.toLowerCase()
+      const wantedState = state.toLowerCase()
+      const wantedDistrict = district.toLowerCase().replace("banglore", "bangalore")
+      let localRows = historyRows.filter(row =>
+        String(row.commodity || "").toLowerCase() === wantedCommodity &&
+        String(row.state || "").toLowerCase() === wantedState
+      )
+      if (wantedDistrict) {
+        const districtRows = localRows.filter(row =>
+          String(row.district || "").toLowerCase().replace("banglore", "bangalore").includes(wantedDistrict)
+        )
+        if (districtRows.length) localRows = districtRows
+      }
+      localRows.sort((a, b) => String(b.arrival_date || "").localeCompare(String(a.arrival_date || "")))
+      if (localRows.length) {
+        const page = localRows.slice(offset, offset + limit)
+        res.writeHead(200).end(JSON.stringify({
+          records: page,
+          total: localRows.length,
+          total_count: localRows.length,
+          source: "Farmezy official historical cache",
+          live: false,
+          cached: true
+        }))
+        return
+      }
+    }
+  } catch (error) {
+    console.warn("Historical price cache failed:", error.message)
   }
 
   // Prefer the Government of India's live data.gov.in feed.
