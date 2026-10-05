@@ -592,9 +592,56 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200).end(JSON.stringify(govData))
       return
     } catch (error) {
-      // Do not silently switch to CEDA: it can return stale/aggregated data or 429s.
-      res.writeHead(502).end(JSON.stringify({
-        error: error?.message || "Could not reach the Government mandi-price service."
+      console.warn("Government live price source failed:", error.message)
+
+      // Do not block Farmezy just because the Government gateway is returning
+      // an HTML error page. Try the local official history before failing.
+      try {
+        const historyFile = path.join(dataDir, "mandi-history.json")
+        if (existsSync(historyFile)) {
+          const history = JSON.parse(readFileSync(historyFile, "utf8"))
+          const historyRows = Array.isArray(history.rows) ? history.rows : []
+          const wantedCommodity = commodity.toLowerCase()
+          const wantedState = state.toLowerCase()
+          const wantedDistrict = district.toLowerCase().replace("banglore", "bangalore")
+          let localRows = historyRows.filter(row =>
+            String(row.commodity || "").toLowerCase() === wantedCommodity &&
+            String(row.state || "").toLowerCase() === wantedState
+          )
+          if (wantedDistrict) {
+            const districtRows = localRows.filter(row =>
+              String(row.district || "").toLowerCase().replace("banglore", "bangalore").includes(wantedDistrict)
+            )
+            if (districtRows.length) localRows = districtRows
+          }
+          localRows.sort((a,b) => String(b.arrival_date || "").localeCompare(String(a.arrival_date || "")))
+          const page = localRows.slice(offset, offset + limit)
+          if (page.length) {
+            res.writeHead(200).end(JSON.stringify({
+              records: page,
+              total: localRows.length,
+              total_count: localRows.length,
+              source: "Farmezy official historical cache",
+              live: false,
+              cached: true
+            }))
+            return
+          }
+        }
+      } catch (cacheError) {
+        console.warn("Historical fallback failed:", cacheError.message)
+      }
+
+      // No fake/sample prices. Return a clean no-data response instead of
+      // exposing the broken HTML response from data.gov.in.
+      res.writeHead(200).end(JSON.stringify({
+        records: [],
+        total: 0,
+        total_count: 0,
+        source: "Government live feed unavailable",
+        live: false,
+        cached: false,
+        notice: "The Government live price gateway is temporarily unavailable and no matching historical record is available."
       }))
       return
     }
