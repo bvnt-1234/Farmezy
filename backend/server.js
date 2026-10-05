@@ -335,7 +335,12 @@ const server = http.createServer(async (req, res) => {
       const raw = await govResponse.text()
       let govPayload = {}
       try { govPayload = raw ? JSON.parse(raw) : {} } catch {
-        throw new Error("Government price API returned a non-JSON response.")
+        const contentType = govResponse.headers.get("content-type") || "unknown content-type"
+        const preview = raw.replace(/\s+/g, " ").slice(0, 180)
+        throw new Error(
+          "Government price API returned a non-JSON response (HTTP " +
+          govResponse.status + ", " + contentType + "). Response: " + preview
+        )
       }
 
       if (!govResponse.ok) {
