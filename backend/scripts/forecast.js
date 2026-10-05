@@ -2,10 +2,13 @@ import { existsSync, readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-const file = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."), "data", "mandi-history.json")
-if (!existsSync(file)) throw new Error("Historical mandi dataset not found. Run: node backend/scripts/collect-mandi-history.js")
+const dataRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
+const file = path.join(dataRoot, "data", "mandi-history.json")
+const userFile = path.join(dataRoot, "data", "user-mandi-history.json")
+const sourceFile = existsSync(file) ? file : (existsSync(userFile) ? userFile : null)
+if (!sourceFile) throw new Error("Historical mandi dataset not found.")
 
-const data = JSON.parse(readFileSync(file, "utf8"))
+const data = JSON.parse(readFileSync(sourceFile, "utf8"))
 const rows = Array.isArray(data.rows) ? data.rows : []
 
 export function forecastPrice({ commodity, state, district = "", days = 7 }) {
@@ -58,7 +61,7 @@ export function forecastPrice({ commodity, state, district = "", days = 7 }) {
     district: district || "state average",
     trainingRows: rows.length,
     observations: points.length,
-    model: "30%-bounded linear trend on the latest 180 daily observations",
+    model: "Seasonal historical baseline + bounded linear trend on available observations",
     lastObserved: points.at(-1),
     predictions
   }
