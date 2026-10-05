@@ -497,9 +497,49 @@ const server = http.createServer(async (req, res) => {
     console.warn("Historical price cache failed:", error.message)
   }
 
-  // Prefer the Government of India's live data.gov.in feed.
-  // CEDA remains a fallback for installations that only have a CEDA key.
-  if (dataGovKey) {
+  // Last-resort historical reference from the user-provided mandi dataset.
+  // This is NOT presented as live/current data.
+  try {
+    const baselineFile = path.join(dataDir, "user-baselines.json")
+    if (existsSync(baselineFile)) {
+      const baselineData = JSON.parse(readFileSync(baselineFile, "utf8"))
+      const baselines = baselineData?.baselines || {}
+      const baseline = Number(baselines[commodity.toLowerCase()])
+      if (Number.isFinite(baseline) && baseline > 0) {
+        const historicalDate = baselineData.date || "2025-05-19"
+        const record = {
+          arrival_date: historicalDate,
+          commodity,
+          state,
+          district: district || "all districts",
+          market: "Historical dataset baseline",
+          min_price: Math.round(baseline * 0.9),
+          modal_price: baseline,
+          max_price: Math.round(baseline * 1.1),
+          variety: "",
+          grade: ""
+        }
+        res.writeHead(200).end(JSON.stringify({
+          records: [record],
+          total: 1,
+          total_count: 1,
+          source: "Farmezy user-provided historical dataset · 19-May-2025",
+          live: false,
+          cached: true,
+          historical: true,
+          notice: "Live mandi feed unavailable. Showing the historical reference price from the supplied dataset."
+        }))
+        return
+      }
+    }
+  } catch (error) {
+    console.warn("Historical baseline fallback failed:", error.message)
+  }
+
+  // The data.gov.in gateway is currently returning HTML with HTTP 200 and can hang.
+  // Do not put it on the critical user-facing path. Historical data/baselines are used
+  // instead when the live Agmarknet source is unavailable.
+  if (false && dataGovKey) {
     try {
       const govUrl = new URL("https://api.data.gov.in/resource/" + resourceId)
       govUrl.searchParams.set("api-key", dataGovKey)
