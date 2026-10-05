@@ -323,7 +323,7 @@ const server = http.createServer(async (req, res) => {
       govUrl.searchParams.set("limit", String(Math.min(1000, limit)))
       govUrl.searchParams.set("offset", String(offset))
       govUrl.searchParams.set("sort[arrival_date]", "desc")
-      govUrl.searchParams.set("filters[state]", normalizedState)
+      govUrl.searchParams.set("filters[state.keyword]", normalizedState)
       govUrl.searchParams.set("filters[commodity]", normalizedCommodity)
       if (normalizedDistrict) govUrl.searchParams.set("filters[district]", normalizedDistrict)
       if (market) govUrl.searchParams.set("filters[market]", market)
