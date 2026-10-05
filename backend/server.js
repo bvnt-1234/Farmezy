@@ -280,6 +280,41 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  if (requestUrl.pathname === "/api/mandi-health" && req.method === "GET") {
+    const key = process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY || ""
+    if (!key) {
+      res.writeHead(503).end(JSON.stringify({ ok: false, keyLoaded: false, error: "DATA_GOV key is not loaded." }))
+      return
+    }
+    try {
+      const healthUrl = new URL("https://api.data.gov.in/resource/" + resourceId)
+      healthUrl.searchParams.set("api-key", key)
+      healthUrl.searchParams.set("format", "json")
+      healthUrl.searchParams.set("limit", "1")
+      const response = await fetch(healthUrl, {
+        headers: { Accept: "application/json", "User-Agent": "Farmezy/1.0" },
+        signal: AbortSignal.timeout(15000)
+      })
+      const raw = await response.text()
+      const contentType = response.headers.get("content-type") || ""
+      let payload = null
+      try { payload = raw ? JSON.parse(raw) : null } catch {}
+      res.writeHead(200).end(JSON.stringify({
+        ok: response.ok && !!payload,
+        keyLoaded: true,
+        keyLength: key.length,
+        httpStatus: response.status,
+        contentType,
+        json: !!payload,
+        recordCount: Array.isArray(payload?.records) ? payload.records.length : 0,
+        message: payload?.message || payload?.error?.message || (!payload ? raw.replace(/\s+/g, " ").slice(0, 220) : "")
+      }))
+    } catch (error) {
+      res.writeHead(502).end(JSON.stringify({ ok: false, keyLoaded: true, keyLength: key.length, error: error?.message || "Government API check failed." }))
+    }
+    return
+  }
+
   if (requestUrl.pathname !== "/api/mandi-prices") {
     res.writeHead(404).end(JSON.stringify({ error: "Endpoint not found." }))
     return
