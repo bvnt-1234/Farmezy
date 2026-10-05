@@ -348,6 +348,114 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  // Primary live source: Agmarknet 2.0 public backend.
+  async function agmarknetRequest(method, endpoint, params = {}) {
+    const url = new URL("https://api.agmarknet.gov.in/v1" + endpoint)
+    Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, String(value)))
+    const response = await fetch(url, {
+      method,
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        Origin: "https://agmarknet.gov.in",
+        Referer: "https://agmarknet.gov.in/",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/142.0.0.0 Safari/537.36"
+      },
+      signal: AbortSignal.timeout(20000)
+    })
+    const raw = await response.text()
+    let payload = null
+    try { payload = raw ? JSON.parse(raw) : null } catch {}
+    if (!response.ok) throw new Error("Agmarknet HTTP " + response.status + ": " + raw.replace(/\s+/g, " ").slice(0, 220))
+    if (!payload) throw new Error("Agmarknet returned a non-JSON response.")
+    return payload
+  }
+
+  function findArrays(value, output = []) {
+    if (!value || typeof value !== "object") return output
+    if (Array.isArray(value)) output.push(value)
+    else Object.values(value).forEach(item => findArrays(item, output))
+    return output
+  }
+
+  function findIdByName(payload, wanted, nameKeys, idKeys) {
+    const target = String(wanted).trim().toLowerCase()
+    for (const list of findArrays(payload)) for (const item of list) {
+      if (!item || typeof item !== "object") continue
+      const name = nameKeys.map(key => item[key]).find(value => value !== undefined && value !== null)
+      if (String(name || "").trim().toLowerCase() === target) {
+        const id = idKeys.map(key => item[key]).find(value => value !== undefined && value !== null)
+        if (id !== undefined) return id
+      }
+    }
+    return null
+  }
+
+  function extractPriceRows(payload) {
+    const rows = []
+    for (const list of findArrays(payload)) for (const item of list) {
+      if (!item || typeof item !== "object") continue
+      const modal = item.modal_price ?? item.modalPrice ?? item.modal ?? item.modal_rate
+      if (modal !== undefined || item.min_price !== undefined || item.minPrice !== undefined) rows.push(item)
+    }
+    return rows
+  }
+
+  async function fetchAgmarknetPrices() {
+    const filtersPayload = await agmarknetRequest("GET", "/daily-price-arrival/filters")
+    const stateId = findIdByName(filtersPayload, state, ["state_name","stateName","name","state"], ["state_id","stateId","id"])
+    const commodityId = findIdByName(filtersPayload, commodity, ["commodity_name","commodityName","name","commodity"], ["commodity_id","commodityId","id"])
+    if (stateId === null || commodityId === null) throw new Error("Agmarknet could not map state/commodity.")
+
+    const base = new Date()
+    let rows = []
+    for (let i = 0; i < 5 && !rows.length; i++) {
+      const date = new Date(base)
+      date.setDate(base.getDate() - i)
+      const payload = await agmarknetRequest("GET", "/prices-and-arrivals/commodity-market/daily-report-state", {
+        date: date.toISOString().slice(0, 10),
+        state: stateId,
+        includeExcel: "false"
+      })
+      rows = extractPriceRows(payload)
+    }
+
+    const wantedCommodity = commodity.toLowerCase()
+    const wantedDistrict = district.toLowerCase().replace("banglore", "bangalore")
+    const wantedMarket = market.toLowerCase()
+
+    const records = rows.map(row => ({
+      arrival_date: String(row.date ?? row.arrival_date ?? row.arrivalDate ?? "").slice(0, 10),
+      commodity: String(row.commodity ?? row.commodity_name ?? row.commodityName ?? commodity),
+      state: String(row.state ?? row.state_name ?? row.stateName ?? state),
+      district: String(row.district ?? row.district_name ?? row.districtName ?? ""),
+      market: String(row.market ?? row.market_name ?? row.marketName ?? ""),
+      min_price: row.min_price ?? row.minPrice ?? row.minimum_price ?? "",
+      modal_price: row.modal_price ?? row.modalPrice ?? row.modal ?? row.modal_rate ?? "",
+      max_price: row.max_price ?? row.maxPrice ?? row.maximum_price ?? "",
+      variety: String(row.variety ?? row.variety_name ?? ""),
+      grade: String(row.grade ?? "")
+    })).filter(row => row.commodity.toLowerCase().includes(wantedCommodity))
+      .filter(row => !wantedDistrict || row.district.toLowerCase().includes(wantedDistrict))
+      .filter(row => !wantedMarket || row.market.toLowerCase().includes(wantedMarket))
+
+    return {
+      records: records.slice(offset, offset + limit),
+      total: records.length,
+      total_count: records.length,
+      source: "AGMARKNET 2.0 · Government of India",
+      live: true,
+      cached: false
+    }
+  }
+
+  try {
+    const agmarknetData = await fetchAgmarknetPrices()
+    res.writeHead(200).end(JSON.stringify(agmarknetData))
+    return
+  } catch (error) {
+    console.warn("Agmarknet live source failed:", error.message)
+  }
+
   // Prefer the Government of India's live data.gov.in feed.
   // CEDA remains a fallback for installations that only have a CEDA key.
   if (dataGovKey) {
