@@ -363,7 +363,7 @@ const server = http.createServer(async (req, res) => {
         Referer: "https://agmarknet.gov.in/",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/142.0.0.0 Safari/537.36"
       },
-      signal: AbortSignal.timeout(20000)
+      signal: AbortSignal.timeout(5000)
     })
     const raw = await response.text()
     let payload = null
