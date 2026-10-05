@@ -56,12 +56,15 @@ try {
 
 function startHistoricalCollector() {
   if (!(process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY)) return
-  const historyFile = path.join(dataDir, "mandi-history.json")
-  if (existsSync(historyFile)) return
   const script = path.join(path.dirname(fileURLToPath(import.meta.url)), "scripts", "collect-mandi-history.js")
-  const child = spawn(process.execPath, [script], { stdio: "inherit" })
-  child.on("error", error => console.error("Historical mandi collector:", error.message))
-  child.on("exit", code => console.log("Historical mandi collector finished with code", code))
+  const run = () => {
+    const child = spawn(process.execPath, [script], { stdio: "inherit" })
+    child.on("error", error => console.error("Historical mandi collector:", error.message))
+    child.on("exit", code => console.log("Historical mandi collector finished with code", code))
+  }
+  if (!existsSync(path.join(dataDir, "mandi-history.json"))) run()
+  // Automatically refresh the official history once per day.
+  setInterval(run, 24 * 60 * 60 * 1000).unref()
 }
 
 startHistoricalCollector()
