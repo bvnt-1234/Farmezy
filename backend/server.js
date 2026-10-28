@@ -72,6 +72,14 @@ startHistoricalCollector()
 const server = http.createServer(async (req, res) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8")
   res.setHeader("Cache-Control", "no-store")
+  res.setHeader("Access-Control-Allow-Origin", "*")
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type")
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204).end()
+    return
+  }
   const requestUrl = new URL(req.url, "http://localhost")
 
   if (requestUrl.pathname === "/api/listings" && req.method === "GET") {
@@ -199,6 +207,7 @@ const server = http.createServer(async (req, res) => {
         farmerState: String(data.farmerState || "").trim(),
         farmerLat: String(data.farmerLat || "").trim(),
         farmerLng: String(data.farmerLng || "").trim(),
+        image: String(data.image || data.imageUrl || "").trim(),
         createdAt: new Date().toISOString(),
       }
 
@@ -207,6 +216,28 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(201).end(JSON.stringify({ listing: item }))
     } catch {
       res.writeHead(400).end(JSON.stringify({ error: "Invalid listing data." }))
+    }
+    return
+  }
+
+  if ((requestUrl.pathname.startsWith("/api/listings/") || requestUrl.pathname === "/api/listings") && req.method === "DELETE") {
+    try {
+      const pathId = requestUrl.pathname.replace(/^\/api\/listings\/?/, "")
+      const id = pathId || requestUrl.searchParams.get("id")
+      if (!id) {
+        res.writeHead(400).end(JSON.stringify({ error: "Missing listing id." }))
+        return
+      }
+      const index = listings.findIndex(item => String(item.id) === String(id))
+      if (index === -1) {
+        res.writeHead(404).end(JSON.stringify({ error: "Listing not found." }))
+        return
+      }
+      const [deleted] = listings.splice(index, 1)
+      saveListings(listings)
+      res.writeHead(200).end(JSON.stringify({ success: true, listing: deleted }))
+    } catch {
+      res.writeHead(500).end(JSON.stringify({ error: "Could not delete listing." }))
     }
     return
   }
