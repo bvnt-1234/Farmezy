@@ -351,7 +351,7 @@ function CropCameraCapture({ image, onCapture, onClear }) {
         streamRef.current = stream
         if (videoRef.current) {
           videoRef.current.srcObject = stream
-          videoRef.current.play().catch(() => {})
+          videoRef.current.play().catch(() => { })
         }
       } catch (err) {
         if (active) {
@@ -1891,8 +1891,8 @@ function SupabaseAuthScreen({ lang, setLang, t, onAuthorized }) {
               {loading
                 ? "Authorizing with Supabase…"
                 : mode === "signup"
-                ? `${tSafe("signUp")} & Continue as ${selectedRole} →`
-                : `${tSafe("signIn")} as ${selectedRole} →`}
+                  ? `${tSafe("signUp")} & Continue as ${selectedRole} →`
+                  : `${tSafe("signIn")} as ${selectedRole} →`}
             </button>
           </form>
 
