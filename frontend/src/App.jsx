@@ -288,6 +288,28 @@ export const translations = {
   }
 }
 
+export function getTimeGreeting(language = "English") {
+  const hour = new Date().getHours()
+  const isMorning = hour >= 4 && hour < 12
+  const isAfternoon = hour >= 12 && hour < 17
+
+  switch (language) {
+    case "हिन्दी":
+      return isMorning ? "शुभ प्रभात" : isAfternoon ? "शुभ दोपहर" : "शुभ संध्या"
+    case "ಕನ್ನಡ":
+      return isMorning ? "ಶುಭೋದಯ" : isAfternoon ? "ಶುಭ ಮಧ್ಯಾಹ್ನ" : "ಶುಭ ಸಂಜೆ"
+    case "తెలుగు":
+      return isMorning ? "శుభోదయం" : isAfternoon ? "శుభ మధ్యాహ్నం" : "శుభ సాయంత్రం"
+    case "தமிழ்":
+      return isMorning ? "காலை வணக்கம்" : isAfternoon ? "மதிய வணக்கம்" : "மாலை வணக்கம்"
+    case "मराठी":
+      return isMorning ? "शुभ प्रभात" : isAfternoon ? "शुभ दुपार" : "शुभ संध्याकाळ"
+    case "English":
+    default:
+      return isMorning ? "Good morning" : isAfternoon ? "Good afternoon" : "Good evening"
+  }
+}
+
 function CropCameraCapture({ image, onCapture, onClear }) {
   const [isOpen, setIsOpen] = useState(false)
   const [facingMode, setFacingMode] = useState("environment")
@@ -533,7 +555,10 @@ function App() {
   const [roleAuthError, setRoleAuthError] = useState("")
   const [roleAuthLoading, setRoleAuthLoading] = useState(false)
 
-  const t = (key) => translations[lang]?.[key] || translations.English[key] || key
+  const t = (key) => {
+    if (key === "greeting") return getTimeGreeting(lang)
+    return translations[lang]?.[key] || translations.English[key] || key
+  }
 
   // Supabase Authentication & Session Management
   useEffect(() => {
@@ -670,8 +695,8 @@ function App() {
 
   const formatDistance = (km) => {
     if (km === null || km === undefined || Number.isNaN(km)) return null
-    if (km < 0.5) return `📍 ${t("nearby")}`
-    if (km < 1.0) return `📍 ~1 ${t("kmAway")}`
+    if (km < 0.3) return `📍 At pickup location (< 300m)`
+    if (km < 1.0) return `📍 ${t("nearby")}`
     return `📍 ${km.toFixed(1)} ${t("kmAway")}`
   }
 
@@ -1938,7 +1963,13 @@ const commodityAliases = [
   { name: "Banana", aliases: ["banana", "kela", "vazhaipazham", "arati pandu"] },
   { name: "Mango", aliases: ["mango", "aam", "mambazham", "mamidi"] },
   { name: "Wheat", aliases: ["wheat", "gehun", "godhumai", "godhumalu"] },
-  { name: "Rice", aliases: ["rice", "chawal", "arisi", "biyyam", "akki", "paddy"] }
+  { name: "Rice", aliases: ["rice", "chawal", "arisi", "biyyam", "akki", "paddy"] },
+  { name: "Ridgeguard(Tori)", aliases: ["ridge gourd", "ridgeguard", "ridgegourd", "tori", "beerakaya", "hirekayi"] },
+  { name: "Knool Khol", aliases: ["knool khol", "kohlrabi", "nolkol", "navalkol"] },
+  { name: "Bengal Gram(Gram)(Whole)", aliases: ["bengal gram", "chana", "gram", "kadale"] },
+  { name: "Gur(Jaggery)", aliases: ["jaggery", "gur", "bella", "bellam"] },
+  { name: "Arecanut(Betelnut/Supari)", aliases: ["arecanut", "supari", "adike", "betelnut"] },
+  { name: "Elephant Yam (Suran)", aliases: ["elephant yam", "suran", "yam", "suvarna gedde", "kanda"] }
 ]
 
 const stateAliases = [

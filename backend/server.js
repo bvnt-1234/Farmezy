@@ -70,25 +70,53 @@ startHistoricalCollector()
 
 // Curated high-res photos for common Indian vegetables, fruits, and commodities
 const curatedCropImages = {
-  ginger: { url: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=640&q=75", alt: "Fresh ginger root", photographer: "Unsplash" },
-  "ladies finger": { url: "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?auto=format&fit=crop&w=640&q=75", alt: "Fresh ladies finger / okra pods", photographer: "Unsplash" },
-  "lady finger": { url: "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?auto=format&fit=crop&w=640&q=75", alt: "Fresh lady finger pods", photographer: "Unsplash" },
-  "lady s finger": { url: "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?auto=format&fit=crop&w=640&q=75", alt: "Fresh lady's finger pods", photographer: "Unsplash" },
-  ladies: { url: "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?auto=format&fit=crop&w=640&q=75", alt: "Fresh ladies finger / okra", photographer: "Unsplash" },
-  bhindi: { url: "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?auto=format&fit=crop&w=640&q=75", alt: "Fresh bhindi / okra", photographer: "Unsplash" },
-  okra: { url: "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?auto=format&fit=crop&w=640&q=75", alt: "Fresh okra pods", photographer: "Unsplash" },
-  drumstick: { url: "https://images.unsplash.com/photo-1628771065518-0d82f1938462?auto=format&fit=crop&w=640&q=75", alt: "Fresh green drumsticks / moringa", photographer: "Unsplash" },
-  moringa: { url: "https://images.unsplash.com/photo-1628771065518-0d82f1938462?auto=format&fit=crop&w=640&q=75", alt: "Fresh moringa pods", photographer: "Unsplash" },
+  ginger: { url: "/ginger.jpg", alt: "Fresh ginger rhizome", photographer: "Wikimedia Commons", link: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg" },
+  "ginger green": { url: "/ginger.jpg", alt: "Fresh green ginger rhizome", photographer: "Wikimedia Commons", link: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg" },
+  "ginger dry": { url: "/ginger.jpg", alt: "Dry ginger rhizome", photographer: "Wikimedia Commons", link: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg" },
+  adrak: { url: "/ginger.jpg", alt: "Fresh adrak / ginger", photographer: "Wikimedia Commons" },
+  inji: { url: "/ginger.jpg", alt: "Fresh ginger", photographer: "Wikimedia Commons" },
+  allam: { url: "/ginger.jpg", alt: "Fresh ginger", photographer: "Wikimedia Commons" },
+  shunti: { url: "/ginger.jpg", alt: "Fresh shunti / ginger", photographer: "Wikimedia Commons" },
+
+  "ladies finger": { url: "/ladies_finger.jpg", alt: "Fresh ladies finger / okra pods", photographer: "Wikimedia Commons", link: "https://upload.wikimedia.org/wikipedia/commons/3/32/Bucket_of_raw_okra_pods.jpg" },
+  "lady finger": { url: "/ladies_finger.jpg", alt: "Fresh lady finger pods", photographer: "Wikimedia Commons", link: "https://upload.wikimedia.org/wikipedia/commons/3/32/Bucket_of_raw_okra_pods.jpg" },
+  "lady s finger": { url: "/ladies_finger.jpg", alt: "Fresh lady's finger pods", photographer: "Wikimedia Commons", link: "https://upload.wikimedia.org/wikipedia/commons/3/32/Bucket_of_raw_okra_pods.jpg" },
+  ladies: { url: "/ladies_finger.jpg", alt: "Fresh ladies finger / okra", photographer: "Wikimedia Commons" },
+  bhindi: { url: "/ladies_finger.jpg", alt: "Fresh bhindi / okra", photographer: "Wikimedia Commons" },
+  bhendi: { url: "/ladies_finger.jpg", alt: "Fresh bhindi / okra", photographer: "Wikimedia Commons" },
+  vendakkai: { url: "/ladies_finger.jpg", alt: "Fresh vendakkai / okra", photographer: "Wikimedia Commons" },
+  okra: { url: "/ladies_finger.jpg", alt: "Fresh okra pods", photographer: "Wikimedia Commons" },
+
+  tomato: { url: "/tomato.jpg", alt: "Fresh red tomatoes", photographer: "Unsplash", link: "https://images.unsplash.com/photo-1582284540020-8acbe03f4924" },
+  onion: { url: "/onion.jpg", alt: "Fresh red onions", photographer: "Unsplash", link: "https://images.unsplash.com/photo-1683355739329-cea18ba93f02" },
+  potato: { url: "/potato.jpg", alt: "Fresh potatoes", photographer: "Unsplash", link: "https://images.unsplash.com/photo-1686544303805-54c175c60d8f" },
+  carrot: { url: "/carrot.jpg", alt: "Fresh carrots", photographer: "Unsplash", link: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37" },
+  cabbage: { url: "/cabbage.jpg", alt: "Fresh green cabbage", photographer: "Unsplash", link: "https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f" },
+
+  ridgeguard: { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Luffa_acutangula.jpg/640px-Luffa_acutangula.jpg", alt: "Fresh ridge gourd / tori", photographer: "Wikimedia" },
+  ridgegourd: { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Luffa_acutangula.jpg/640px-Luffa_acutangula.jpg", alt: "Fresh ridge gourd / tori", photographer: "Wikimedia" },
+  tori: { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Luffa_acutangula.jpg/640px-Luffa_acutangula.jpg", alt: "Fresh ridge gourd / tori", photographer: "Wikimedia" },
+
+  "knool khol": { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Kohlrabi.jpg/640px-Kohlrabi.jpg", alt: "Fresh knool khol / kohlrabi", photographer: "Wikimedia" },
+  kohlrabi: { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Kohlrabi.jpg/640px-Kohlrabi.jpg", alt: "Fresh kohlrabi", photographer: "Wikimedia" },
+
+  "elephant yam": { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Amorphophallus_paeoniifolius_corms_-_Kerala.jpg/640px-Amorphophallus_paeoniifolius_corms_-_Kerala.jpg", alt: "Elephant yam / suran", photographer: "Wikimedia" },
+  suran: { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Amorphophallus_paeoniifolius_corms_-_Kerala.jpg/640px-Amorphophallus_paeoniifolius_corms_-_Kerala.jpg", alt: "Suran yam", photographer: "Wikimedia" },
+  amphophalus: { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Amorphophallus_paeoniifolius_corms_-_Kerala.jpg/640px-Amorphophallus_paeoniifolius_corms_-_Kerala.jpg", alt: "Yam", photographer: "Wikimedia" },
+
+  "bengal gram": { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Bengal_Gram.jpg/640px-Bengal_Gram.jpg", alt: "Bengal gram / chana", photographer: "Wikimedia" },
+  "green gram": { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Bengal_Gram.jpg/640px-Bengal_Gram.jpg", alt: "Green gram / moong", photographer: "Wikimedia" },
+  arecanut: { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Areca_nut_in_a_basket.jpg/640px-Areca_nut_in_a_basket.jpg", alt: "Arecanut / supari", photographer: "Wikimedia" },
+  gur: { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Jaggery_blocks.jpg/640px-Jaggery_blocks.jpg", alt: "Gur / Jaggery blocks", photographer: "Wikimedia" },
+  jaggery: { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Jaggery_blocks.jpg/640px-Jaggery_blocks.jpg", alt: "Jaggery blocks", photographer: "Wikimedia" },
+
+  drumstick: { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Moringa_oleifera_pods.JPG/640px-Moringa_oleifera_pods.JPG", alt: "Fresh green drumsticks / moringa", photographer: "Wikimedia" },
+  moringa: { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Moringa_oleifera_pods.JPG/640px-Moringa_oleifera_pods.JPG", alt: "Fresh moringa pods", photographer: "Wikimedia" },
   broccoli: { url: "https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?auto=format&fit=crop&w=640&q=75", alt: "Fresh green broccoli", photographer: "Unsplash" },
   garlic: { url: "https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?auto=format&fit=crop&w=640&q=75", alt: "Fresh garlic bulbs", photographer: "Unsplash" },
-  tomato: { url: "https://images.unsplash.com/photo-1582284540020-8acbe03f4924?auto=format&fit=crop&w=640&q=75", alt: "Fresh red tomatoes", photographer: "Unsplash" },
-  onion: { url: "https://images.unsplash.com/photo-1683355739329-cea18ba93f02?auto=format&fit=crop&w=640&q=75", alt: "Fresh onions", photographer: "Unsplash" },
-  potato: { url: "https://images.unsplash.com/photo-1686544303805-54c175c60d8f?auto=format&fit=crop&w=640&q=75", alt: "Fresh potatoes", photographer: "Unsplash" },
-  carrot: { url: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=640&q=75", alt: "Fresh carrots", photographer: "Unsplash" },
   cucumber: { url: "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=640&q=75", alt: "Fresh cucumbers", photographer: "Unsplash" },
   cucumbar: { url: "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=640&q=75", alt: "Fresh cucumber / kheera", photographer: "Unsplash" },
   kheera: { url: "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=640&q=75", alt: "Fresh cucumber / kheera", photographer: "Unsplash" },
-  cabbage: { url: "https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?auto=format&fit=crop&w=640&q=75", alt: "Fresh green cabbage", photographer: "Unsplash" },
   cauliflower: { url: "https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=640&q=75", alt: "Fresh white cauliflower", photographer: "Unsplash" },
   brinjal: { url: "https://images.unsplash.com/photo-1528823872057-9c018a7a7553?auto=format&fit=crop&w=640&q=75", alt: "Fresh purple brinjal", photographer: "Unsplash" },
   eggplant: { url: "https://images.unsplash.com/photo-1528823872057-9c018a7a7553?auto=format&fit=crop&w=640&q=75", alt: "Fresh eggplant", photographer: "Unsplash" },
@@ -114,6 +142,7 @@ const curatedCropImages = {
   mint: { url: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=640&q=75", alt: "Fresh mint leaves", photographer: "Unsplash" },
   wheat: { url: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=640&q=75", alt: "Golden wheat crop", photographer: "Unsplash" },
   rice: { url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75", alt: "Wholesale rice grains", photographer: "Unsplash" },
+  paddy: { url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75", alt: "Wholesale paddy / rice", photographer: "Unsplash" },
   maize: { url: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=640&q=75", alt: "Fresh corn / maize", photographer: "Unsplash" },
   ragi: { url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75", alt: "Finger millet / ragi", photographer: "Unsplash" },
   cotton: { url: "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=640&q=75", alt: "Fresh cotton crop", photographer: "Unsplash" },
@@ -124,8 +153,8 @@ function findCuratedCropImage(name) {
   const clean = String(name || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").trim()
   const sorted = Object.entries(curatedCropImages).sort((a, b) => b[0].length - a[0].length)
   for (const [key, image] of sorted) {
-    if (clean.includes(key)) {
-      return { ...image, link: "https://unsplash.com" }
+    if ((" " + clean + " ").includes(" " + key + " ") || clean.includes(key)) {
+      return { ...image, link: image.link || "https://unsplash.com" }
     }
   }
   return null
@@ -370,9 +399,9 @@ const server = http.createServer(async (req, res) => {
           }
         } catch {}
 
-        // Fallback default image
+        // Fallback default image: Fresh farm produce basket
         const fallback = {
-          url: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=640&q=75",
+          url: "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&w=640&q=75",
           alt: crop,
           photographer: "Unsplash",
           link: "https://unsplash.com"
@@ -447,6 +476,10 @@ const server = http.createServer(async (req, res) => {
       if ((t === "cucumber" || t === "kheera") && (r.includes("cucumbar") || r.includes("cucumber") || r.includes("kheera"))) return true
       if ((t === "radish" || t === "mooli") && (r.includes("radish") || r.includes("raddish"))) return true
       if ((t === "peas" || t === "matar") && (r.includes("pea") || r.includes("peas"))) return true
+      if ((t.includes("ridge") || t.includes("tori")) && (r.includes("ridge") || r.includes("tori"))) return true
+      if ((t.includes("knool") || t.includes("kohl")) && (r.includes("knool") || r.includes("kohl"))) return true
+      if ((t.includes("gur") || t.includes("jaggery")) && (r.includes("gur") || r.includes("jaggery"))) return true
+      if ((t.includes("yam") || t.includes("suran")) && (r.includes("yam") || r.includes("suran") || r.includes("amphophalus"))) return true
       return false
     }
 
