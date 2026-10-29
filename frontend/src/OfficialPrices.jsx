@@ -1,12 +1,30 @@
-﻿import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 const states = [
-  "Andaman and Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh","Dadra and Nagar Haveli and Daman and Diu","Delhi","Goa","Gujarat","Haryana","Himachal Pradesh","Jammu and Kashmir","Jharkhand","Karnataka","Kerala","Ladakh","Lakshadweep","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal"
+  "Andaman and Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh",
+  "Dadra and Nagar Haveli and Daman and Diu","Delhi","Goa","Gujarat","Haryana","Himachal Pradesh","Jammu and Kashmir",
+  "Jharkhand","Karnataka","Kerala","Ladakh","Lakshadweep","Madhya Pradesh","Maharashtra","Manipur","Meghalaya",
+  "Mizoram","Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura",
+  "Uttar Pradesh","Uttarakhand","West Bengal"
 ]
 
 export default function OfficialPrices({ location, preview = false, onViewAll }) {
-  const [filters, setFilters] = useState(() => ({ commodity: preview ? "Tomato" : "", state: location?.state || "", district: location?.district || "", market: "" }))
-  const [applied, setApplied] = useState(() => ({ commodity: preview ? "Tomato" : "", state: location?.state || "", district: location?.district || "", market: "" }))
+  const defaultState = location?.state || "Karnataka"
+  const defaultDistrict = location?.district || ""
+
+  const [filters, setFilters] = useState(() => ({
+    commodity: "",
+    state: defaultState,
+    district: defaultDistrict,
+    market: ""
+  }))
+  const [applied, setApplied] = useState(() => ({
+    commodity: "",
+    state: defaultState,
+    district: defaultDistrict,
+    market: ""
+  }))
+
   const [records, setRecords] = useState([])
   const [total, setTotal] = useState(null)
   const [offset, setOffset] = useState(0)
@@ -15,43 +33,37 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   const [stateFallback, setStateFallback] = useState(false)
   const [cropImages, setCropImages] = useState({})
 
+  // Update filters if location changes on profile
+  useEffect(() => {
+    if (location?.state && (!applied.state || applied.state === "Karnataka")) {
+      setFilters(prev => ({ ...prev, state: location.state, district: location.district || prev.district }))
+      setApplied(prev => ({ ...prev, state: location.state, district: location.district || prev.district }))
+    }
+  }, [location?.state, location?.district])
+
   const fetchPage = useCallback(async (nextOffset, append) => {
     setLoading(true)
     setError("")
     if (!append) setStateFallback(false)
     try {
-      const params = new URLSearchParams({ limit: "100", offset: String(nextOffset) })
-      Object.entries(applied).forEach(([key, value]) => { if (value.trim()) params.set(key, value.trim()) })
+      const params = new URLSearchParams({ limit: "150", offset: String(nextOffset) })
+      if (applied.state) params.set("state", applied.state.trim())
+      if (applied.district) params.set("district", applied.district.trim())
+      if (applied.commodity) params.set("commodity", applied.commodity.trim())
+      if (applied.market) params.set("market", applied.market.trim())
+
       let response = await fetch("/api/mandi-prices?" + params.toString())
       let payload = await readPriceResponse(response)
       let rows = Array.isArray(payload.records) ? payload.records : []
 
-      // Some CEDA geography versions do not recognize user-entered Bengaluru/Bangalore
-      // district names. Retry without district whenever the district-specific request fails
-      // or returns no records. This keeps the official state-level data usable.
-      if ((!response.ok || !rows.length) && applied.state && applied.district) {
-        const stateParams = new URLSearchParams({
-          limit: "100",
-          offset: String(nextOffset),
-          state: applied.state,
-          commodity: applied.commodity.trim()
-        })
-        if (applied.market.trim()) stateParams.set("market", applied.market.trim())
-
-        const stateResponse = await fetch("/api/mandi-prices?" + stateParams.toString())
-        const statePayload = await readPriceResponse(stateResponse)
-
-        if (stateResponse.ok && Array.isArray(statePayload.records)) {
-          response = stateResponse
-          payload = statePayload
-          rows = statePayload.records
-          setStateFallback(true)
-        }
+      if (payload.district_fallback) {
+        setStateFallback(true)
       }
 
       if (!response.ok) {
         throw new Error(payload.error || "The Government market-price service is unavailable.")
       }
+
       setRecords(current => append ? [...current, ...rows] : rows)
       setTotal(Number(payload.total ?? payload.total_count ?? rows.length))
       setOffset(nextOffset + rows.length)
@@ -64,15 +76,17 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   }, [applied])
 
   useEffect(() => {
-    if (!applied.commodity || !applied.state) {
+    if (!applied.state) {
       setRecords([])
       setTotal(null)
       setError("")
       return
     }
     fetchPage(0, false)
-  }, [fetchPage, applied.commodity, applied.state])
-  const cropCards = [...new Map(records.filter(r => r.commodity).map(r => [r.commodity, r])).values()].slice(0, 4)
+  }, [fetchPage, applied.commodity, applied.state, applied.district, applied.market])
+
+  // Distinct crop cards to showcase vegetables with photos & modal rates
+  const cropCards = [...new Map(records.filter(r => r.commodity).map(r => [r.commodity, r])).values()].slice(0, 8)
   const cropNames = cropCards.map(record => record.commodity).join(",")
 
   useEffect(() => {
@@ -93,55 +107,312 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
     setOffset(0)
   }
 
-  return <div className="official-prices">
-    <div className="official-heading">
-      <div><div className="eyebrow">{preview?"OFFICIAL PRICES NEAR YOU":"GOVERNMENT MARKET DATA"}</div><h1>{preview?"Prices near "+(location?.district||location?.location||"you"):"Official mandi prices."}</h1><p>Daily wholesale prices reported by AGMARKNET for {location?.district?(location.district+", "+location.state):"markets across India"}.</p></div>
-      <span className="official-badge"><i/> GOVERNMENT OF INDIA</span>
+  function filterByCrop(cropName) {
+    setFilters(prev => ({ ...prev, commodity: cropName }))
+    setApplied(prev => ({ ...prev, commodity: cropName }))
+    setOffset(0)
+  }
+
+  function clearCropFilter() {
+    setFilters(prev => ({ ...prev, commodity: "" }))
+    setApplied(prev => ({ ...prev, commodity: "" }))
+    setOffset(0)
+  }
+
+  return (
+    <div className="official-prices">
+      <div className="official-heading">
+        <div>
+          <div className="eyebrow">{preview ? "OFFICIAL PRICES NEAR YOU" : "GOVERNMENT MARKET DATA"}</div>
+          <h1>{preview ? "Prices near " + (location?.district || location?.location || "you") : "Official mandi prices."}</h1>
+          <p>
+            Daily wholesale prices reported by AGMARKNET for all vegetables and crops across{" "}
+            <b>{applied.district ? applied.district + ", " : ""}{applied.state}</b>.
+          </p>
+        </div>
+        <span className="official-badge"><i /> GOVERNMENT OF INDIA</span>
+      </div>
+
+      {!preview && (
+        <form className="official-filters" onSubmit={submit}>
+          <label>
+            Crop / vegetable (optional)
+            <input
+              value={filters.commodity}
+              onChange={e => setFilters({ ...filters, commodity: e.target.value })}
+              placeholder="All vegetables (e.g. Ginger, Tomato)"
+            />
+          </label>
+          <label>
+            State / UT
+            <select value={filters.state} onChange={e => setFilters({ ...filters, state: e.target.value })}>
+              <option value="">All India</option>
+              {states.map(s => <option key={s}>{s}</option>)}
+            </select>
+          </label>
+          <label>
+            District
+            <input
+              value={filters.district}
+              onChange={e => setFilters({ ...filters, district: e.target.value })}
+              placeholder="All districts (e.g. Bengaluru)"
+            />
+          </label>
+          <label>
+            Mandi
+            <input
+              value={filters.market}
+              onChange={e => setFilters({ ...filters, market: e.target.value })}
+              placeholder="All mandis"
+            />
+          </label>
+          <button type="submit" disabled={loading}>{loading ? "Loading…" : "Apply filters"}</button>
+        </form>
+      )}
+
+      {!applied.state ? (
+        <div className="official-empty">
+          <b>Choose a state to load official prices.</b>
+          <p>Farmezy loads daily mandi reports directly from the Government of India feed.</p>
+        </div>
+      ) : null}
+
+      <div className="official-result-bar">
+        <div>
+          <b>
+            {preview
+              ? "Latest reported vegetable prices"
+              : (total === null ? "" : total.toLocaleString("en-IN") + " reported records")}
+          </b>
+          <span>
+            {applied.state || "All India"}
+            {applied.district ? " · " + applied.district : ""}
+            {applied.market ? " · " + applied.market : ""}
+            {applied.commodity ? (
+              <>
+                {" · "}
+                <b>{applied.commodity}</b>{" "}
+                <button
+                  type="button"
+                  onClick={clearCropFilter}
+                  style={{ border: 0, background: "none", color: "#377b4a", cursor: "pointer", textDecoration: "underline", fontSize: 10, padding: 0 }}
+                >
+                  (show all vegetables)
+                </button>
+              </>
+            ) : " · All vegetables & crops"}
+          </span>
+        </div>
+        {!preview && (
+          <button onClick={() => fetchPage(0, false)} disabled={loading}>
+            ↻ Refresh
+          </button>
+        )}
+      </div>
+
+      {stateFallback && (
+        <p className="official-fallback">
+          ⓘ Showing official prices from across {applied.state}. (No specific records reported today for {applied.district} mandi).
+        </p>
+      )}
+
+      {error && (
+        <div className="official-error">
+          <b>Prices could not be loaded.</b>
+          <p>{error}</p>
+          <span>Start the API server or check network connection. This page connects to the official Government AGMARKNET feed.</span>
+        </div>
+      )}
+
+      {!error && records.length > 0 && (
+        <section className="crop-price-cards">
+          {cropCards.map(r => {
+            const image = cropImages[r.commodity]
+            return (
+              <article
+                className="crop-price-card"
+                key={r.commodity}
+                onClick={() => !preview && filterByCrop(r.commodity)}
+                style={{ cursor: preview ? "default" : "pointer" }}
+                title={preview ? "" : "Click to view all records for " + r.commodity}
+              >
+                <div className="crop-photo">
+                  <img
+                    src={image?.url || cropPhoto(r.commodity)}
+                    alt={image?.alt || r.commodity}
+                    onError={event => {
+                      event.currentTarget.onerror = null
+                      event.currentTarget.src = cropPhoto(r.commodity)
+                    }}
+                  />
+                  <span>{cropSymbol(r.commodity)}</span>
+                </div>
+                <div className="crop-card-copy">
+                  <small>{r.market || "Reported mandi"}</small>
+                  <b>{r.commodity}</b>
+                  <span>Modal <strong>{money(r.modal_price)}</strong> / quintal</span>
+                  <small>{r.district ? r.district + ", " : ""}{r.state}</small>
+                  {image && (
+                    <a className="image-credit" href={image.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>
+                      Image: {image.photographer}
+                    </a>
+                  )}
+                </div>
+              </article>
+            )
+          })}
+          {preview && onViewAll && (
+            <button className="crop-card-more" onClick={onViewAll}>
+              View all vegetable prices →
+            </button>
+          )}
+        </section>
+      )}
+
+      {!preview && !error && (
+        <div className="official-table-wrap">
+          <table className="official-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Commodity / Vegetable</th>
+                <th>State</th>
+                <th>District</th>
+                <th>Mandi</th>
+                <th>Min ₹/quintal</th>
+                <th>Modal ₹/quintal</th>
+                <th>Max ₹/quintal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {records.map((r, i) => (
+                <tr key={[r.state, r.district, r.market, r.commodity, r.arrival_date, i].join("-")}>
+                  <td>{r.arrival_date || "—"}</td>
+                  <td>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <span>{cropSymbol(r.commodity)}</span>
+                      <b>{r.commodity || "—"}</b>
+                    </span>
+                    <small>{r.variety || r.grade || ""}</small>
+                  </td>
+                  <td>{r.state || "—"}</td>
+                  <td>{r.district || "—"}</td>
+                  <td>{r.market || "—"}</td>
+                  <td>{money(r.min_price)}</td>
+                  <td className="modal-price">{money(r.modal_price)}</td>
+                  <td>{money(r.max_price)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!records.length && !loading && !error && (
+            <div className="official-empty">No reported mandi records match these filters.</div>
+          )}
+        </div>
+      )}
+
+      {!preview && records.length > 0 && (total === null || offset < total) && (
+        <button className="official-more" onClick={() => fetchPage(offset, true)} disabled={loading}>
+          {loading ? "Loading…" : "Load more official records"}
+        </button>
+      )}
+
+      <p className="official-source">
+        Source:{" "}
+        <a href="https://www.data.gov.in/catalog/current-daily-price-various-commodities-various-markets-mandi" target="_blank" rel="noreferrer">
+          Ministry of Agriculture & Farmers Welfare · AGMARKNET on data.gov.in ↗
+        </a>{" "}
+        · Reported daily; wholesale rates are ₹ per quintal.
+      </p>
     </div>
-    {!preview && <form className="official-filters" onSubmit={submit}>
-      <label>Crop / commodity<input value={filters.commodity} onChange={e=>setFilters({...filters,commodity:e.target.value})} placeholder="All commodities, e.g. Tomato"/></label>
-      <label>State / UT<select value={filters.state} onChange={e=>setFilters({...filters,state:e.target.value})}><option value="">All India</option>{states.map(s=><option key={s}>{s}</option>)}</select></label>
-      <label>District<input value={filters.district} onChange={e=>setFilters({...filters,district:e.target.value})} placeholder="All districts"/></label>
-      <label>Mandi<input value={filters.market} onChange={e=>setFilters({...filters,market:e.target.value})} placeholder="All mandis"/></label>
-      <button type="submit" disabled={loading}>{loading?"Loading…":"Apply filters"}</button>
-    </form>}
-    {!applied.commodity || !applied.state ? <div className="official-empty"><b>Choose a crop and state to load official prices.</b><p>Farmezy sends the selected commodity and state to the CEDA market-data service. No sample prices are used.</p></div> : null}
-    <div className="official-result-bar"><div><b>{preview?"Latest reported crop prices":(total===null?"":total.toLocaleString("en-IN")+" reported records")}</b><span>{applied.state || "All India"}{applied.district?" · "+applied.district:""}{applied.market?" · "+applied.market:""}{applied.commodity?" · "+applied.commodity:""}</span></div>{!preview&&<button onClick={()=>fetchPage(0,false)} disabled={loading}>↻ Refresh</button>}</div>
-    {stateFallback && <p className="official-fallback">No daily records were returned for {applied.district}. Showing official prices from across {applied.state} instead.</p>}
-    {error && <div className="official-error"><b>Prices could not be loaded.</b><p>{error}</p><span>Start the API server and set your data.gov.in key in <code>backend/.env</code>. This page never substitutes sample prices.</span></div>}
-    {!error && records.length>0 && <section className="crop-price-cards">{cropCards.map(r => {
-      const image = cropImages[r.commodity]
-      return <article className="crop-price-card" key={r.commodity}><div className="crop-photo"><img src={image?.url || cropPhoto(r.commodity)} alt={image?.alt || r.commodity} onError={event=>{event.currentTarget.onerror=null;event.currentTarget.src=genericCropImage}}/><span>{cropSymbol(r.commodity)}</span></div><div className="crop-card-copy"><small>{r.market || "Reported mandi"}</small><b>{r.commodity}</b><span>Modal <strong>{money(r.modal_price)}</strong> / quintal</span><small>{r.district}{r.state?", "+r.state:""}</small>{image && <a className="image-credit" href={image.link} target="_blank" rel="noreferrer">Image: {image.photographer}</a>}</div></article>
-    })}{preview&&onViewAll&&<button className="crop-card-more" onClick={onViewAll}>View all mandi prices →</button>}</section>}
-    {!preview && !error && <div className="official-table-wrap"><table className="official-table"><thead><tr><th>Date</th><th>Commodity / variety</th><th>State</th><th>District</th><th>Mandi</th><th>Min ₹/quintal</th><th>Modal ₹/quintal</th><th>Max ₹/quintal</th></tr></thead><tbody>
-      {records.map((r,i)=><tr key={[r.state,r.district,r.market,r.commodity,r.arrival_date,i].join("-")}><td>{r.arrival_date || "—"}</td><td><b>{r.commodity || "—"}</b><small>{r.variety || r.grade || ""}</small></td><td>{r.state || "—"}</td><td>{r.district || "—"}</td><td>{r.market || "—"}</td><td>{money(r.min_price)}</td><td className="modal-price">{money(r.modal_price)}</td><td>{money(r.max_price)}</td></tr>)}
-    </tbody></table>
-    {!records.length && !loading && !error && <div className="official-empty">No reported mandi records match these filters.</div>}</div>}
-    {!preview && records.length>0 && (total===null || offset<total) && <button className="official-more" onClick={()=>fetchPage(offset,true)} disabled={loading}>{loading?"Loading…":"Load next 100 official records"}</button>}
-    <p className="official-source">Source: <a href="https://www.data.gov.in/catalog/current-daily-price-various-commodities-various-markets-mandi" target="_blank" rel="noreferrer">Ministry of Agriculture & Farmers Welfare · AGMARKNET on data.gov.in ↗</a> · Reported daily; prices are ₹ per quintal.</p>
-  </div>
+  )
 }
 
-function cropSymbol(name){const n=name.toLowerCase();if(n.includes("tomato"))return "🍅";if(n.includes("onion"))return "🧅";if(n.includes("potato"))return "🥔";if(n.includes("chilli")||n.includes("chili"))return "🌶️";if(n.includes("cabbage"))return "🥬";if(n.includes("brinjal")||n.includes("eggplant"))return "🍆";return "🥦"}
-const genericCropImage="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=520&q=75"
-function cropPhoto(name){const n=name.toLowerCase();if(n.includes("tomato"))return "https://images.unsplash.com/photo-1582284540020-8acbe03f4924?auto=format&fit=crop&w=520&q=75";if(n.includes("onion"))return "https://images.unsplash.com/photo-1683355739329-cea18ba93f02?auto=format&fit=crop&w=520&q=75";if(n.includes("potato"))return "https://images.unsplash.com/photo-1686544303805-54c175c60d8f?auto=format&fit=crop&w=520&q=75";if(n.includes("chilli")||n.includes("chili"))return "https://images.unsplash.com/photo-1565685110871-1324fc462c84?auto=format&fit=crop&w=520&q=75";return genericCropImage}
+function cropSymbol(name) {
+  const n = String(name || "").toLowerCase()
+  if (n.includes("ginger")) return "🫚"
+  if (n.includes("lady") || n.includes("ladies") || n.includes("okra") || n.includes("bhindi")) return "🫛"
+  if (n.includes("garlic")) return "🧄"
+  if (n.includes("tomato")) return "🍅"
+  if (n.includes("onion")) return "🧅"
+  if (n.includes("potato")) return "🥔"
+  if (n.includes("chilli") || n.includes("chili") || n.includes("mirchi")) return "🌶️"
+  if (n.includes("capsicum")) return "🫑"
+  if (n.includes("carrot")) return "🥕"
+  if (n.includes("cucumber") || n.includes("kheera")) return "🥒"
+  if (n.includes("cabbage")) return "🥬"
+  if (n.includes("spinach") || n.includes("palak")) return "🥬"
+  if (n.includes("cauliflower") || n.includes("kohl") || n.includes("gobi")) return "🥦"
+  if (n.includes("broccoli")) return "🥦"
+  if (n.includes("drumstick") || n.includes("moringa")) return "🌿"
+  if (n.includes("coriander") || n.includes("mint") || n.includes("methi")) return "🌿"
+  if (n.includes("brinjal") || n.includes("eggplant") || n.includes("baingan")) return "🍆"
+  if (n.includes("pea")) return "🫛"
+  if (n.includes("corn") || n.includes("maize")) return "🌽"
+  if (n.includes("banana")) return "🍌"
+  if (n.includes("apple")) return "🍎"
+  if (n.includes("mango")) return "🥭"
+  if (n.includes("lemon") || n.includes("lime") || n.includes("nimbu")) return "🍋"
+  if (n.includes("grape")) return "🍇"
+  if (n.includes("pumpkin")) return "🎃"
+  if (n.includes("watermelon")) return "🍉"
+  if (n.includes("papaya")) return "🍈"
+  if (n.includes("coconut")) return "🥥"
+  if (n.includes("rice") || n.includes("paddy") || n.includes("wheat") || n.includes("ragi") || n.includes("jowar")) return "🌾"
+  if (n.includes("bean")) return "🫘"
+  if (n.includes("beetroot")) return "🟣"
+  if (n.includes("radish") || n.includes("mooli")) return "🥕"
+  return "🥦"
+}
+
+const genericCropImage = "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=520&q=75"
+
+function cropPhoto(name) {
+  const n = String(name || "").toLowerCase()
+  if (n.includes("ginger")) return "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("bhindi") || n.includes("okra") || n.includes("lady") || n.includes("ladies")) return "https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("drumstick") || n.includes("moringa")) return "https://images.unsplash.com/photo-1628771065518-0d82f1938462?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("garlic")) return "https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("tomato")) return "https://images.unsplash.com/photo-1582284540020-8acbe03f4924?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("onion")) return "https://images.unsplash.com/photo-1683355739329-cea18ba93f02?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("potato")) return "https://images.unsplash.com/photo-1686544303805-54c175c60d8f?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("chilli") || n.includes("chili") || n.includes("mirchi")) return "https://images.unsplash.com/photo-1565685110871-1324fc462c84?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("carrot")) return "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("cucumber") || n.includes("kheera")) return "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("cabbage")) return "https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("cauliflower") || n.includes("knool") || n.includes("gobi")) return "https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("broccoli")) return "https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("brinjal") || n.includes("eggplant")) return "https://images.unsplash.com/photo-1528823872057-9c018a7a7553?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("bean")) return "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("beetroot")) return "https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("capsicum")) return "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("pea")) return "https://images.unsplash.com/photo-1587735243615-c03f25aaff15?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("radish") || n.includes("raddish")) return "https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("spinach")) return "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("banana")) return "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("apple")) return "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("mango")) return "https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("lemon") || n.includes("lime")) return "https://images.unsplash.com/photo-1582281298055-e25b84a30b0b?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("pumpkin")) return "https://images.unsplash.com/photo-1570586437263-ab629fccc818?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("gourd")) return "https://images.unsplash.com/photo-1597362925123-77861d3fbac7?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("coriander") || n.includes("mint")) return "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("rice") || n.includes("paddy") || n.includes("wheat") || n.includes("maize") || n.includes("corn") || n.includes("ragi")) return "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=520&q=75"
+  return genericCropImage
+}
+
 function money(value) {
   const amount = Number(String(value ?? "").replace(/,/g, ""))
   return Number.isFinite(amount) && amount > 0 ? "₹" + amount.toLocaleString("en-IN") : "—"
 }
 
-
-
-
-
 async function readPriceResponse(response) {
   const body = await response.text()
   if (!body.trim()) {
-    throw new Error("The local price API did not respond. Run npm run api in the frontend folder, then refresh this page.")
+    throw new Error("The local price API did not respond. Check backend server and refresh.")
   }
   try {
     return JSON.parse(body)
   } catch {
-    throw new Error("The local price API returned an invalid response. Restart it with npm run api, then refresh this page.")
+    throw new Error("The local price API returned an invalid response. Restart with npm run dev and refresh.")
   }
 }
