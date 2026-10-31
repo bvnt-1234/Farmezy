@@ -1,5 +1,5 @@
 import http from "node:http"
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs"
+import { readFileSync, writeFileSync, copyFileSync, existsSync, mkdirSync } from "node:fs"
 import { spawn } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
@@ -10,13 +10,42 @@ const dataGovCache = new Map()
 const dataGovCacheTtlMs = 15 * 60 * 1000 // 15 minutes cache
 const imageCache = new Map()
 const imageTtlMs = 24 * 60 * 60 * 1000
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
 const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "data")
-const listingsFile = path.join(dataDir, "listings.json")
-const ordersFile = path.join(dataDir, "orders.json")
+const writableDataDir = isVercel ? path.join("/tmp", "farmezy-data") : dataDir
+const listingsFile = path.join(writableDataDir, "listings.json")
+const ordersFile = path.join(writableDataDir, "orders.json")
+
+function ensureWritableData() {
+  if (!isVercel) return
+  try {
+    if (!existsSync(writableDataDir)) {
+      mkdirSync(writableDataDir, { recursive: true })
+    }
+    const defaultListings = path.join(dataDir, "listings.json")
+    if (existsSync(defaultListings) && !existsSync(listingsFile)) {
+      copyFileSync(defaultListings, listingsFile)
+    }
+    const defaultOrders = path.join(dataDir, "orders.json")
+    if (existsSync(defaultOrders) && !existsSync(ordersFile)) {
+      copyFileSync(defaultOrders, ordersFile)
+    }
+  } catch (err) {
+    console.warn("Could not copy initial data to /tmp:", err.message)
+  }
+}
+ensureWritableData()
 
 function loadListings() {
   try {
-    if (!existsSync(listingsFile)) return []
+    if (!existsSync(listingsFile)) {
+      const defaultFile = path.join(dataDir, "listings.json")
+      if (existsSync(defaultFile)) {
+        const data = JSON.parse(readFileSync(defaultFile, "utf8"))
+        return Array.isArray(data) ? data : []
+      }
+      return []
+    }
     const data = JSON.parse(readFileSync(listingsFile, "utf8"))
     return Array.isArray(data) ? data : []
   } catch {
@@ -24,24 +53,39 @@ function loadListings() {
   }
 }
 
-function saveListings(listings) {
-  mkdirSync(dataDir, { recursive: true })
-  writeFileSync(listingsFile, JSON.stringify(listings, null, 2))
+function saveListings(newListings) {
+  try {
+    mkdirSync(writableDataDir, { recursive: true })
+    writeFileSync(listingsFile, JSON.stringify(newListings, null, 2))
+  } catch (err) {
+    console.warn("Warning: Could not persist listings to disk:", err.message)
+  }
 }
 
 let listings = loadListings()
 
 function loadOrders() {
   try {
-    if (!existsSync(ordersFile)) return []
+    if (!existsSync(ordersFile)) {
+      const defaultFile = path.join(dataDir, "orders.json")
+      if (existsSync(defaultFile)) {
+        const data = JSON.parse(readFileSync(defaultFile, "utf8"))
+        return Array.isArray(data) ? data : []
+      }
+      return []
+    }
     const data = JSON.parse(readFileSync(ordersFile, "utf8"))
     return Array.isArray(data) ? data : []
   } catch { return [] }
 }
 
-function saveOrders(orders) {
-  mkdirSync(dataDir, { recursive: true })
-  writeFileSync(ordersFile, JSON.stringify(orders, null, 2))
+function saveOrders(newOrders) {
+  try {
+    mkdirSync(writableDataDir, { recursive: true })
+    writeFileSync(ordersFile, JSON.stringify(newOrders, null, 2))
+  } catch (err) {
+    console.warn("Warning: Could not persist orders to disk:", err.message)
+  }
 }
 
 let orders = loadOrders()
@@ -55,7 +99,7 @@ try {
 } catch {}
 
 function startHistoricalCollector() {
-  if (!(process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY)) return
+  if (isVercel || !(process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY)) return
   const script = path.join(path.dirname(fileURLToPath(import.meta.url)), "scripts", "collect-mandi-history.js")
   const run = () => {
     const child = spawn(process.execPath, [script], { stdio: "inherit" })
@@ -160,7 +204,25 @@ function findCuratedCropImage(name) {
   return null
 }
 
-const server = http.createServer(async (req, res) => {
+async function parseBody(req) {
+  if (req.body !== undefined) {
+    if (typeof req.body === "string") {
+      try { return JSON.parse(req.body) } catch { return {} }
+    }
+    if (typeof req.body === "object" && req.body !== null) {
+      return req.body
+    }
+  }
+  let body = ""
+  for await (const chunk of req) body += chunk
+  try {
+    return JSON.parse(body || "{}")
+  } catch {
+    return {}
+  }
+}
+
+export async function handleRequest(req, res) {
   res.setHeader("Content-Type", "application/json; charset=utf-8")
   res.setHeader("Cache-Control", "no-store")
   res.setHeader("Access-Control-Allow-Origin", "*")
@@ -199,9 +261,7 @@ const server = http.createServer(async (req, res) => {
 
   if (requestUrl.pathname === "/api/orders" && req.method === "POST") {
     try {
-      let body = ""
-      for await (const chunk of req) body += chunk
-      const data = JSON.parse(body || "{}")
+      const data = await parseBody(req)
       const required = ["listingId", "farmerId", "farmerName", "customerId", "customerName", "quantity"]
       const missing = required.filter(field => !String(data[field] ?? "").trim())
       if (missing.length) {
@@ -246,9 +306,7 @@ const server = http.createServer(async (req, res) => {
   if (requestUrl.pathname.startsWith("/api/orders/") && req.method === "PATCH") {
     try {
       const id = requestUrl.pathname.split("/").pop()
-      let body = ""
-      for await (const chunk of req) body += chunk
-      const data = JSON.parse(body || "{}")
+      const data = await parseBody(req)
       const order = orders.find(item => item.id === id)
       if (!order) {
         res.writeHead(404).end(JSON.stringify({ error: "Order not found." }))
@@ -270,9 +328,7 @@ const server = http.createServer(async (req, res) => {
 
   if (requestUrl.pathname === "/api/listings" && req.method === "POST") {
     try {
-      let body = ""
-      for await (const chunk of req) body += chunk
-      const data = JSON.parse(body || "{}")
+      const data = await parseBody(req)
 
       const required = ["crop", "quantity", "unit", "price", "address", "farmerId", "farmerName"]
       const missing = required.filter(field => !String(data[field] ?? "").trim())
@@ -640,6 +696,17 @@ const server = http.createServer(async (req, res) => {
   }
 
   res.writeHead(404).end(JSON.stringify({ error: "Endpoint not found." }))
-})
+}
 
-server.listen(port, () => console.log("Farmezy official mandi API listening on http://localhost:" + port))
+const server = http.createServer(handleRequest)
+
+const isMain = Boolean(process.argv[1] && (
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1]) ||
+  process.argv[1].endsWith("server.js")
+))
+
+if (isMain) {
+  server.listen(port, () => console.log("Farmezy official mandi API listening on http://localhost:" + port))
+}
+
+export default handleRequest
