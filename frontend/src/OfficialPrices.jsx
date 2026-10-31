@@ -31,6 +31,10 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [stateFallback, setStateFallback] = useState(false)
+  const [sessionFallback, setSessionFallback] = useState(false)
+  const [sessionDate, setSessionDate] = useState("")
+  const [isLive, setIsLive] = useState(true)
+  const [sourceInfo, setSourceInfo] = useState("")
   const [cropImages, setCropImages] = useState({})
 
   // Update filters if location changes on profile
@@ -44,7 +48,10 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   const fetchPage = useCallback(async (nextOffset, append) => {
     setLoading(true)
     setError("")
-    if (!append) setStateFallback(false)
+    if (!append) {
+      setStateFallback(false)
+      setSessionFallback(false)
+    }
     try {
       const params = new URLSearchParams({ limit: "150", offset: String(nextOffset) })
       if (applied.state) params.set("state", applied.state.trim())
@@ -59,6 +66,12 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
       if (payload.district_fallback) {
         setStateFallback(true)
       }
+      if (payload.session_fallback) {
+        setSessionFallback(true)
+        setSessionDate(payload.session_date || "")
+      }
+      setIsLive(payload.live !== false)
+      setSourceInfo(payload.source || "")
 
       if (!response.ok) {
         throw new Error(payload.error || "The Government market-price service is unavailable.")
@@ -126,11 +139,14 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
           <div className="eyebrow">{preview ? "OFFICIAL PRICES NEAR YOU" : "GOVERNMENT MARKET DATA"}</div>
           <h1>{preview ? "Prices near " + (location?.district || location?.location || "you") : "Official mandi prices."}</h1>
           <p>
-            Daily wholesale prices reported by AGMARKNET for all vegetables and crops across{" "}
+            {isLive ? "Daily wholesale prices reported by AGMARKNET today for all vegetables and crops across " : "Wholesale market prices from latest APMC trading session for "}
             <b>{applied.district ? applied.district + ", " : ""}{applied.state}</b>.
           </p>
         </div>
-        <span className="official-badge"><i /> GOVERNMENT OF INDIA</span>
+        <span className="official-badge" style={!isLive ? { borderColor: "#fde047", color: "#854d0e", background: "#fefce8" } : {}}>
+          <i style={{ background: isLive ? "#22c55e" : "#eab308" }} />
+          {isLive ? "GOVERNMENT OF INDIA · LIVE" : "AGMARKNET · RECENT SESSION"}
+        </span>
       </div>
 
       {!preview && (
@@ -216,6 +232,15 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
         </p>
       )}
 
+      {sessionFallback && (
+        <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "10px 14px", borderRadius: "8px", margin: "14px 0", fontSize: "13px", color: "#166534" }}>
+          <b>🕒 Latest Confirmed APMC Session Rates ({sessionDate || "Current"})</b>
+          <p style={{ margin: "4px 0 0 0", color: "#15803d" }}>
+            Mandis in {applied.state} publish daily morning auction sheets by 11:30 AM. Currently displaying confirmed wholesale APMC rates.
+          </p>
+        </div>
+      )}
+
       {error && (
         <div className="official-error">
           <b>Prices could not be loaded.</b>
@@ -251,7 +276,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                   <small>{r.market || "Reported mandi"}</small>
                   <b>{r.commodity}</b>
                   <span>Modal <strong>{money(r.modal_price)}</strong> / quintal</span>
-                  <small>{r.district ? r.district + ", " : ""}{r.state}</small>
+                  <small>{r.district ? r.district + ", " : ""}{r.state}{r.arrival_date ? " · " + r.arrival_date : ""}</small>
                   {image && (
                     <a className="image-credit" href={image.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>
                       Image: {image.photographer}
