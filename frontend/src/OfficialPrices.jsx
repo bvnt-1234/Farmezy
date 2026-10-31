@@ -238,11 +238,13 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
               >
                 <div className="crop-photo">
                   <img
-                    src={image?.url || cropPhoto(r.commodity)}
-                    alt={image?.alt || r.commodity}
+                    src={cropPhoto(r.commodity)}
+                    alt={r.commodity}
                     onError={event => {
-                      event.currentTarget.onerror = null
-                      event.currentTarget.src = cropPhoto(r.commodity)
+                      if (event.currentTarget.src !== genericCropImage) {
+                      event.currentTarget.onerror = null;
+                      event.currentTarget.src = genericCropImage;
+                    }
                     }}
                   />
                   <span>{cropSymbol(r.commodity)}</span>
@@ -377,7 +379,7 @@ function cropPhoto(name) {
   if (n.includes("carrot")) return "/carrot.jpg"
   if (n.includes("cabbage")) return "/cabbage.jpg"
   if (n.includes("ridgeguard") || n.includes("ridgegourd") || n.includes("tori")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Luffa_acutangula.jpg/640px-Luffa_acutangula.jpg"
-  if (n.includes("knool") || n.includes("kohlrabi")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Kohlrabi.jpg/640px-Kohlrabi.jpg"
+ if (n.includes("knol") || n.includes("knool") || n.includes("kohlrabi")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Kohlrabi.jpg/640px-Kohlrabi.jpg"
   if (n.includes("yam") || n.includes("suran") || n.includes("amphophalus")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Amorphophallus_paeoniifolius_corms_-_Kerala.jpg/640px-Amorphophallus_paeoniifolius_corms_-_Kerala.jpg"
   if (n.includes("bengal gram") || n.includes("chana")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Bengal_Gram.jpg/640px-Bengal_Gram.jpg"
   if (n.includes("arecanut") || n.includes("supari")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Areca_nut_in_a_basket.jpg/640px-Areca_nut_in_a_basket.jpg"
@@ -402,8 +404,11 @@ function cropPhoto(name) {
   if (n.includes("pumpkin")) return "https://images.unsplash.com/photo-1570586437263-ab629fccc818?auto=format&fit=crop&w=520&q=75"
   if (n.includes("gourd")) return "https://images.unsplash.com/photo-1597362925123-77861d3fbac7?auto=format&fit=crop&w=520&q=75"
   if (n.includes("coriander") || n.includes("mint")) return "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("rice") || n.includes("paddy") || n.includes("wheat") || n.includes("maize") || n.includes("corn") || n.includes("ragi")) return "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=520&q=75"
-  return genericCropImage
+  if (n.includes("rice") || n.includes("paddy")) return "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=520&q=75"
+if (n.includes("wheat")) return "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=520&q=75"
+if (n.includes("maize") || n.includes("corn")) return "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=520&q=75"
+if (n.includes("ragi")) return "/placeholder.png"
+  return "/placeholder.png";
 }
 
 function money(value) {
