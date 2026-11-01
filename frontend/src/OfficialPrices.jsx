@@ -238,13 +238,13 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
               >
                 <div className="crop-photo">
                   <img
-                    src={cropPhoto(r.commodity)}
-                    alt={r.commodity}
+                    src={image?.url || cropPhoto(r.commodity)}
+                    alt={image?.alt || r.commodity}
                     onError={event => {
                       if (event.currentTarget.src !== genericCropImage) {
-                      event.currentTarget.onerror = null;
-                      event.currentTarget.src = genericCropImage;
-                    }
+                        event.currentTarget.onerror = null;
+                        event.currentTarget.src = genericCropImage;
+                      }
                     }}
                   />
                   <span>{cropSymbol(r.commodity)}</span>
@@ -390,7 +390,8 @@ function cropPhoto(name) {
   if (n.includes("cucumber") || n.includes("kheera")) return "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=520&q=75"
   if (n.includes("cauliflower") || n.includes("gobi")) return "https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=520&q=75"
   if (n.includes("broccoli")) return "https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("brinjal") || n.includes("eggplant")) return "https://images.unsplash.com/photo-1528823872057-9c018a7a7553?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("brinjal") || n.includes("eggplant") || n.includes("baingan")) return "https://upload.wikimedia.org/wikipedia/commons/7/76/Solanum_melongena_24_08_2012_%281%29.JPG"
+  if (n.includes("bottle gourd") || n.includes("lauki") || n.includes("calabash") || n.includes("sorekayi")) return "https://upload.wikimedia.org/wikipedia/commons/a/a2/Courge_encore_verte.jpg"
   if (n.includes("bean")) return "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=520&q=75"
   if (n.includes("beetroot")) return "https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?auto=format&fit=crop&w=520&q=75"
   if (n.includes("capsicum")) return "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=520&q=75"
@@ -405,9 +406,12 @@ function cropPhoto(name) {
   if (n.includes("gourd")) return "https://images.unsplash.com/photo-1597362925123-77861d3fbac7?auto=format&fit=crop&w=520&q=75"
   if (n.includes("coriander") || n.includes("mint")) return "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=520&q=75"
   if (n.includes("rice") || n.includes("paddy")) return "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=520&q=75"
-if (n.includes("wheat")) return "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=520&q=75"
-if (n.includes("maize") || n.includes("corn")) return "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=520&q=75"
-if (n.includes("ragi")) return "/placeholder.png"
+  if (n.includes("wheat")) return "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("maize") || n.includes("corn")) return "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("ragi") || n.includes("finger millet")) return "https://upload.wikimedia.org/wikipedia/commons/6/61/Eleusine_coracana_Manneczka_%C5%82%C4%99kowata_2020-10-03_03.jpg"
+  if (n.includes("moong") || n.includes("green gram") || n.includes("mung")) return "https://upload.wikimedia.org/wikipedia/commons/8/86/Mung_beans_%28Vigna_radiata%29.jpg"
+  if (n.includes("avare") || n.includes("hyacinth") || n.includes("field bean")) return "https://upload.wikimedia.org/wikipedia/commons/4/4d/Lablab_purpureus_257105665.jpg"
+  if (n.includes("sesame") || n.includes("til") || n.includes("gingelly") || n.includes("sesamum")) return "https://upload.wikimedia.org/wikipedia/commons/9/9e/Black_sesame.jpg"
   return "/placeholder.png";
 }
 
