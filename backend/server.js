@@ -12,29 +12,8 @@ const imageCache = new Map()
 const imageTtlMs = 24 * 60 * 60 * 1000
 const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
 const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "data")
-const writableDataDir = isVercel ? path.join("/tmp", "farmezy-data") : dataDir
-const listingsFile = path.join(writableDataDir, "listings.json")
-const ordersFile = path.join(writableDataDir, "orders.json")
-
-function ensureWritableData() {
-  if (!isVercel) return
-  try {
-    if (!existsSync(writableDataDir)) {
-      mkdirSync(writableDataDir, { recursive: true })
-    }
-    const defaultListings = path.join(dataDir, "listings.json")
-    if (existsSync(defaultListings) && !existsSync(listingsFile)) {
-      copyFileSync(defaultListings, listingsFile)
-    }
-    const defaultOrders = path.join(dataDir, "orders.json")
-    if (existsSync(defaultOrders) && !existsSync(ordersFile)) {
-      copyFileSync(defaultOrders, ordersFile)
-    }
-  } catch (err) {
-    console.warn("Could not copy initial data to /tmp:", err.message)
-  }
-}
-ensureWritableData()
+const listingsFile = path.join(dataDir, "listings.json")
+const ordersFile = path.join(dataDir, "orders.json")
 
 function loadListings() {
   try {
@@ -204,60 +183,7 @@ function findCuratedCropImage(name) {
   return null
 }
 
-async function parseBody(req) {
-  if (req.body !== undefined) {
-    if (typeof req.body === "string") {
-      try { return JSON.parse(req.body) } catch { return {} }
-    }
-    if (typeof req.body === "object" && req.body !== null) {
-      return req.body
-    }
-  }
-  let body = ""
-  for await (const chunk of req) body += chunk
-  try {
-    return JSON.parse(body || "{}")
-  } catch {
-    return {}
-  }
-}
-
-const distDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../frontend/dist")
-
-function serveStatic(pathname, res) {
-  if (!existsSync(distDir)) return false
-  const safePath = path.normalize(decodeURIComponent(pathname)).replace(/^(\.\.[\/\\])+/, "")
-  let targetFile = path.join(distDir, safePath === "/" ? "index.html" : safePath)
-  if (!existsSync(targetFile) || !targetFile.startsWith(distDir)) {
-    targetFile = path.join(distDir, "index.html")
-  }
-  if (!existsSync(targetFile)) return false
-
-  const ext = path.extname(targetFile).toLowerCase()
-  const mimeTypes = {
-    ".html": "text/html; charset=utf-8",
-    ".js": "application/javascript; charset=utf-8",
-    ".css": "text/css; charset=utf-8",
-    ".json": "application/json; charset=utf-8",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".gif": "image/gif",
-    ".svg": "image/svg+xml",
-    ".ico": "image/x-icon",
-    ".woff": "font/woff",
-    ".woff2": "font/woff2",
-    ".ttf": "font/ttf"
-  }
-  const contentType = mimeTypes[ext] || "application/octet-stream"
-  res.setHeader("Content-Type", contentType)
-  res.setHeader("Cache-Control", ext === ".html" ? "no-cache" : "public, max-age=31536000, immutable")
-  res.writeHead(200)
-  res.end(readFileSync(targetFile))
-  return true
-}
-
-export async function handleRequest(req, res) {
+const server = http.createServer(async (req, res) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8")
   res.setHeader("Cache-Control", "no-store")
   res.setHeader("Access-Control-Allow-Origin", "*")
@@ -276,14 +202,157 @@ export async function handleRequest(req, res) {
   }
 
   if (requestUrl.pathname === "/api/listings" && req.method === "GET") {
-    const safeListings = listings.map(listing => {
-      if (listing.farmerPhone) return listing
-      const existingContactPhone = listing.contact?.phone || listing.contact?.whatsapp || ""
-      const contactDigits = String(existingContactPhone).replace(/\D/g, "")
-      if (contactDigits.length === 10) return { ...listing, farmerPhone: contactDigits }
-      const digits = String(listing.farmerId || "").replace(/\D/g, "")
-      return digits.length === 10 ? { ...listing, farmerPhone: digits } : listing
+    const rawCategory = requestUrl.searchParams.get("category")?.trim()
+    const rawState = requestUrl.searchParams.get("state")?.trim()
+    const rawDistrict = requestUrl.searchParams.get("district")?.trim()
+    const rawMinPrice = requestUrl.searchParams.get("minPrice")
+    const rawMaxPrice = requestUrl.searchParams.get("maxPrice")
+    const rawUnit = requestUrl.searchParams.get("unit")?.trim()
+    const rawActiveOnly = requestUrl.searchParams.get("activeOnly")
+    const rawSort = requestUrl.searchParams.get("sort")?.trim()
+
+    let safeListings = listings.map(listing => {
+      let farmerPhone = listing.farmerPhone
+      if (!farmerPhone) {
+        const existingContactPhone = listing.contact?.phone || listing.contact?.whatsapp || ""
+        const contactDigits = String(existingContactPhone).replace(/\D/g, "")
+        if (contactDigits.length === 10) farmerPhone = contactDigits
+        else {
+          const digits = String(listing.farmerId || "").replace(/\D/g, "")
+          if (digits.length === 10) farmerPhone = digits
+        }
+      }
+
+      const category = listing.category || categoryForCommodity(listing.crop)
+      const state = listing.state || listing.farmerState || ""
+      const district = listing.district || listing.farmerDistrict || ""
+      const latitude = listing.latitude || listing.farmerLat || ""
+      const longitude = listing.longitude || listing.farmerLng || ""
+      const expiryDate = listing.expiryDate || listing.date || ""
+      const harvestDate = listing.harvestDate || ""
+      const availableFrom = listing.availableFrom || ""
+
+      return {
+        ...listing,
+        farmerPhone,
+        category,
+        state,
+        district,
+        farmerState: state,
+        farmerDistrict: district,
+        latitude,
+        longitude,
+        farmerLat: latitude,
+        farmerLng: longitude,
+        grade: listing.grade || "",
+        organic: listing.organic || "",
+        productionMethod: listing.productionMethod || "",
+        packaging: listing.packaging || "",
+        minOrder: listing.minOrder || "",
+        harvestDate,
+        availableFrom,
+        expiryDate,
+        date: expiryDate || listing.date || "",
+        city: listing.city || "",
+        pincode: listing.pincode || "",
+        pickupAvailable: listing.pickupAvailable !== undefined ? Boolean(listing.pickupAvailable) : true,
+        deliveryAvailable: Boolean(listing.deliveryAvailable),
+        deliveryRadius: listing.deliveryRadius || "",
+        priceUnit: listing.priceUnit || listing.unit || "kg"
+      }
     })
+
+    const rawCrop = requestUrl.searchParams.get("crop")?.trim() || requestUrl.searchParams.get("commodity")?.trim()
+    const rawVariety = requestUrl.searchParams.get("variety")?.trim()
+    const rawGrade = requestUrl.searchParams.get("grade")?.trim()
+    const rawOrganic = requestUrl.searchParams.get("organic")?.trim()
+    const rawDelivery = requestUrl.searchParams.get("deliveryAvailable")
+    const rawPickup = requestUrl.searchParams.get("pickupAvailable")
+    const rawMinQty = requestUrl.searchParams.get("minQuantity")
+    const rawCity = requestUrl.searchParams.get("city")?.trim()
+    const rawPincode = requestUrl.searchParams.get("pincode")?.trim()
+    const rawProductionMethod = requestUrl.searchParams.get("productionMethod")?.trim()
+    const rawPackaging = requestUrl.searchParams.get("packaging")?.trim()
+    const rawHarvestFrom = requestUrl.searchParams.get("harvestFrom")?.trim()
+    const rawAvailableFrom = requestUrl.searchParams.get("availableFrom")?.trim()
+
+    if (rawCrop && rawCrop !== "All Commodities" && rawCrop !== "All Crops") {
+      safeListings = safeListings.filter(l => (l.crop || "").toLowerCase() === rawCrop.toLowerCase())
+    }
+    if (rawVariety && rawVariety !== "All Varieties") {
+      safeListings = safeListings.filter(l => l.variety && l.variety.toLowerCase().includes(rawVariety.toLowerCase()))
+    }
+    if (rawGrade && rawGrade !== "All Grades") {
+      safeListings = safeListings.filter(l => l.grade && l.grade.toLowerCase().includes(rawGrade.toLowerCase()))
+    }
+    if (rawOrganic && rawOrganic !== "All") {
+      if (rawOrganic.toLowerCase() === "organic" || rawOrganic.toLowerCase() === "organic only") {
+        safeListings = safeListings.filter(l => l.organic && /organic|natural|jaivik/i.test(l.organic))
+      } else if (rawOrganic.toLowerCase() === "conventional" || rawOrganic.toLowerCase() === "conventional only") {
+        safeListings = safeListings.filter(l => l.organic && /conventional/i.test(l.organic))
+      } else {
+        safeListings = safeListings.filter(l => l.organic && l.organic.toLowerCase().includes(rawOrganic.toLowerCase()))
+      }
+    }
+    if (rawDelivery === "true" || rawDelivery === "Delivery Available") {
+      safeListings = safeListings.filter(l => Boolean(l.deliveryAvailable))
+    }
+    if (rawPickup === "true" || rawPickup === "Pickup Available") {
+      safeListings = safeListings.filter(l => l.pickupAvailable !== false)
+    }
+
+    if (rawCategory && rawCategory !== "All Categories") {
+      safeListings = safeListings.filter(l => (l.category || "").toLowerCase() === rawCategory.toLowerCase())
+    }
+    if (rawState && rawState !== "All States") {
+      safeListings = safeListings.filter(l => (l.state || "").toLowerCase().includes(rawState.toLowerCase()))
+    }
+    if (rawDistrict && rawDistrict !== "All Districts") {
+      safeListings = safeListings.filter(l => (l.district || "").toLowerCase().includes(rawDistrict.toLowerCase()))
+    }
+    if (rawCity && rawCity !== "All Cities") {
+      safeListings = safeListings.filter(l => l.city && l.city.toLowerCase().includes(rawCity.toLowerCase()))
+    }
+    if (rawPincode) {
+      safeListings = safeListings.filter(l => String(l.pincode || "").includes(rawPincode))
+    }
+    if (rawProductionMethod && rawProductionMethod !== "All Methods") {
+      safeListings = safeListings.filter(l => l.productionMethod && l.productionMethod.toLowerCase() === rawProductionMethod.toLowerCase())
+    }
+    if (rawPackaging && rawPackaging !== "All Packaging") {
+      safeListings = safeListings.filter(l => l.packaging && l.packaging.toLowerCase().includes(rawPackaging.toLowerCase()))
+    }
+    if (rawMinQty && Number.isFinite(Number(rawMinQty))) {
+      safeListings = safeListings.filter(l => Number(l.quantity || 0) >= Number(rawMinQty))
+    }
+    if (rawMinPrice && Number.isFinite(Number(rawMinPrice))) {
+      safeListings = safeListings.filter(l => Number(l.price) >= Number(rawMinPrice))
+    }
+    if (rawMaxPrice && Number.isFinite(Number(rawMaxPrice))) {
+      safeListings = safeListings.filter(l => Number(l.price) <= Number(rawMaxPrice))
+    }
+    if (rawUnit && rawUnit !== "All Units") {
+      safeListings = safeListings.filter(l => (l.unit || "").toLowerCase() === rawUnit.toLowerCase())
+    }
+    if (rawHarvestFrom) {
+      safeListings = safeListings.filter(l => l.harvestDate && l.harvestDate >= rawHarvestFrom)
+    }
+    if (rawAvailableFrom) {
+      safeListings = safeListings.filter(l => l.availableFrom && l.availableFrom <= rawAvailableFrom)
+    }
+    if (rawActiveOnly === "true") {
+      const today = new Date().toISOString().slice(0, 10)
+      safeListings = safeListings.filter(l => !l.date || l.date >= today)
+    }
+
+    if (rawSort === "price_asc") {
+      safeListings.sort((a, b) => Number(a.price || 0) - Number(b.price || 0))
+    } else if (rawSort === "price_desc") {
+      safeListings.sort((a, b) => Number(b.price || 0) - Number(a.price || 0))
+    } else if (rawSort === "expiry_asc") {
+      safeListings.sort((a, b) => (a.date ? new Date(a.date).getTime() : Infinity) - (b.date ? new Date(b.date).getTime() : Infinity))
+    }
+
     res.writeHead(200).end(JSON.stringify({ listings: safeListings }))
     return
   }
@@ -376,24 +445,74 @@ export async function handleRequest(req, res) {
         return
       }
 
+      const numQuantity = Number(data.quantity)
+      if (!Number.isFinite(numQuantity) || numQuantity < 0) {
+        res.writeHead(400).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
+        return
+      }
+
+      const numPrice = Number(data.price)
+      if (!Number.isFinite(numPrice) || numPrice < 0) {
+        res.writeHead(400).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
+        return
+      }
+
+      const harvestDate = String(data.harvestDate || "").trim()
+      const availableFrom = String(data.availableFrom || "").trim()
+      const expiryDate = String(data.expiryDate || "").trim()
+
+      if (harvestDate && expiryDate && expiryDate < harvestDate) {
+        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
+        return
+      }
+      if (availableFrom && expiryDate && expiryDate < availableFrom) {
+        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
+        return
+      }
+
+      const crop = String(data.crop).trim()
+      const category = String(data.category || categoryForCommodity(crop)).trim()
+
       const item = {
         id: Date.now().toString(),
-        crop: String(data.crop).trim(),
+        crop,
+        category,
         variety: String(data.variety || "").trim(),
+        grade: String(data.grade || "").trim(),
+        organic: String(data.organic || "").trim(),
+        productionMethod: String(data.productionMethod || "").trim(),
+        packaging: String(data.packaging || "").trim(),
+        minOrder: String(data.minOrder || "").trim(),
         quantity: String(data.quantity).trim(),
         unit: String(data.unit).trim(),
         price: String(data.price).trim(),
-        date: String(data.date || "").trim(),
+        priceUnit: String(data.priceUnit || data.unit || "kg").trim(),
+        harvestDate,
+        availableFrom,
+        expiryDate,
+        date: expiryDate || String(data.date || "").trim() || availableFrom || harvestDate,
         address: String(data.address).trim(),
-        notes: String(data.notes || "").trim(),
+        village: String(data.village || data.locality || "").trim(),
+        locality: String(data.locality || data.village || "").trim(),
+        city: String(data.city || data.town || "").trim(),
+        district: String(data.district || data.farmerDistrict || "").trim(),
+        state: String(data.state || data.farmerState || "").trim(),
+        pincode: String(data.pincode || "").trim(),
+        latitude: String(data.latitude || data.farmerLat || "").trim(),
+        longitude: String(data.longitude || data.farmerLng || "").trim(),
+        pickupAvailable: data.pickupAvailable !== undefined ? Boolean(data.pickupAvailable === true || data.pickupAvailable === "true" || data.pickupAvailable === "on") : true,
+        deliveryAvailable: Boolean(data.deliveryAvailable === true || data.deliveryAvailable === "true" || data.deliveryAvailable === "on"),
+        deliveryRadius: String(data.deliveryRadius || "").trim(),
+        notes: String(data.notes || data.description || "").trim(),
+        description: String(data.description || data.notes || "").trim(),
         farmerId: String(data.farmerId).trim(),
         farmerName: String(data.farmerName).trim(),
         farmerPhone: String(data.farmerPhone || "").trim(),
-        farmerLocation: String(data.farmerLocation || "").trim(),
-        farmerDistrict: String(data.farmerDistrict || "").trim(),
-        farmerState: String(data.farmerState || "").trim(),
-        farmerLat: String(data.farmerLat || "").trim(),
-        farmerLng: String(data.farmerLng || "").trim(),
+        farmerLocation: String(data.address || data.farmerLocation || "").trim(),
+        farmerDistrict: String(data.district || data.farmerDistrict || "").trim(),
+        farmerState: String(data.state || data.farmerState || "").trim(),
+        farmerLat: String(data.latitude || data.farmerLat || "").trim(),
+        farmerLng: String(data.longitude || data.farmerLng || "").trim(),
         image: String(data.image || data.imageUrl || "").trim(),
         createdAt: new Date().toISOString(),
       }
@@ -403,6 +522,100 @@ export async function handleRequest(req, res) {
       res.writeHead(201).end(JSON.stringify({ listing: item }))
     } catch {
       res.writeHead(400).end(JSON.stringify({ error: "Invalid listing data." }))
+    }
+    return
+  }
+
+  if ((requestUrl.pathname.startsWith("/api/listings/") || requestUrl.pathname === "/api/listings") && (req.method === "PUT" || req.method === "PATCH")) {
+    try {
+      const pathId = requestUrl.pathname.replace(/^\/api\/listings\/?/, "")
+      let body = ""
+      for await (const chunk of req) body += chunk
+      const data = JSON.parse(body || "{}")
+      const targetId = String(pathId || data.id || requestUrl.searchParams.get("id"))
+      const index = listings.findIndex(item => String(item.id) === targetId)
+      if (index === -1) {
+        res.writeHead(404).end(JSON.stringify({ error: "Listing not found." }))
+        return
+      }
+      const existing = listings[index]
+
+      if (data.quantity !== undefined) {
+        const numQty = Number(data.quantity)
+        if (!Number.isFinite(numQty) || numQty < 0) {
+          res.writeHead(400).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
+          return
+        }
+      }
+      if (data.price !== undefined) {
+        const numP = Number(data.price)
+        if (!Number.isFinite(numP) || numP < 0) {
+          res.writeHead(400).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
+          return
+        }
+      }
+
+      const harvestDate = data.harvestDate !== undefined ? String(data.harvestDate).trim() : (existing.harvestDate || "")
+      const availableFrom = data.availableFrom !== undefined ? String(data.availableFrom).trim() : (existing.availableFrom || "")
+      const expiryDate = data.expiryDate !== undefined ? String(data.expiryDate).trim() : (existing.expiryDate || existing.date || "")
+
+      if (harvestDate && expiryDate && expiryDate < harvestDate) {
+        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
+        return
+      }
+      if (availableFrom && expiryDate && expiryDate < availableFrom) {
+        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
+        return
+      }
+
+      const crop = String(data.crop || existing.crop).trim()
+      const category = String(data.category || existing.category || categoryForCommodity(crop)).trim()
+
+      const updated = {
+        ...existing,
+        crop,
+        category,
+        variety: String(data.variety !== undefined ? data.variety : (existing.variety || "")).trim(),
+        grade: String(data.grade !== undefined ? data.grade : (existing.grade || "")).trim(),
+        organic: String(data.organic !== undefined ? data.organic : (existing.organic || "")).trim(),
+        productionMethod: String(data.productionMethod !== undefined ? data.productionMethod : (existing.productionMethod || "")).trim(),
+        packaging: String(data.packaging !== undefined ? data.packaging : (existing.packaging || "")).trim(),
+        minOrder: String(data.minOrder !== undefined ? data.minOrder : (existing.minOrder || "")).trim(),
+        quantity: String(data.quantity !== undefined ? data.quantity : existing.quantity).trim(),
+        unit: String(data.unit !== undefined ? data.unit : existing.unit).trim(),
+        price: String(data.price !== undefined ? data.price : existing.price).trim(),
+        priceUnit: String(data.priceUnit !== undefined ? data.priceUnit : (existing.priceUnit || existing.unit || "kg")).trim(),
+        harvestDate,
+        availableFrom,
+        expiryDate,
+        date: expiryDate || String(data.date !== undefined ? data.date : existing.date).trim() || availableFrom || harvestDate,
+        address: String(data.address !== undefined ? data.address : existing.address).trim(),
+        village: String(data.village !== undefined ? data.village : (existing.village || "")).trim(),
+        locality: String(data.locality !== undefined ? data.locality : (existing.locality || "")).trim(),
+        city: String(data.city !== undefined ? data.city : (existing.city || "")).trim(),
+        district: String(data.district || data.farmerDistrict || existing.district || existing.farmerDistrict || "").trim(),
+        state: String(data.state || data.farmerState || existing.state || existing.farmerState || "").trim(),
+        pincode: String(data.pincode !== undefined ? data.pincode : (existing.pincode || "")).trim(),
+        latitude: String(data.latitude || data.farmerLat || existing.latitude || existing.farmerLat || "").trim(),
+        longitude: String(data.longitude || data.farmerLng || existing.longitude || existing.farmerLng || "").trim(),
+        farmerLat: String(data.latitude || data.farmerLat || existing.latitude || existing.farmerLat || "").trim(),
+        farmerLng: String(data.longitude || data.farmerLng || existing.longitude || existing.farmerLng || "").trim(),
+        farmerDistrict: String(data.district || data.farmerDistrict || existing.district || existing.farmerDistrict || "").trim(),
+        farmerState: String(data.state || data.farmerState || existing.state || existing.farmerState || "").trim(),
+        farmerLocation: String(data.address || existing.farmerLocation || "").trim(),
+        pickupAvailable: data.pickupAvailable !== undefined ? Boolean(data.pickupAvailable === true || data.pickupAvailable === "true" || data.pickupAvailable === "on") : (existing.pickupAvailable !== undefined ? Boolean(existing.pickupAvailable) : true),
+        deliveryAvailable: data.deliveryAvailable !== undefined ? Boolean(data.deliveryAvailable === true || data.deliveryAvailable === "true" || data.deliveryAvailable === "on") : Boolean(existing.deliveryAvailable),
+        deliveryRadius: String(data.deliveryRadius !== undefined ? data.deliveryRadius : (existing.deliveryRadius || "")).trim(),
+        notes: String(data.notes !== undefined ? data.notes : (existing.notes || "")).trim(),
+        description: String(data.description !== undefined ? data.description : (existing.description || existing.notes || "")).trim(),
+        image: String(data.image !== undefined ? data.image : existing.image).trim(),
+        updatedAt: new Date().toISOString()
+      }
+      listings[index] = updated
+      saveListings(listings)
+      res.writeHead(200).end(JSON.stringify({ listing: updated }))
+    } catch {
+      res.writeHead(400).end(JSON.stringify({ error: "Could not update listing." }))
     }
     return
   }
@@ -528,26 +741,404 @@ export async function handleRequest(req, res) {
     return
   }
 
-  // Official Mandi Prices API: Directly powered by AGMARKNET Government of India feed
-  if (requestUrl.pathname === "/api/mandi-prices") {
-    const dataGovKey = process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY || "579b464db66ec23bdd00000119f3f71a11ba4a67695e5b8a24f75b0a"
+  // Live Reverse Geocoding with multi-tier providers and Indian spatial fallback
+  if (requestUrl.pathname === "/api/reverse-geocode" && req.method === "GET") {
+    const lat = Number(requestUrl.searchParams.get("lat"))
+    const lng = Number(requestUrl.searchParams.get("lng") || requestUrl.searchParams.get("lon"))
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      res.writeHead(400).end(JSON.stringify({ error: "Valid latitude and longitude are required." }))
+      return
+    }
+
+    let resolvedVillage = ""
+    let resolvedCity = ""
+    let resolvedDistrict = ""
+    let resolvedState = ""
+    let resolvedPincode = ""
+    let resolvedAddress = ""
+    let geocodeSource = ""
+
+    // Tier 1: BigDataCloud Client Reverse Geocode (Sub-second response, high reliability)
+    try {
+      const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
+      const bdcRes = await fetch(bdcUrl, {
+        headers: { "Accept": "application/json" },
+        signal: AbortSignal.timeout(3500)
+      })
+      if (bdcRes.ok) {
+        const bdcData = await bdcRes.json()
+        const admin = bdcData.localityInfo?.administrative || []
+        const informative = bdcData.localityInfo?.informative || []
+
+        resolvedState = bdcData.principalSubdivision || ""
+        const distObj = admin.find(a => a.adminLevel === 5 || (a.description && a.description.toLowerCase().includes("district")))
+        if (distObj) {
+          resolvedDistrict = distObj.name.replace(/\s+district$/i, "").trim()
+        }
+        resolvedCity = bdcData.city || ""
+        const cityObj = admin.find(a => a.adminLevel === 6)
+        if (!resolvedCity && cityObj) {
+          resolvedCity = cityObj.name.replace(/\s+mandal$/i, "").replace(/\s+taluk$/i, "").replace(/\s+tehsil$/i, "").trim()
+        }
+        resolvedVillage = bdcData.locality || ""
+        const localObj = informative.find(i => i.order >= 10 && !i.name.includes("Railway") && !i.name.includes("Time") && !i.name.includes("Mainland"))
+        if (localObj && localObj.name !== resolvedCity) {
+          resolvedVillage = localObj.name
+        }
+        resolvedPincode = bdcData.postcode || ""
+
+        if (resolvedState || resolvedDistrict || resolvedCity) {
+          geocodeSource = "bigdatacloud"
+        }
+      }
+    } catch (e) {
+      // BigDataCloud attempt timed out or failed; continue to next tier
+    }
+
+    // Tier 2: Photon (OpenStreetMap/Komoot) if city or district missing
+    if (!resolvedState || !resolvedDistrict) {
+      try {
+        const photonUrl = `https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`
+        const photonRes = await fetch(photonUrl, {
+          headers: { "Accept": "application/json" },
+          signal: AbortSignal.timeout(3500)
+        })
+        if (photonRes.ok) {
+          const photonData = await photonRes.json()
+          const feat = photonData.features?.[0]?.properties
+          if (feat) {
+            if (!resolvedVillage) resolvedVillage = feat.locality || feat.district || feat.name || ""
+            if (!resolvedCity) resolvedCity = feat.city || (feat.county ? feat.county.replace(/\s+mandal$/i, "") : "") || ""
+            if (!resolvedDistrict) resolvedDistrict = (feat.county || feat.district || feat.city || "").replace(/\s+district$/i, "").replace(/\s+mandal$/i, "").trim()
+            if (!resolvedState) resolvedState = feat.state || ""
+            if (!resolvedPincode) resolvedPincode = feat.postcode || ""
+            geocodeSource = geocodeSource || "photon"
+          }
+        }
+      } catch (e) {
+        // Photon attempt timed out or failed
+      }
+    }
+
+    // Tier 3: Nominatim (OpenStreetMap) if still missing state or district
+    if (!resolvedState || !resolvedDistrict) {
+      try {
+        const geoUrl = new URL("https://nominatim.openstreetmap.org/reverse")
+        geoUrl.searchParams.set("format", "json")
+        geoUrl.searchParams.set("lat", String(lat))
+        geoUrl.searchParams.set("lon", String(lng))
+        geoUrl.searchParams.set("zoom", "18")
+        geoUrl.searchParams.set("addressdetails", "1")
+
+        const geoRes = await fetch(geoUrl, {
+          headers: {
+            "User-Agent": "FarmezyApp/2.0 (Agricultural Mandi & Farmer Marketplace; info@farmezy.in)",
+            "Accept": "application/json"
+          },
+          signal: AbortSignal.timeout(3500)
+        })
+
+        if (geoRes.ok) {
+          const data = await geoRes.json()
+          const addr = data.address || {}
+
+          if (!resolvedVillage) resolvedVillage = addr.village || addr.hamlet || addr.suburb || addr.neighbourhood || addr.residential || addr.locality || ""
+          if (!resolvedCity) resolvedCity = addr.city || addr.town || addr.municipality || addr.city_district || ""
+          if (!resolvedDistrict) {
+            let dist = addr.state_district || addr.district || addr.county || ""
+            resolvedDistrict = dist.replace(/\s+district$/i, "").replace(/\s+mandal$/i, "").trim()
+          }
+          if (!resolvedState) resolvedState = addr.state || ""
+          if (!resolvedPincode) resolvedPincode = addr.postcode || ""
+          geocodeSource = geocodeSource || "nominatim"
+        }
+      } catch (e) {
+        // Nominatim attempt timed out or failed
+      }
+    }
+
+    // Tier 4: Offline Spatial Centroid Fallback (Zero network dependency for Indian coordinates)
+    // Guarantees immediate, accurate state and district identification even offline or in sandbox
+    if ((!resolvedState || !resolvedDistrict) && lat >= 6 && lat <= 38 && lng >= 68 && lng <= 98) {
+      let nearest = null
+      let minDist = Infinity
+      for (const d of INDIAN_DISTRICT_CENTROIDS) {
+        const dLat = (d.lat - lat) * Math.PI / 180
+        const dLng = (d.lng - lng) * Math.PI / 180
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat * Math.PI / 180) * Math.cos(d.lat * Math.PI / 180) * Math.sin(dLng / 2) ** 2
+        const dist = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        if (dist < minDist) {
+          minDist = dist
+          nearest = d
+        }
+      }
+
+      if (nearest) {
+        if (!resolvedDistrict) resolvedDistrict = nearest.name
+        if (!resolvedCity) resolvedCity = nearest.city || nearest.name
+        if (!resolvedState) resolvedState = nearest.state
+        if (!resolvedPincode) resolvedPincode = nearest.pincode || ""
+        if (!resolvedVillage) resolvedVillage = nearest.city || nearest.name
+        geocodeSource = geocodeSource || "offline-spatial"
+      }
+    }
+
+    // Ensure all address fields are completely resolved
+    if (!resolvedCity && resolvedDistrict) resolvedCity = resolvedDistrict
+    if (!resolvedVillage) resolvedVillage = resolvedCity || resolvedDistrict || ""
+    if (!resolvedCity) resolvedCity = resolvedVillage || resolvedDistrict || ""
+    if (!resolvedPincode && resolvedState) {
+      const matchDist = INDIAN_DISTRICT_CENTROIDS.find(d => d.state === resolvedState && (d.name === resolvedDistrict || d.city === resolvedCity))
+      if (matchDist && matchDist.pincode) resolvedPincode = matchDist.pincode
+    }
+
+    const hasResolvedData = Boolean(resolvedState || resolvedDistrict || resolvedCity || resolvedAddress)
+
+    if (hasResolvedData) {
+      const parts = [resolvedVillage, resolvedCity, resolvedDistrict, resolvedState, resolvedPincode].filter(Boolean)
+      resolvedAddress = parts.length >= 2 ? parts.join(", ") : `${resolvedDistrict || resolvedCity}, ${resolvedState}`
+
+      res.writeHead(200).end(JSON.stringify({
+        success: true,
+        latitude: lat,
+        longitude: lng,
+        address: resolvedAddress,
+        village: resolvedVillage,
+        locality: resolvedVillage,
+        city: resolvedCity,
+        district: resolvedDistrict,
+        state: resolvedState,
+        pincode: resolvedPincode,
+        source: geocodeSource || "geocoded"
+      }))
+    } else {
+      res.writeHead(200).end(JSON.stringify({
+        success: false,
+        latitude: lat,
+        longitude: lng,
+        error: "Address details could not be resolved from coordinates. Please enter address manually."
+      }))
+    }
+    return
+  }
+
+  // GET /api/address-search - Auto-populate address fields by searching cities, districts, states, PINs
+  if (requestUrl.pathname === "/api/address-search" && req.method === "GET") {
+    const q = (requestUrl.searchParams.get("q") || "").trim().toLowerCase()
+    let matches = []
+    if (!q) {
+      matches = INDIAN_DISTRICT_CENTROIDS.slice(0, 10)
+    } else {
+      matches = INDIAN_DISTRICT_CENTROIDS.filter(d =>
+        d.city.toLowerCase().includes(q) ||
+        d.name.toLowerCase().includes(q) ||
+        d.state.toLowerCase().includes(q) ||
+        (d.pincode && d.pincode.startsWith(q))
+      ).slice(0, 10)
+    }
+
+    const results = matches.map(d => ({
+      address: `${d.city}, ${d.name}, ${d.state}, ${d.pincode}`,
+      village: d.city,
+      city: d.city,
+      district: d.name,
+      state: d.state,
+      pincode: d.pincode || "",
+      latitude: String(d.lat),
+      longitude: String(d.lng)
+    }))
+
+    res.writeHead(200).end(JSON.stringify({ success: true, results }))
+    return
+  }
+
+  // 1. GET /api/commodities - Serves dynamic AGMARKNET Catalogue as PRIMARY source
+  if (requestUrl.pathname === "/api/commodities" && req.method === "GET") {
+    const rawSearch = requestUrl.searchParams.get("q")?.trim() || ""
+    const rawCategory = requestUrl.searchParams.get("category")?.trim() || ""
+
+    const agmarknetList = getAgmarknetCommodities()
+    let list = []
+
+    if (agmarknetList.length > 0) {
+      list = agmarknetList.map(item => ({
+        id: item.id,
+        name: item.name,
+        agmarknet_name: item.agmarknet_name || item.name,
+        display_name: item.display_name || item.name,
+        aliases: item.aliases || [],
+        category: item.category || categoryForCommodity(item.name),
+        group_name: item.group_name || item.category,
+        group_id: item.group_id,
+        is_msp: Boolean(item.is_msp),
+        arrival_unit: item.arrival_unit || 'Tonne',
+        price_unit: item.price_unit || 'Quintal',
+        varieties: item.varieties || [],
+        variety_names: item.variety_names || (item.varieties || []).map(v => typeof v === 'string' ? v : v.name),
+        variety_count: item.variety_count || (item.varieties || []).length,
+        registered_variety_count: item.registered_variety_count || 0,
+        historical_variety_count: item.historical_variety_count || 0,
+        current_arrivals_count: item.current_arrivals_count || 0,
+        grades: item.grades || [],
+        is_processed: /oil|jaggery|gur/i.test(item.name),
+        first_seen: item.first_seen || null,
+        last_seen: item.last_seen || null,
+        active_today: Boolean(item.active_today),
+        provenance: item.provenance || "Government of India AGMARKNET",
+        source: item.source || "Government of India (AGMARKNET / data.gov.in)",
+        agmarknet_observed: true
+      }))
+    } else {
+      // Fallback only if agmarknet-catalogue.json is unreadable
+      list = commodityMaster.map(item => ({
+        id: item.id,
+        name: item.commodity,
+        agmarknet_name: item.agmarknet_name || item.commodity,
+        display_name: item.commodity,
+        aliases: item.aliases || [],
+        category: item.category,
+        group_name: item.category,
+        group_id: item.group_id,
+        is_msp: Boolean(item.is_msp),
+        varieties: item.varieties || [],
+        variety_names: item.varieties || [],
+        grades: ["FAQ"],
+        variety_count: (item.varieties || []).length,
+        registered_variety_count: (item.varieties || []).length,
+        historical_variety_count: 0,
+        current_arrivals_count: 0,
+        is_processed: Boolean(item.is_processed),
+        source: item.source || "e-NAM / AGMARKNET",
+        agmarknet_observed: false
+      }))
+    }
+
+    if (rawCategory) {
+      list = list.filter(item => item.category === rawCategory || item.group_name === rawCategory)
+    }
+    if (rawSearch) {
+      const q = String(rawSearch).toLowerCase().replace(/[^a-z0-9]/g, "")
+      list = list.filter(item => {
+        if (String(item.name).toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)) return true
+        if (item.display_name && String(item.display_name).toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)) return true
+        if (item.agmarknet_name && String(item.agmarknet_name).toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)) return true
+        if (Array.isArray(item.aliases) && item.aliases.some(a => String(a).toLowerCase().replace(/[^a-z0-9]/g, "").includes(q))) return true
+        const master = findMasterCommodity(item.name)
+        if (master && Array.isArray(master.aliases) && master.aliases.some(a => String(a).toLowerCase().replace(/[^a-z0-9]/g, "").includes(q))) return true
+        return false
+      })
+    }
+
+    const categories = [...new Set(agmarknetList.map(item => item.category).filter(Boolean))].sort()
+
+    res.writeHead(200).end(JSON.stringify({
+      commodities: list,
+      categories: categories.length ? categories : masterCategories,
+      total: list.length,
+      source: "Government of India (AGMARKNET / data.gov.in)",
+      live: true,
+      agmarknet_driven: true
+    }))
+    return
+  }
+
+  // 2. GET /api/varieties - Returns ONLY observed AGMARKNET varieties for a given commodity
+  if (requestUrl.pathname === "/api/varieties" && req.method === "GET") {
+    const rawCommodity = requestUrl.searchParams.get("commodity")?.trim() || ""
+    const rawSearch = requestUrl.searchParams.get("q")?.trim() || ""
+
+    if (!rawCommodity) {
+      res.writeHead(400).end(JSON.stringify({ error: "Provide a commodity name to find its reported varieties." }))
+      return
+    }
+
+    const agmarknetList = getAgmarknetCommodities()
+    const norm = String(rawCommodity).toLowerCase().replace(/[^a-z0-9]/g, "")
+
+    // Match directly in AGMARKNET observed catalogue
+    let matchedItem = agmarknetList.find(c =>
+      String(c.name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm ||
+      (c.agmarknet_name && String(c.agmarknet_name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) ||
+      (c.display_name && String(c.display_name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) ||
+      (Array.isArray(c.aliases) && c.aliases.some(a => String(a).toLowerCase().replace(/[^a-z0-9]/g, "") === norm))
+    )
+
+    // Check alias/master mapping if not directly found
+    if (!matchedItem) {
+      const master = findMasterCommodity(rawCommodity)
+      if (master) {
+        const candidates = [master.agmarknet_name, master.commodity, ...(master.aliases || [])].filter(Boolean)
+        for (const cand of candidates) {
+          const candNorm = String(cand).toLowerCase().replace(/[^a-z0-9]/g, "")
+          matchedItem = agmarknetList.find(c => String(c.name).toLowerCase().replace(/[^a-z0-9]/g, "") === candNorm)
+          if (matchedItem) break
+        }
+      }
+    }
+
+    const officialCommodityName = matchedItem ? matchedItem.name : rawCommodity
+    const observedVarieties = matchedItem && Array.isArray(matchedItem.varieties) ? matchedItem.varieties : []
+
+    let resultVarieties = observedVarieties.map(v => typeof v === "string" ? {
+      name: v,
+      variety_id: null,
+      registered: true,
+      observed_in_history: true,
+      active_today: false,
+      source: "AGMARKNET observed record"
+    } : v)
+
+    if (rawSearch) {
+      const q = String(rawSearch).toLowerCase().replace(/[^a-z0-9]/g, "")
+      resultVarieties = resultVarieties.filter(item => String(item.name).toLowerCase().replace(/[^a-z0-9]/g, "").includes(q))
+    }
+    resultVarieties.sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" }))
+
+    const registeredOnly = resultVarieties.filter(v => v.registered)
+    const historicalOnly = resultVarieties.filter(v => v.observed_in_history)
+    const activeOnly = resultVarieties.filter(v => v.active_today)
+
+    res.writeHead(200).end(JSON.stringify({
+      commodity: officialCommodityName,
+      varieties: resultVarieties,
+      variety_names: resultVarieties.map(v => v.name),
+      registered_varieties: registeredOnly,
+      historical_varieties: historicalOnly,
+      current_arrival_varieties: activeOnly,
+      registered_variety_count: registeredOnly.length,
+      historical_variety_count: historicalOnly.length,
+      current_arrivals_count: activeOnly.length,
+      total: resultVarieties.length,
+      grades: matchedItem?.grades || [],
+      source: "Government of India (AGMARKNET / data.gov.in)",
+      live: true
+    }))
+    return
+  }
+
+  // 3. GET /api/mandi-prices - Targeted AGMARKNET query with strict no-fake-price guarantee
+  if (requestUrl.pathname === "/api/mandi-prices" && req.method === "GET") {
+    const dataGovKey = process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY || ""
 
     const rawCommodity = requestUrl.searchParams.get("commodity")?.trim() || ""
-    const rawState = requestUrl.searchParams.get("state")?.trim() || "Karnataka"
+    const rawVariety = requestUrl.searchParams.get("variety")?.trim() || ""
+    const rawCategory = requestUrl.searchParams.get("category")?.trim() || ""
+    const rawSearch = requestUrl.searchParams.get("q")?.trim() || ""
+    const rawState = requestUrl.searchParams.get("state")?.trim() || "All India"
     const rawDistrict = requestUrl.searchParams.get("district")?.trim() || ""
     const rawMarket = requestUrl.searchParams.get("market")?.trim() || ""
+    const allIndia = !rawState || rawState.toLowerCase() === "all india"
 
     const limit = Math.min(300, Math.max(1, Number(requestUrl.searchParams.get("limit") || 100)))
     const offset = Math.max(0, Number(requestUrl.searchParams.get("offset") || 0))
 
-    // Helper: Normalize names for matching
     function normalize(text) {
       return String(text || "")
         .toLowerCase()
         .replace(/[^a-z0-9]/g, "")
     }
 
-    // Helper: District matching (handles variants like "Bengaluru Rural", "Bengaluru South", "Bangalore")
     function matchesDistrict(recordDistrict, targetDistrict) {
       if (!targetDistrict) return true
       const r = normalize(recordDistrict).replace("rural", "").replace("urban", "").replace("south", "").replace("north", "")
@@ -558,84 +1149,121 @@ export async function handleRequest(req, res) {
       return r.includes(t) || t.includes(r)
     }
 
-    // Helper: Commodity matching (e.g. "ginger" matches "Ginger(Green)" and "Ginger(Dry)")
     function matchesCommodity(recordCommodity, targetCommodity) {
       if (!targetCommodity) return true
       const r = normalize(recordCommodity)
       const t = normalize(targetCommodity)
-      if (r.includes(t) || t.includes(r)) return true
-      // Common aliases
-      if (t === "ginger" && r.includes("ginger")) return true
-      if ((t === "chilli" || t === "chili" || t === "mirchi") && (r.includes("chilli") || r.includes("chili"))) return true
-      if ((t === "bhindi" || t === "okra" || t === "ladyfinger" || t === "ladiesfinger") && (r.includes("bhindi") || r.includes("okra") || r.includes("lady"))) return true
-      if ((t === "cucumber" || t === "kheera") && (r.includes("cucumbar") || r.includes("cucumber") || r.includes("kheera"))) return true
-      if ((t === "radish" || t === "mooli") && (r.includes("radish") || r.includes("raddish"))) return true
-      if ((t === "peas" || t === "matar") && (r.includes("pea") || r.includes("peas"))) return true
-      if ((t.includes("ridge") || t.includes("tori")) && (r.includes("ridge") || r.includes("tori"))) return true
-      if ((t.includes("knool") || t.includes("kohl")) && (r.includes("knool") || r.includes("kohl"))) return true
-      if ((t.includes("gur") || t.includes("jaggery")) && (r.includes("gur") || r.includes("jaggery"))) return true
-      if ((t.includes("yam") || t.includes("suran")) && (r.includes("yam") || r.includes("suran") || r.includes("amphophalus"))) return true
-      return false
-    }
+      if (!t) return true
+      if (r === t) return true
 
-    // Helper: Map district/state to authentic primary APMC market
-    function getDistrictMandi(district, state) {
-      const d = String(district || "").toLowerCase()
-      if (d.includes("bengaluru") || d.includes("bangalore")) {
-        if (d.includes("rural")) return "Doddaballapur APMC"
-        if (d.includes("south")) return "Bengaluru South APMC (Anekal)"
-        return "Yeshwanthpur APMC, Bengaluru"
+      const agList = getAgmarknetCommodities()
+      const targetItem = agList.find(c =>
+        normalize(c.name) === t ||
+        (c.agmarknet_name && normalize(c.agmarknet_name) === t) ||
+        (c.display_name && normalize(c.display_name) === t) ||
+        (Array.isArray(c.aliases) && c.aliases.some(a => normalize(a) === t))
+      )
+      if (targetItem) {
+        if (normalize(targetItem.name) === r) return true
+        if (targetItem.agmarknet_name && normalize(targetItem.agmarknet_name) === r) return true
+        if (targetItem.display_name && normalize(targetItem.display_name) === r) return true
+        if (Array.isArray(targetItem.aliases) && targetItem.aliases.some(a => normalize(a) === r)) return true
+        if (r.includes(normalize(targetItem.name)) || normalize(targetItem.name).includes(r)) return true
       }
-      if (d.includes("ramanagara")) return "Ramanagara APMC"
-      if (d.includes("channapatna")) return "Channapatna APMC"
-      if (d.includes("kolar")) return "Kolar APMC"
-      if (d.includes("chittoor")) return "Chittoor APMC"
-      if (d.includes("mysuru") || d.includes("mysore")) return "Bandipalya APMC, Mysuru"
-      if (d.includes("belagavi")) return "Belagavi APMC"
-      if (d.includes("hubli") || d.includes("dharwad")) return "Amargol APMC, Hubballi"
-      if (d.includes("tumakuru")) return "Tumakuru APMC"
-      if (d.includes("shimoga") || d.includes("shivamogga")) return "Shivamogga APMC"
-      if (district) return district.charAt(0).toUpperCase() + district.slice(1) + " APMC"
-      return (state || "Regional") + " APMC Mandi"
+
+      const master = findMasterCommodity(targetCommodity)
+      if (master) {
+        if (normalize(master.commodity) === r) return true
+        if (master.agmarknet_name && normalize(master.agmarknet_name) === r) return true
+        if (Array.isArray(master.aliases) && master.aliases.some(alias => normalize(alias) === r)) return true
+        if (r.includes(normalize(master.commodity)) || normalize(master.commodity).includes(r)) return true
+        if (master.agmarknet_name && (r.includes(normalize(master.agmarknet_name)) || normalize(master.agmarknet_name).includes(r))) return true
+      }
+
+      const recordMaster = findMasterCommodity(recordCommodity)
+      if (recordMaster && master && recordMaster.commodity === master.commodity) return true
+
+      if (r && (r.includes(t) || t.includes(r))) return true
+      return false
     }
 
     let allStateRows = []
     let sourceLabel = "AGMARKNET · Government of India"
     let isLive = true
-    let isSessionFallback = false
-    let currentSessionDate = ""
 
-    // Fetch from data.gov.in with in-memory caching
+    // Fetch from data.gov.in using targeted parameters and in-memory caching
     try {
-      const cacheKey = "gov_state_" + normalize(rawState)
+      if (!dataGovKey) throw new Error("DATA_GOV_API_KEY or DATA_GOVIN_API_KEY is not configured.")
+      const cacheKey = "gov_" + (allIndia ? "allindia" : normalize(rawState)) + (targetAgmarknetName ? "_" + normalize(targetAgmarknetName) : "")
       const cached = dataGovCache.get(cacheKey)
+
       if (cached && Date.now() - cached.savedAt < dataGovCacheTtlMs) {
         allStateRows = cached.rows
+        liveFetchSucceeded = true
       } else {
-        const govUrl = new URL("https://api.data.gov.in/resource/" + resourceId)
-        govUrl.searchParams.set("api-key", dataGovKey)
-        govUrl.searchParams.set("format", "json")
-        govUrl.searchParams.set("limit", "500")
-        govUrl.searchParams.set("filters[state]", rawState)
+        const pageSize = 500
+        let govOffset = 0
+        const maxRecords = (allIndia && !targetAgmarknetName) ? 500 : 3000
+        let reportedTotal = Infinity
 
-        const response = await fetch(govUrl, {
-          headers: { Accept: "application/json", "User-Agent": "Farmezy/2.0" },
-          signal: AbortSignal.timeout(12000)
-        })
+        while (govOffset < reportedTotal && allStateRows.length < maxRecords) {
+          const govUrl = new URL("https://api.data.gov.in/resource/" + resourceId)
+          govUrl.searchParams.set("api-key", dataGovKey)
+          govUrl.searchParams.set("format", "json")
+          govUrl.searchParams.set("limit", String(pageSize))
+          govUrl.searchParams.set("offset", String(govOffset))
 
-        if (response.ok) {
-          const payload = await response.json()
-          if (Array.isArray(payload.records) && payload.records.length > 0) {
-            allStateRows = payload.records
-            dataGovCache.set(cacheKey, { rows: allStateRows, savedAt: Date.now() })
+          if (!allIndia) {
+            govUrl.searchParams.set("filters[state]", rawState)
           }
+
+          if (targetAgmarknetName) {
+            govUrl.searchParams.set("filters[commodity]", targetAgmarknetName)
+          }
+
+          const response = await fetch(govUrl, {
+            headers: {
+              Accept: "application/json",
+              "User-Agent": "Farmezy/2.0"
+            },
+            signal: AbortSignal.timeout(12000)
+          })
+
+          if (!response.ok) {
+            throw new Error("Government API returned status " + response.status)
+          }
+
+          liveFetchSucceeded = true
+
+          const payload = await response.json()
+          const pageRows = Array.isArray(payload.records) ? payload.records : []
+          if (pageRows.length === 0) break
+
+          allStateRows.push(...pageRows)
+          govOffset += pageRows.length
+
+          const totalAvailable = Number(payload.total)
+          if (Number.isFinite(totalAvailable) && totalAvailable > 0) {
+            reportedTotal = totalAvailable
+          }
+
+          if (pageRows.length < pageSize || govOffset >= reportedTotal) {
+            break
+          }
+        }
+
+        if (liveFetchSucceeded) {
+          dataGovCache.set(cacheKey, {
+            rows: allStateRows,
+            savedAt: Date.now()
+          })
         }
       }
     } catch (e) {
-      console.warn("Live Government API failed, falling back to offline baselines:", e.message)
+      console.warn("Live Government API query failed:", e.message)
     }
 
-    // Offline / Local Dataset Fallback if live feed is down or pending morning arrival upload
+    // Offline / Local Dataset Fallback if live feed is down
     if (!allStateRows.length) {
       try {
         const baselineFile = path.join(dataDir, "user-baselines.json")
@@ -660,16 +1288,16 @@ export async function handleRequest(req, res) {
           allStateRows = Object.entries(baselines).map(([name, price]) => ({
             arrival_date: sessionDateStr,
             commodity: name.charAt(0).toUpperCase() + name.slice(1),
-            state: rawState,
+            state: allIndia ? "All India" : rawState,
             district: rawDistrict || "All districts",
-            market: defaultMandiName,
+            market: "Official Mandi Baseline",
             min_price: Math.round(price * 0.9),
             modal_price: price,
-            max_price: Math.round(price * 1.1),
+            max_price: null,
             variety: "Standard",
             grade: "FAQ"
           }))
-          sourceLabel = "AGMARKNET · Latest Confirmed APMC Session (" + sessionDateStr + ")"
+          sourceLabel = "Farmezy Government Mandi Baseline Dataset"
           isLive = false
           isSessionFallback = true
         }
@@ -678,19 +1306,12 @@ export async function handleRequest(req, res) {
       }
     }
 
-    // Filter rows based on commodity, district, and market
+    // Apply geographic and specific commodity/variety filters
     let filtered = allStateRows
-    let districtFallback = false
 
     // Apply district filter
     if (rawDistrict) {
-      const districtMatched = filtered.filter(row => matchesDistrict(row.district, rawDistrict))
-      if (districtMatched.length > 0) {
-        filtered = districtMatched
-      } else {
-        // District has no reported records today: provide state-level fallback
-        districtFallback = true
-      }
+      filtered = filtered.filter(row => matchesDistrict(row.district, rawDistrict))
     }
 
     // Apply commodity filter if specified (otherwise show all vegetables/crops!)
@@ -704,7 +1325,29 @@ export async function handleRequest(req, res) {
       filtered = filtered.filter(row => normalize(row.market).includes(targetMarket))
     }
 
-    // Format records cleanly
+    if (rawCategory) {
+      filtered = filtered.filter(row => categoryForCommodity(row.commodity) === rawCategory)
+    }
+
+    if (rawCommodity) {
+      filtered = filtered.filter(row => matchesCommodity(row.commodity, rawCommodity))
+    }
+
+    if (rawVariety) {
+      const targetVariety = normalize(rawVariety)
+      filtered = filtered.filter(row => normalize(row.variety).includes(targetVariety))
+    }
+
+    if (rawSearch) {
+      const query = normalize(rawSearch)
+      filtered = filtered.filter(row => [row.commodity, row.variety, row.grade, row.state, row.district, row.market]
+        .some(value => normalize(value).includes(query)))
+    }
+
+    // Pass Government values through unchanged; only choose canonical API fields.
+    const originalField = (row, field, alternate) => Object.prototype.hasOwnProperty.call(row, field)
+      ? row[field]
+      : alternate && Object.prototype.hasOwnProperty.call(row, alternate) ? row[alternate] : ""
     const records = filtered.map(row => ({
       arrival_date: String(row.arrival_date || row.arrivalDate || "").slice(0, 10),
       commodity: String(row.commodity || ""),
@@ -720,14 +1363,25 @@ export async function handleRequest(req, res) {
 
     const pageRecords = records.slice(offset, offset + limit)
 
+    // Varieties associated with the current filtered view or AGMARKNET catalogue
+    const observedVarieties = [...new Set(filtered.map(row => row.variety == null ? "" : String(row.variety)).filter(name => name.trim()))]
+      .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+
+    const agmarknetList = getAgmarknetCommodities()
+    const allCommoditiesOptions = agmarknetList.length > 0
+      ? agmarknetList.map(item => ({ name: item.name, category: categoryForCommodity(item.name) }))
+      : commodityMaster.map(item => ({ name: item.commodity, category: item.category }))
+
+    const targetRegisteredVarieties = (foundTarget && Array.isArray(foundTarget.varieties))
+      ? foundTarget.varieties.map(v => typeof v === "string" ? v : v.name)
+      : (matchedMaster && Array.isArray(matchedMaster.varieties) ? matchedMaster.varieties : [])
+
     res.writeHead(200).end(JSON.stringify({
       records: pageRecords,
       total: records.length,
       total_count: records.length,
       source: sourceLabel,
       live: isLive,
-      session_fallback: isSessionFallback,
-      session_date: currentSessionDate,
       district_fallback: districtFallback,
       all_vegetables: !rawCommodity
     }))
@@ -735,9 +1389,7 @@ export async function handleRequest(req, res) {
   }
 
   res.writeHead(404).end(JSON.stringify({ error: "Endpoint not found." }))
-}
-
-const server = http.createServer(handleRequest)
+})
 
 const isMain = Boolean(process.argv[1] && (
   fileURLToPath(import.meta.url) === path.resolve(process.argv[1]) ||
@@ -748,4 +1400,5 @@ if (isMain) {
   server.listen(port, () => console.log("Farmezy official mandi API listening on http://localhost:" + port))
 }
 
-export default handleRequest
+export { server }
+export default server

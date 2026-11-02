@@ -3,6 +3,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
+import { refreshCatalogue } from "./refresh-catalogue.js"
 const envFile = path.join(root, ".env")
 const outputFile = path.join(root, "data", "mandi-history.json")
 const resourceId = "9ef84268-d588-465a-a308-a864a43d0070"
@@ -39,7 +40,7 @@ while (true) {
   url.searchParams.set("format", "json")
   url.searchParams.set("limit", String(pageSize))
   url.searchParams.set("offset", String(offset))
-  url.searchParams.set("sort[arrival_date]", "desc")
+
 
   const response = await fetch(url, { headers: { Accept: "application/json", "User-Agent": "Farmezy/1.0" }, signal: AbortSignal.timeout(30000) })
   const payload = await response.json()
@@ -86,4 +87,5 @@ while (true) {
 
 mkdirSync(path.dirname(outputFile), { recursive: true })
 writeFileSync(outputFile, JSON.stringify({ collectedAt: new Date().toISOString(), cutoff: cutoff.toISOString().slice(0,10), rows }))
+await refreshCatalogue().catch(e => console.warn("Catalogue refresh warning:", e.message))
 console.log("Finished. Saved " + rows.length + " records.")
