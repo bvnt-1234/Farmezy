@@ -4,7 +4,9 @@ import { spawn } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
 
-const port = Number(process.env.PORT || process.env.API_PORT || 3001)
+const isAzure = Boolean(process.env.WEBSITE_SITE_NAME || process.env.REGION_NAME)
+const defaultPort = isAzure ? 8080 : (process.env.NODE_ENV === "production" ? 8080 : 3001)
+const port = Number(process.env.PORT || process.env.WEBSITES_PORT || process.env.API_PORT || defaultPort)
 const resourceId = "9ef84268-d588-465a-a308-a864a43d0070"
 const dataGovCache = new Map()
 const dataGovCacheTtlMs = 15 * 60 * 1000 // 15 minutes cache
