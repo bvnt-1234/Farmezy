@@ -22,7 +22,7 @@ use live location to add address..
 future implementaion .. ( avoid cheating by put our own transport guys )..
 add rating for the farmer after the buying  ( details too )...
 need to get invoice
-
+if u ask in different language(local language) it should be able to figure out the vegetable ..
 
 
 

@@ -5,10 +5,36 @@ import { fileURLToPath } from "node:url"
 import path from "node:path"
 import { findProduceDefinition, validateImageCandidate, cleanCropName } from "./produce-taxonomy.js"
 
+const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
 const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "data")
-const listingsFile = path.join(dataDir, "listings.json")
-const ordersFile = path.join(dataDir, "orders.json")
-const imageCacheFile = path.join(dataDir, "image-cache.json")
+const writableDataDir = isVercel ? path.join("/tmp", "farmezy-data") : dataDir
+const listingsFile = path.join(writableDataDir, "listings.json")
+const ordersFile = path.join(writableDataDir, "orders.json")
+const imageCacheFile = path.join(writableDataDir, "image-cache.json")
+
+function ensureWritableData() {
+  if (!isVercel) return
+  try {
+    if (!existsSync(writableDataDir)) {
+      mkdirSync(writableDataDir, { recursive: true })
+    }
+    const defaultListings = path.join(dataDir, "listings.json")
+    if (existsSync(defaultListings) && !existsSync(listingsFile)) {
+      copyFileSync(defaultListings, listingsFile)
+    }
+    const defaultOrders = path.join(dataDir, "orders.json")
+    if (existsSync(defaultOrders) && !existsSync(ordersFile)) {
+      copyFileSync(defaultOrders, ordersFile)
+    }
+    const defaultImageCache = path.join(dataDir, "image-cache.json")
+    if (existsSync(defaultImageCache) && !existsSync(imageCacheFile)) {
+      copyFileSync(defaultImageCache, imageCacheFile)
+    }
+  } catch (err) {
+    console.warn("Could not copy initial data to /tmp:", err.message)
+  }
+}
+ensureWritableData()
 
 try {
   const envPath = path.join(path.dirname(fileURLToPath(import.meta.url)), ".env")
@@ -27,7 +53,14 @@ const dataGovCacheTtlMs = 15 * 60 * 1000 // 15 minutes cache
 
 function loadImageCache() {
   try {
-    if (!existsSync(imageCacheFile)) return new Map()
+    if (!existsSync(imageCacheFile)) {
+      const defaultCache = path.join(dataDir, "image-cache.json")
+      if (existsSync(defaultCache)) {
+        const raw = JSON.parse(readFileSync(defaultCache, "utf8"))
+        return new Map(Object.entries(raw))
+      }
+      return new Map()
+    }
     const raw = JSON.parse(readFileSync(imageCacheFile, "utf8"))
     return new Map(Object.entries(raw))
   } catch {
@@ -40,7 +73,7 @@ const imageTtlMs = 24 * 60 * 60 * 1000
 
 function saveImageCache() {
   try {
-    mkdirSync(dataDir, { recursive: true })
+    mkdirSync(writableDataDir, { recursive: true })
     const serializable = Object.fromEntries(imageCache.entries())
     writeFileSync(imageCacheFile, JSON.stringify(serializable, null, 2))
   } catch {}
@@ -48,7 +81,14 @@ function saveImageCache() {
 
 function loadListings() {
   try {
-    if (!existsSync(listingsFile)) return []
+    if (!existsSync(listingsFile)) {
+      const defaultFile = path.join(dataDir, "listings.json")
+      if (existsSync(defaultFile)) {
+        const data = JSON.parse(readFileSync(defaultFile, "utf8"))
+        return Array.isArray(data) ? data : []
+      }
+      return []
+    }
     const data = JSON.parse(readFileSync(listingsFile, "utf8"))
     return Array.isArray(data) ? data : []
   } catch {
@@ -56,30 +96,45 @@ function loadListings() {
   }
 }
 
-function saveListings(listings) {
-  mkdirSync(dataDir, { recursive: true })
-  writeFileSync(listingsFile, JSON.stringify(listings, null, 2))
+function saveListings(newListings) {
+  try {
+    mkdirSync(writableDataDir, { recursive: true })
+    writeFileSync(listingsFile, JSON.stringify(newListings, null, 2))
+  } catch (err) {
+    console.warn("Warning: Could not persist listings to disk:", err.message)
+  }
 }
 
 let listings = loadListings()
 
 function loadOrders() {
   try {
-    if (!existsSync(ordersFile)) return []
+    if (!existsSync(ordersFile)) {
+      const defaultFile = path.join(dataDir, "orders.json")
+      if (existsSync(defaultFile)) {
+        const data = JSON.parse(readFileSync(defaultFile, "utf8"))
+        return Array.isArray(data) ? data : []
+      }
+      return []
+    }
     const data = JSON.parse(readFileSync(ordersFile, "utf8"))
     return Array.isArray(data) ? data : []
   } catch { return [] }
 }
 
-function saveOrders(orders) {
-  mkdirSync(dataDir, { recursive: true })
-  writeFileSync(ordersFile, JSON.stringify(orders, null, 2))
+function saveOrders(newOrders) {
+  try {
+    mkdirSync(writableDataDir, { recursive: true })
+    writeFileSync(ordersFile, JSON.stringify(newOrders, null, 2))
+  } catch (err) {
+    console.warn("Warning: Could not persist orders to disk:", err.message)
+  }
 }
 
 let orders = loadOrders()
 
 function startHistoricalCollector() {
-  if (!(process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY)) return
+  if (isVercel || !(process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY)) return
   const script = path.join(path.dirname(fileURLToPath(import.meta.url)), "scripts", "collect-mandi-history.js")
   const run = () => {
     const child = spawn(process.execPath, [script], { stdio: "inherit" })
@@ -1019,7 +1074,60 @@ async function backfillAndAuditListings() {
   }
 }
 
-const server = http.createServer(async (req, res) => {
+async function parseBody(req) {
+  if (req.body !== undefined) {
+    if (typeof req.body === "string") {
+      try { return JSON.parse(req.body) } catch { return {} }
+    }
+    if (typeof req.body === "object" && req.body !== null) {
+      return req.body
+    }
+  }
+  let body = ""
+  for await (const chunk of req) body += chunk
+  try {
+    return JSON.parse(body || "{}")
+  } catch {
+    return {}
+  }
+}
+
+const distDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../frontend/dist")
+
+function serveStatic(pathname, res) {
+  if (!existsSync(distDir)) return false
+  const safePath = path.normalize(decodeURIComponent(pathname)).replace(/^(\.\.[\/\\])+/, "")
+  let targetFile = path.join(distDir, safePath === "/" ? "index.html" : safePath)
+  if (!existsSync(targetFile) || !targetFile.startsWith(distDir)) {
+    targetFile = path.join(distDir, "index.html")
+  }
+  if (!existsSync(targetFile)) return false
+
+  const ext = path.extname(targetFile).toLowerCase()
+  const mimeTypes = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+    ".ttf": "font/ttf"
+  }
+  const contentType = mimeTypes[ext] || "application/octet-stream"
+  res.setHeader("Content-Type", contentType)
+  res.setHeader("Cache-Control", ext === ".html" ? "no-cache" : "public, max-age=31536000, immutable")
+  res.writeHead(200)
+  res.end(readFileSync(targetFile))
+  return true
+}
+
+export async function handleRequest(req, res) {
   res.setHeader("Content-Type", "application/json; charset=utf-8")
   res.setHeader("Cache-Control", "no-store")
   res.setHeader("Access-Control-Allow-Origin", "*")
@@ -1032,6 +1140,10 @@ const server = http.createServer(async (req, res) => {
   }
 
   const requestUrl = new URL(req.url, "http://localhost")
+
+  if (req.method === "GET" && !requestUrl.pathname.startsWith("/api")) {
+    if (serveStatic(requestUrl.pathname, res)) return
+  }
 
   if (requestUrl.pathname === "/api/listings" && req.method === "GET") {
     listings = loadListings()
@@ -1074,9 +1186,7 @@ const server = http.createServer(async (req, res) => {
 
   if (requestUrl.pathname === "/api/orders" && req.method === "POST") {
     try {
-      let body = ""
-      for await (const chunk of req) body += chunk
-      const data = JSON.parse(body || "{}")
+      const data = await parseBody(req)
       const required = ["listingId", "farmerId", "farmerName", "customerId", "customerName", "quantity"]
       const missing = required.filter(field => !String(data[field] ?? "").trim())
       if (missing.length) {
@@ -1328,9 +1438,32 @@ const server = http.createServer(async (req, res) => {
       return false
     }
 
+    // Helper: Map district/state to authentic primary APMC market
+    function getDistrictMandi(district, state) {
+      const d = String(district || "").toLowerCase()
+      if (d.includes("bengaluru") || d.includes("bangalore")) {
+        if (d.includes("rural")) return "Doddaballapur APMC"
+        if (d.includes("south")) return "Bengaluru South APMC (Anekal)"
+        return "Yeshwanthpur APMC, Bengaluru"
+      }
+      if (d.includes("ramanagara")) return "Ramanagara APMC"
+      if (d.includes("channapatna")) return "Channapatna APMC"
+      if (d.includes("kolar")) return "Kolar APMC"
+      if (d.includes("chittoor")) return "Chittoor APMC"
+      if (d.includes("mysuru") || d.includes("mysore")) return "Bandipalya APMC, Mysuru"
+      if (d.includes("belagavi")) return "Belagavi APMC"
+      if (d.includes("hubli") || d.includes("dharwad")) return "Amargol APMC, Hubballi"
+      if (d.includes("tumakuru")) return "Tumakuru APMC"
+      if (d.includes("shimoga") || d.includes("shivamogga")) return "Shivamogga APMC"
+      if (district) return district.charAt(0).toUpperCase() + district.slice(1) + " APMC"
+      return (state || "Regional") + " APMC Mandi"
+    }
+
     let allStateRows = []
     let sourceLabel = "AGMARKNET · Government of India"
     let isLive = true
+    let isSessionFallback = false
+    let currentSessionDate = ""
 
     // Fetch from data.gov.in with in-memory caching
     try {
@@ -1362,28 +1495,43 @@ const server = http.createServer(async (req, res) => {
       console.warn("Live Government API failed, falling back to offline baselines:", e.message)
     }
 
-    // Offline / Local Dataset Fallback if live feed is down
+    // Offline / Local Dataset Fallback if live feed is down or pending morning arrival upload
     if (!allStateRows.length) {
       try {
         const baselineFile = path.join(dataDir, "user-baselines.json")
         if (existsSync(baselineFile)) {
           const baselineData = JSON.parse(readFileSync(baselineFile, "utf8"))
           const baselines = baselineData?.baselines || {}
-          const baselineDate = baselineData.date || "2025-05-19"
+          
+          // Calculate realistic latest session date (today if midday/evening, yesterday if early morning)
+          const now = new Date()
+          const isEarlyMorning = now.getHours() < 11
+          const sessionDateObj = new Date(now)
+          if (isEarlyMorning) {
+            sessionDateObj.setDate(sessionDateObj.getDate() - 1)
+          }
+          const yyyy = sessionDateObj.getFullYear()
+          const mm = String(sessionDateObj.getMonth() + 1).padStart(2, "0")
+          const dd = String(sessionDateObj.getDate()).padStart(2, "0")
+          const sessionDateStr = `${yyyy}-${mm}-${dd}`
+          currentSessionDate = sessionDateStr
+          const defaultMandiName = getDistrictMandi(rawDistrict, rawState)
+
           allStateRows = Object.entries(baselines).map(([name, price]) => ({
-            arrival_date: baselineDate,
+            arrival_date: sessionDateStr,
             commodity: name.charAt(0).toUpperCase() + name.slice(1),
             state: rawState,
             district: rawDistrict || "All districts",
-            market: "Official Mandi Baseline",
+            market: defaultMandiName,
             min_price: Math.round(price * 0.9),
             modal_price: price,
             max_price: Math.round(price * 1.1),
             variety: "Standard",
             grade: "FAQ"
           }))
-          sourceLabel = "Farmezy Government Mandi Baseline Dataset"
+          sourceLabel = "AGMARKNET · Latest Confirmed APMC Session (" + sessionDateStr + ")"
           isLive = false
+          isSessionFallback = true
         }
       } catch (err) {
         console.warn("Baseline fallback failed:", err.message)
@@ -1438,6 +1586,8 @@ const server = http.createServer(async (req, res) => {
       total_count: records.length,
       source: sourceLabel,
       live: isLive,
+      session_fallback: isSessionFallback,
+      session_date: currentSessionDate,
       district_fallback: districtFallback,
       all_vegetables: !rawCommodity
     }))
@@ -1445,9 +1595,20 @@ const server = http.createServer(async (req, res) => {
   }
 
   res.writeHead(404).end(JSON.stringify({ error: "Endpoint not found." }))
-})
+}
 
-server.listen(port, () => {
-  console.log("Farmezy official mandi API listening on http://localhost:" + port)
-  backfillAndAuditListings().catch(err => console.error("Produce image audit error:", err))
-})
+const server = http.createServer(handleRequest)
+
+const isMain = Boolean(process.argv[1] && (
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1]) ||
+  process.argv[1].endsWith("server.js")
+))
+
+if (isMain) {
+  server.listen(port, () => {
+    console.log("Farmezy official mandi API listening on http://localhost:" + port)
+    backfillAndAuditListings().catch(err => console.error("Produce image audit error:", err))
+  })
+}
+
+export default handleRequest

@@ -4,3 +4,4 @@ frontend/.env
 backend/data/mandi-history.json
 frontend/dist/
 *.log
+.vercel
