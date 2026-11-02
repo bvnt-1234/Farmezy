@@ -94,13 +94,13 @@ startHistoricalCollector()
 
 // Curated high-res photos for common Indian vegetables, fruits, and commodities
 const curatedCropImages = {
-  ginger: { url: "/ginger.jpg", alt: "Fresh ginger rhizome", photographer: "Wikimedia Commons", link: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg" },
-  "ginger green": { url: "/ginger.jpg", alt: "Fresh green ginger rhizome", photographer: "Wikimedia Commons", link: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg" },
-  "ginger dry": { url: "/ginger.jpg", alt: "Dry ginger rhizome", photographer: "Wikimedia Commons", link: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg" },
-  adrak: { url: "/ginger.jpg", alt: "Fresh adrak / ginger", photographer: "Wikimedia Commons" },
-  inji: { url: "/ginger.jpg", alt: "Fresh ginger", photographer: "Wikimedia Commons" },
-  allam: { url: "/ginger.jpg", alt: "Fresh ginger", photographer: "Wikimedia Commons" },
-  shunti: { url: "/ginger.jpg", alt: "Fresh shunti / ginger", photographer: "Wikimedia Commons" },
+  ginger: { url: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg", alt: "Fresh ginger rhizome (Zingiber officinale)", photographer: "Sanjay Acharya (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Fresh_ginger_rhizome_01.jpg" },
+  "ginger green": { url: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg", alt: "Fresh green ginger rhizome (Zingiber officinale)", photographer: "Sanjay Acharya (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Fresh_ginger_rhizome_01.jpg" },
+  "ginger dry": { url: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg", alt: "Dry ginger rhizome (Zingiber officinale)", photographer: "Sanjay Acharya (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Fresh_ginger_rhizome_01.jpg" },
+  adrak: { url: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg", alt: "Fresh adrak / ginger (Zingiber officinale)", photographer: "Sanjay Acharya (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Fresh_ginger_rhizome_01.jpg" },
+  inji: { url: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg", alt: "Fresh inji / ginger (Zingiber officinale)", photographer: "Sanjay Acharya (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Fresh_ginger_rhizome_01.jpg" },
+  allam: { url: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg", alt: "Fresh allam / ginger (Zingiber officinale)", photographer: "Sanjay Acharya (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Fresh_ginger_rhizome_01.jpg" },
+  shunti: { url: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg", alt: "Fresh shunti / ginger (Zingiber officinale)", photographer: "Sanjay Acharya (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Fresh_ginger_rhizome_01.jpg" },
 
   "ladies finger": { url: "/ladies_finger.jpg", alt: "Fresh ladies finger / okra pods", photographer: "Wikimedia Commons", link: "https://upload.wikimedia.org/wikipedia/commons/3/32/Bucket_of_raw_okra_pods.jpg" },
   "lady finger": { url: "/ladies_finger.jpg", alt: "Fresh lady finger pods", photographer: "Wikimedia Commons", link: "https://upload.wikimedia.org/wikipedia/commons/3/32/Bucket_of_raw_okra_pods.jpg" },
@@ -133,8 +133,13 @@ const curatedCropImages = {
 
   "snake gourd": { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
   snakegourd: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
+  snakeguard: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
+  "snake guard": { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
   chichinda: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd / chichinda (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
   padavalakai: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd / padavalakai (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
+  padavalkayi: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd / padavalkayi (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
+  pudalangai: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd / pudalangai (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
+  potlakaya: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd / potlakaya (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
 
   "ridge gourd": { url: "https://upload.wikimedia.org/wikipedia/commons/5/59/Luffa_acutangula.jpg", alt: "Fresh green ridge gourd / luffa (Luffa acutangula)", photographer: "SarKaLay (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Luffa_acutangula.jpg" },
   ridgeguard: { url: "https://upload.wikimedia.org/wikipedia/commons/5/59/Luffa_acutangula.jpg", alt: "Fresh green ridge gourd / tori (Luffa acutangula)", photographer: "SarKaLay (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Luffa_acutangula.jpg" },
@@ -187,12 +192,45 @@ const curatedCropImages = {
   sarson: { url: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=640&q=75", alt: "Natural whole raw mustard seeds (Brassica)", photographer: "Towfiqu barbhuiya (Unsplash)", link: "https://unsplash.com/photos/a-close-up-of-mustard-seeds-EmA2RjP_13Y?utm_source=farmezy&utm_medium=referral" },
   chilli: { url: "https://images.unsplash.com/photo-1565685110871-1324fc462c84?auto=format&fit=crop&w=640&q=75", alt: "Fresh green chillies", photographer: "Unsplash", link: "https://unsplash.com" },
   chili: { url: "https://images.unsplash.com/photo-1565685110871-1324fc462c84?auto=format&fit=crop&w=640&q=75", alt: "Fresh chillies", photographer: "Unsplash", link: "https://unsplash.com" },
-  beans: { url: "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=640&q=75", alt: "Fresh green beans", photographer: "Unsplash", link: "https://unsplash.com" },
+  beans: { url: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg", alt: "Fresh authentic green beans / French beans (Phaseolus vulgaris)", photographer: "Daderot (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Green_beans_2_-_Massachusetts.jpg" },
+  bean: { url: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg", alt: "Fresh authentic green beans / French beans (Phaseolus vulgaris)", photographer: "Daderot (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Green_beans_2_-_Massachusetts.jpg" },
+  "green beans": { url: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg", alt: "Fresh authentic green beans (Phaseolus vulgaris)", photographer: "Daderot (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Green_beans_2_-_Massachusetts.jpg" },
+  "french beans": { url: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg", alt: "Fresh authentic French beans (Phaseolus vulgaris)", photographer: "Daderot (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Green_beans_2_-_Massachusetts.jpg" },
+  frasbean: { url: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg", alt: "Fresh authentic French beans / frasbean (Phaseolus vulgaris)", photographer: "Daderot (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Green_beans_2_-_Massachusetts.jpg" },
+
+  thogarikai: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic cluster beans / thogarikai / guar (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
+  thogrikai: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic cluster beans / thogrikai / guar (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
+  "cluster beans": { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic cluster beans / guar (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
+  "cluster bean": { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic cluster beans / guar (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
+  guar: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic guar / cluster beans (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
+  gawar: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic gawar / cluster beans (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
+  gavar: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic gavar / cluster beans (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
+  gorikayi: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic gorikayi / cluster beans (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
+  gorikai: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic gorikai / cluster beans (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
+  kothavarangai: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic kothavarangai / cluster beans (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
   beetroot: { url: "https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?auto=format&fit=crop&w=640&q=75", alt: "Fresh beetroot", photographer: "Unsplash", link: "https://unsplash.com" },
   capsicum: { url: "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=640&q=75", alt: "Fresh bell pepper / capsicum", photographer: "Unsplash", link: "https://unsplash.com" },
   peas: { url: "https://images.unsplash.com/photo-1587735243615-c03f25aaff15?auto=format&fit=crop&w=640&q=75", alt: "Fresh green peas", photographer: "Unsplash", link: "https://unsplash.com" },
-  radish: { url: "https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?auto=format&fit=crop&w=640&q=75", alt: "Fresh white radish", photographer: "Unsplash", link: "https://unsplash.com" },
-  raddish: { url: "https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?auto=format&fit=crop&w=640&q=75", alt: "Fresh white radish", photographer: "Unsplash", link: "https://unsplash.com" },
+  radish: { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
+  raddish: { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
+  mooli: { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic mooli / long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
+  mullangi: { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic mullangi / long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
+  moolangi: { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic moolangi / long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
+  daikon: { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
+  "white radish": { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
+
+  "knol khol": { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic knol khol / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
+  knolkhol: { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic knol khol / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
+  "knool khol": { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic knool khol / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
+  knoolkhol: { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic knool khol / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
+  kohlrabi: { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic kohlrabi / knol khol (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
+  "german turnip": { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic German turnip / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
+  "ganth gobi": { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic ganth gobi / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
+  ganthgobi: { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic ganth gobi / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
+  "navil kosu": { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic navil kosu / knol khol (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
+  navilkosu: { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic navil kosu / knol khol (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
+  noolkol: { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic noolkol / knol khol (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
+  "nool kol": { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic noolkol / knol khol (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
   spinach: { url: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=640&q=75", alt: "Fresh spinach leaves", photographer: "Unsplash", link: "https://unsplash.com" },
   banana: { url: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=640&q=75", alt: "Fresh bananas", photographer: "Unsplash", link: "https://unsplash.com" },
   apple: { url: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=640&q=75", alt: "Fresh apples", photographer: "Unsplash", link: "https://unsplash.com" },
@@ -622,8 +660,13 @@ const BOTANICALLY_SENSITIVE_FALLBACK_CROPS = [
   "bottle gourd", "lauki", "calabash", "sorekayi",
   "bitter gourd", "bitter melon", "karela", "hagalakayi", "pavakkai",
   "ash gourd", "ashgourd", "winter melon", "wax gourd", "petha", "kumbalakai",
-  "snake gourd", "snakegourd", "chichinda", "padavalakai",
+  "snake gourd", "snakegourd", "snakeguard", "snake guard", "chichinda", "padavalakai", "padavalkayi", "pudalangai", "potlakaya",
   "ridge gourd", "ridgeguard", "tori", "turai", "sesame", "til", "sesamum",
+  "ginger", "ginger green", "ginger dry", "adrak", "shunti", "inji", "allam",
+  "beans", "bean", "green beans", "french beans", "frasbean",
+  "thogarikai", "thogrikai", "cluster beans", "cluster bean", "guar", "gawar", "gavar", "gorikayi", "gorikai", "kothavarangai",
+  "radish", "raddish", "mooli", "moolangi", "mullangi", "white radish", "daikon",
+  "knol khol", "knolkhol", "knool khol", "knoolkhol", "kohlrabi", "german turnip", "ganth gobi", "navil kosu", "noolkol",
   "elephant foot yam", "elephant yam", "suran", "drumstick", "moringa", "bengal gram"
 ]
 
@@ -637,22 +680,7 @@ async function resolveProduceImage(cropName) {
   if (!clean) return null
   const cacheKey = clean.toLowerCase()
 
-  const cached = imageCache.get(cacheKey)
-  if (
-    cached &&
-    Date.now() - cached.savedAt < imageTtlMs &&
-    cached.data?.url &&
-    cached.data.url !== "/placeholder.png" &&
-    !cached.data.url.includes("/thumb/") &&
-    !["/potato.jpg", "/cabbage.jpg", "/ladies_finger.jpg", "/tomato.jpg", "/onion.jpg", "/carrot.jpg"].includes(cached.data.url) &&
-    !(cacheKey.includes("green gram") && cached.data.url.includes("Bengal_Gram.jpg")) &&
-    !(cacheKey.includes("ash gourd") && cached.data.url.includes("photo-1597362925123-77861d3fbac7")) &&
-    !(cacheKey.includes("bitter gourd") && cached.data.url.includes("photo-1597362925123-77861d3fbac7"))
-  ) {
-    return cached.data
-  }
-
-  // 1. For botanically sensitive crops, check verified curated library first
+  // 1. Highest Priority: Curated verified produce library for sensitive crops (Radish, Knol Khol, Gourds, Pulses, Millets, Spices, etc.)
   if (isBotanicallySensitiveCrop(clean)) {
     const curated = findCuratedCropImage(clean)
     if (curated) {
@@ -660,6 +688,27 @@ async function resolveProduceImage(cropName) {
       saveImageCache()
       return curated
     }
+  }
+
+  // 2. Check cached images (only if not botanical sensitive, or valid cached non-stale entry)
+  const cached = imageCache.get(cacheKey)
+  if (
+    cached &&
+    Date.now() - cached.savedAt < imageTtlMs &&
+    cached.data?.url &&
+    cached.data.url !== "/placeholder.png" &&
+    !cached.data.url.includes("/thumb/") &&
+    !["/potato.jpg", "/cabbage.jpg", "/ladies_finger.jpg", "/tomato.jpg", "/onion.jpg", "/carrot.jpg", "/ginger.jpg"].includes(cached.data.url) &&
+    !(cacheKey.includes("green gram") && cached.data.url.includes("Bengal_Gram.jpg")) &&
+    !(cacheKey.includes("ash gourd") && cached.data.url.includes("photo-1597362925123-77861d3fbac7")) &&
+    !(cacheKey.includes("bitter gourd") && cached.data.url.includes("photo-1597362925123-77861d3fbac7")) &&
+    !((cacheKey.includes("snake gourd") || cacheKey.includes("snakeguard") || cacheKey.includes("snake guard")) && cached.data.url.includes("photo-1597362925123-77861d3fbac7")) &&
+    !(cacheKey.includes("bean") && (cached.data.url.includes("photo-1609820323628-621956856049") || (cached.data.alt && /white round fruit/i.test(cached.data.alt)))) &&
+    !((cacheKey.includes("thogari") || cacheKey.includes("thogri") || cacheKey.includes("cluster bean") || cacheKey.includes("guar")) && cached.data.url === "/placeholder.png") &&
+    !((cacheKey.includes("radish") || cacheKey.includes("raddish") || cacheKey.includes("mooli") || cacheKey.includes("mullangi") || cacheKey.includes("daikon")) && (cached.data.source === "unsplash" || cached.data.url.includes("photo-") || (cached.data.alt && /beetroot|beet/i.test(cached.data.alt)))) &&
+    !((cacheKey.includes("knol") || cacheKey.includes("knool") || cacheKey.includes("kohlrabi") || cacheKey.includes("ganth gobi") || cacheKey.includes("navil kosu")) && (cached.data.url.includes("/6/60/Kohlrabi.jpg") || cached.data.url === "/placeholder.png"))
+  ) {
+    return cached.data
   }
 
   // 2. For commercial produce, search Unsplash first with strict validation
@@ -737,7 +786,7 @@ function isFarmerUploadedPhoto(item) {
  */
 async function auditAndPurgeCache() {
   let changed = false
-  const localStubs = ["/potato.jpg", "/cabbage.jpg", "/ladies_finger.jpg", "/tomato.jpg", "/onion.jpg", "/carrot.jpg"]
+  const localStubs = ["/potato.jpg", "/cabbage.jpg", "/ladies_finger.jpg", "/tomato.jpg", "/onion.jpg", "/carrot.jpg", "/ginger.jpg"]
 
   for (const [key, entry] of Array.from(imageCache.entries())) {
     // 1. Evict any placeholder or empty entries
@@ -779,6 +828,55 @@ async function auditAndPurgeCache() {
       (entry.data.alt && /Fresh gourd vegetable/i.test(entry.data.alt))
     )) {
       console.log(`Evicting generic gourd photo for Bitter Gourd: "${key}"`)
+      imageCache.delete(key)
+      changed = true
+      continue
+    }
+
+    if ((key.includes("snake gourd") || key.includes("snakeguard") || key.includes("snake guard") || key.includes("chichinda") || key.includes("padaval")) && (
+      entry.data.url.includes("photo-1597362925123-77861d3fbac7") ||
+      (entry.data.alt && /Fresh gourd vegetable/i.test(entry.data.alt))
+    )) {
+      console.log(`Evicting generic gourd photo for Snake Gourd: "${key}"`)
+      imageCache.delete(key)
+      changed = true
+      continue
+    }
+
+    if ((key === "beans" || key.includes("bean")) && (
+      entry.data.url.includes("photo-1609820323628-621956856049") ||
+      (entry.data.alt && /white round fruit|coffee|baked|fruit/i.test(entry.data.alt))
+    )) {
+      console.log(`Evicting incorrect fruit photo for Beans: "${key}"`)
+      imageCache.delete(key)
+      changed = true
+      continue
+    }
+
+    if ((key.includes("thogari") || key.includes("thogri") || key.includes("cluster bean") || key.includes("guar")) && (
+      !entry.data.url || entry.data.url === "/placeholder.png"
+    )) {
+      console.log(`Evicting placeholder photo for Thogarikai: "${key}"`)
+      imageCache.delete(key)
+      changed = true
+      continue
+    }
+
+    if (key.includes("radish") || key.includes("raddish") || key.includes("mooli") || key.includes("mullangi") || key.includes("moolangi") || key.includes("daikon")) {
+      if (entry.data?.source === "unsplash" || entry.data?.url?.includes("photo-") || !entry.data?.url?.includes("Daikon%2C_Nara_Prefecture%2C_Japan.jpg")) {
+        console.log(`Evicting non-curated photo for Radish: "${key}"`)
+        imageCache.delete(key)
+        changed = true
+        continue
+      }
+    }
+
+    if ((key.includes("knol") || key.includes("knool") || key.includes("kohlrabi") || key.includes("ganth gobi") || key.includes("navil kosu")) && (
+      entry.data.url.includes("/6/60/Kohlrabi.jpg") ||
+      entry.data.url === "/placeholder.png" ||
+      !entry.data.url
+    )) {
+      console.log(`Evicting broken/missing photo for Knol Khol: "${key}"`)
       imageCache.delete(key)
       changed = true
       continue
@@ -936,6 +1034,7 @@ const server = http.createServer(async (req, res) => {
   const requestUrl = new URL(req.url, "http://localhost")
 
   if (requestUrl.pathname === "/api/listings" && req.method === "GET") {
+    listings = loadListings()
     const safeListings = listings.map(listing => {
       const l = { ...listing }
       if (!l.farmerPhone) {
@@ -949,6 +1048,9 @@ const server = http.createServer(async (req, res) => {
       }
       if (l.image && l.imageSource !== "farmer") {
         const cached = imageCache.get(String(l.crop || "").toLowerCase().trim())
+        if (cached?.data?.url && cached.data.url !== "/placeholder.png" && !cached.data.url.startsWith("/")) {
+          l.image = cached.data.url
+        }
         if (cached?.data?.photographer) {
           l.imagePhotographer = cached.data.photographer
           l.imageLink = cached.data.link
@@ -1139,7 +1241,7 @@ const server = http.createServer(async (req, res) => {
 
   // Enhanced Crop Images API with Unsplash, Curated Library, Wikimedia Commons and GBIF Resolution
   if (requestUrl.pathname === "/api/crop-images") {
-    const crops = [...new Set((requestUrl.searchParams.get("crops") || "").split(",").map(value => value.trim()).filter(Boolean))].slice(0, 12)
+    const crops = [...new Set((requestUrl.searchParams.get("crops") || "").split(",").map(value => value.trim()).filter(Boolean))].slice(0, 50)
     if (!crops.length) {
       res.writeHead(400).end(JSON.stringify({ error: "Add at least one crop name." }))
       return

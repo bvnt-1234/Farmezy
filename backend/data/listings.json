@@ -61,7 +61,7 @@
     "farmerState": "Karnataka",
     "farmerLat": "",
     "farmerLng": "",
-    "image": "/ginger.jpg",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg",
     "createdAt": "2026-10-29T08:29:46.978Z",
     "imageSource": "auto-fallback"
   },

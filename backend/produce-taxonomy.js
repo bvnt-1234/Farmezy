@@ -158,14 +158,15 @@ export const PRODUCE_TAXONOMY = {
     category: "vegetables",
     canonicalName: "Snake Gourd",
     aliases: [
-      "snake gourd", "snakegourd", "chichinda", "padavalakai", "padavalkayi",
-      "pudalangai", "potlakaya", "trichosanthes cucumerina"
+      "snake gourd", "snakegourd", "snakeguard", "snake guard", "chichinda",
+      "padavalakai", "padavalkayi", "pudalangai", "potlakaya",
+      "trichosanthes cucumerina", "trichosanthes"
     ],
     searchQuery: "snake gourd trichosanthes cucumerina vegetable raw",
-    requiredKeywords: ["snake gourd", "trichosanthes", "cucumerina", "chichinda", "padavalakai", "pudalangai", "potlakaya"],
+    requiredKeywords: ["snake gourd", "snakegourd", "snakeguard", "snake guard", "trichosanthes", "cucumerina", "chichinda", "padavalakai", "padavalkayi", "pudalangai", "potlakaya"],
     forbiddenKeywords: [
       "bitter gourd", "ash gourd", "bottle gourd", "ridge gourd", "cucumber", "zucchini",
-      "snake", "reptile", "curry", "cooked"
+      "pumpkin", "snake", "reptile", "curry", "cooked"
     ]
   },
   spinach: {
@@ -175,6 +176,43 @@ export const PRODUCE_TAXONOMY = {
     searchQuery: "fresh green spinach leaves harvest farm raw",
     requiredKeywords: ["spinach", "palak", "oleracea", "leafy green"],
     forbiddenKeywords: ["cooked", "paneer", "soup", "curry", "smoothie", "dip"]
+  },
+  beans: {
+    category: "vegetables",
+    canonicalName: "Beans",
+    aliases: [
+      "beans", "bean", "green beans", "french beans", "frasbean",
+      "haricot beans", "string beans", "snap beans", "huruli"
+    ],
+    searchQuery: "fresh green beans pods phaseolus vulgaris vegetable harvest raw",
+    requiredKeywords: ["bean", "beans", "green beans", "french beans", "string beans", "phaseolus"],
+    forbiddenKeywords: [
+      "coffee", "baked", "vanilla", "jelly", "can", "canned", "cooked", "curry",
+      "white round fruits", "fruit", "plastic basket"
+    ]
+  },
+  thogarikai: {
+    category: "vegetables",
+    canonicalName: "Cluster Beans (Thogarikai / Guar)",
+    aliases: [
+      "thogarikai", "thogrikai", "cluster beans", "cluster bean", "guar", "gawar",
+      "gavar", "gorikayi", "gorikai", "kothavarangai", "kothavara", "cyamopsis tetragonoloba"
+    ],
+    searchQuery: "cluster beans cyamopsis tetragonoloba gavar guar fresh harvest raw",
+    requiredKeywords: ["cluster bean", "cluster beans", "cyamopsis", "guar", "gawar", "gavar", "thogarikai", "thogrikai", "gorikayi", "kothavarangai"],
+    forbiddenKeywords: ["gum", "powder", "cooked", "curry", "recipe", "seed", "flour"]
+  },
+  "knol khol": {
+    category: "vegetables",
+    canonicalName: "Knol Khol (Kohlrabi)",
+    aliases: [
+      "knol khol", "knolkhol", "knool khol", "knoolkhol", "kohlrabi",
+      "german turnip", "ganth gobi", "ganthgobi", "gant gobi", "navil kosu",
+      "navilkosu", "noolkol", "nool kol", "brassica oleracea gongylodes"
+    ],
+    searchQuery: "fresh green kohlrabi knol khol brassica oleracea gongylodes harvest raw",
+    requiredKeywords: ["kohlrabi", "knol khol", "knool khol", "gongylodes", "ganth gobi", "navil kosu", "german turnip"],
+    forbiddenKeywords: ["soup", "cooked", "salad", "stew", "curry", "sliced", "roasted"]
   },
 
   // ==================== 2. FRUITS ====================
@@ -358,9 +396,12 @@ export const PRODUCE_TAXONOMY = {
   ginger: {
     category: "spices",
     canonicalName: "Ginger",
-    aliases: ["ginger", "adrak", "shunti", "inji", "allam"],
+    aliases: [
+      "ginger", "ginger green", "ginger dry", "adrak", "shunti", "inji", "allam",
+      "zingiber officinale", "fresh ginger", "dry ginger"
+    ],
     searchQuery: "fresh raw ginger rhizome root farm harvest",
-    requiredKeywords: ["ginger", "rhizome", "zingiber"],
+    requiredKeywords: ["ginger", "rhizome", "zingiber", "adrak", "shunti", "inji", "allam"],
     forbiddenKeywords: ["gingerbread", "cookie", "cookies", "ale", "tea", "candy", "snap", "powder", "capsule"]
   },
   garlic: {
@@ -438,10 +479,13 @@ export const PRODUCE_TAXONOMY = {
   radish: {
     category: "roots",
     canonicalName: "Radish",
-    aliases: ["radish", "mooli", "moolangi", "mullangi"],
+    aliases: [
+      "radish", "raddish", "mooli", "moolangi", "mullangi", "white radish",
+      "daikon", "raphanus sativus"
+    ],
     searchQuery: "fresh white radish root harvest farm soil",
-    requiredKeywords: ["radish", "radishes", "raphanus sativus", "daikon"],
-    forbiddenKeywords: ["salad", "pickled", "pickle", "sliced", "curry", "paratha"]
+    requiredKeywords: ["radish", "radishes", "mooli", "mullangi", "moolangi", "raphanus sativus", "daikon"],
+    forbiddenKeywords: ["beetroot", "beet", "turnip", "garlic", "salad", "pickled", "pickle", "sliced", "curry", "paratha"]
   },
   beetroot: {
     category: "roots",
