@@ -27,6 +27,7 @@ jobs:
         run: |
           npm --prefix frontend install
           npm --prefix frontend run build
+          rm -rf frontend/node_modules
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -54,6 +55,13 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F6D5C7009A304CA488F48800716FC2D8 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_2C488E9CF5C04AFAB9EBBFC52A4BB30E }}
 
+      - name: Configure Azure App Service
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az webapp config set --name farmezy --resource-group farmezy-rg --startup-file "node server.js"
+            az webapp config appsettings set --name farmezy --resource-group farmezy-rg --settings PORT=8080 WEBSITES_PORT=8080 SCM_DO_BUILD_DURING_DEPLOYMENT=false
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -61,4 +69,10 @@ jobs:
           app-name: 'farmezy'
           slot-name: 'Production'
           package: .
-          
+          startup-command: 'node server.js'
+
+      - name: Restart Azure Web App
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az webapp restart --name farmezy --resource-group farmezy-rg

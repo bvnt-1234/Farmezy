@@ -96,22 +96,6 @@ function serveStatic(pathname, res) {
 }
 
 
-function getAgmarknetCommodities() {
-  if (cachedAgmarknetCommodities) return cachedAgmarknetCommodities
-  try {
-    if (existsSync(cataloguePath)) {
-      const data = JSON.parse(readFileSync(cataloguePath, "utf8"))
-      if (data && Array.isArray(data.commodities)) {
-        cachedAgmarknetCommodities = data.commodities
-        return cachedAgmarknetCommodities
-      }
-    }
-  } catch (err) {
-    console.warn("Could not load agmarknet catalogue:", err.message)
-  }
-  return []
-}
-
 function loadListings() {
   try {
     if (!existsSync(listingsFile)) {
@@ -269,24 +253,7 @@ const curatedCropImages = {
   groundnut: { url: "https://images.unsplash.com/photo-1568283661195-266657962cfc?auto=format&fit=crop&w=640&q=75", alt: "Fresh groundnuts", photographer: "Unsplash" }
 }
 
-function categoryForCommodity(name) {
-  const value = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "")
-  if (/redchilli|chillired|drychilli|chillidry/.test(value)) return "Spices and Condiments"
-  const categories = [
-    ["Cereals and Grains", /wheat|rice|paddy|maize|corn|jowar|sorghum|bajra|ragi|barley|oat|millet|cheena|kangni|kodon|sanwa/],
-    ["Pulses and Legumes", /gram|chana|chickpea|lentil|masur|moong|mung|urd|arhar|tur|pea|cowpea|lobia|kulthi|rajma|moth/],
-    ["Dry Fruits and Nuts", /almond|badam|cashew|pistachio|pista|walnut|akhrot|raisin|kismis|date|khajoor|fig|anjeer|apricot|khubani/],
-    ["Oilseeds", /groundnut|soyabean|soybean|mustard|sarson|rai|sunflower|sesame|til|gingelly|castor|linseed|alsi|safflower|kardi|niger/],
-    ["Processed Agricultural Products", /oil|coconutoil|mustardoil|sunfloweroil|jaggery|gur/],
-    ["Fruits", /apple|mango|banana|orange|grape|guava|papaya|pomegranate|watermelon|muskmelon|pineapple|coconut|lemon|lime|jackfruit|sapota|litchi|strawberry|sweetlime|pear|peach|plum|aonla|amla|fig|kiwi|fruit/],
-    ["Vegetables", /tomato|potato|onion|garlic|ginger|brinjal|eggplant|cabbage|cauliflower|carrot|beans|bhindi|okra|chilli|chili|cucumber|pumpkin|gourd|drumstick|radish|raddish|beetroot|spinach|palak|methi|vegetable/],
-    ["Spices and Condiments", /turmeric|haldi|chilli|chili|ginger|sonth|garlic|coriander|dhania|cumin|jeera|pepper|cardamom|elaichi|clove|laung|cinnamon|dalchini|fennel|saunf|fenugreek|ajwain|nutmeg|mace|spice/],
-    ["Fibre Crops", /cotton|kapas|jute|sunnhemp|hemp/],
-    ["Commercial and Plantation Crops", /sugarcane|tobacco|arecanut|supari|rubber|coffee|tea/],
-    ["Flowers", /marigold|genda|rose|gulab|jasmine|mogra|chrysanthemum|tuberose|gladiolus/]
-  ]
-  return categories.find(([, pattern]) => pattern.test(value))?.[0] || "Other Agricultural Products"
-}
+
 
 function findCuratedCropImage(name) {
   const clean = String(name || "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").trim()
@@ -297,47 +264,6 @@ function findCuratedCropImage(name) {
     }
   }
   return null
-}
-
-const distDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../frontend/dist")
-
-function serveStatic(pathname, res) {
-  if (!existsSync(distDir)) return false
-  const cleanPath = pathname.split("?")[0].replace(/^\/+/, "")
-  let targetFile = cleanPath ? path.join(distDir, cleanPath) : path.join(distDir, "index.html")
-
-  if (existsSync(targetFile) && statSync(targetFile).isDirectory()) {
-    targetFile = path.join(targetFile, "index.html")
-  }
-
-  if (!existsSync(targetFile) || !targetFile.startsWith(distDir)) {
-    targetFile = path.join(distDir, "index.html")
-  }
-
-  if (!existsSync(targetFile) || statSync(targetFile).isDirectory()) return false
-
-  const ext = path.extname(targetFile).toLowerCase()
-  const mimeTypes = {
-    ".html": "text/html; charset=utf-8",
-    ".js": "application/javascript; charset=utf-8",
-    ".css": "text/css; charset=utf-8",
-    ".json": "application/json; charset=utf-8",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".gif": "image/gif",
-    ".svg": "image/svg+xml",
-    ".ico": "image/x-icon",
-    ".woff": "font/woff",
-    ".woff2": "font/woff2",
-    ".ttf": "font/ttf"
-  }
-  const contentType = mimeTypes[ext] || "application/octet-stream"
-  res.setHeader("Content-Type", contentType)
-  res.setHeader("Cache-Control", ext === ".html" ? "no-cache" : "public, max-age=31536000, immutable")
-  res.writeHead(200)
-  res.end(readFileSync(targetFile))
-  return true
 }
 
 const server = http.createServer(async (req, res) => {
@@ -1357,13 +1283,10 @@ const server = http.createServer(async (req, res) => {
     let allStateRows = []
     let isSessionFallback = false
     let currentSessionDate = ""
+    let districtFallback = false
     let liveFetchSucceeded = false
     let sourceLabel = "AGMARKNET · Government of India"
     let isLive = true
-    let isSessionFallback = false
-    let currentSessionDate = ""
-    let districtFallback = false
-    let liveFetchSucceeded = false
     const foundTarget = null
     const matchedMaster = null
 
