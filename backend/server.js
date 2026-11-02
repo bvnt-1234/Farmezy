@@ -954,7 +954,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // 1. GET /api/commodities - Serves dynamic AGMARKNET Catalogue as PRIMARY source
-  if (requestUrl.pathname === "/api/commodities" && req.method === "GET") {
+  if ((requestUrl.pathname === "/api/commodities" || requestUrl.pathname === "/api/catalogue/commodities") && req.method === "GET") {
     const rawSearch = requestUrl.searchParams.get("q")?.trim() || ""
     const rawCategory = requestUrl.searchParams.get("category")?.trim() || ""
 
@@ -1044,7 +1044,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // 2. GET /api/varieties - Returns ONLY observed AGMARKNET varieties for a given commodity
-  if (requestUrl.pathname === "/api/varieties" && req.method === "GET") {
+  if ((requestUrl.pathname === "/api/varieties" || requestUrl.pathname === "/api/catalogue/varieties") && req.method === "GET") {
     const rawCommodity = requestUrl.searchParams.get("commodity")?.trim() || ""
     const rawSearch = requestUrl.searchParams.get("q")?.trim() || ""
 
