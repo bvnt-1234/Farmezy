@@ -1,5 +1,5 @@
 import http from "node:http"
-import { readFileSync, writeFileSync, copyFileSync, existsSync, mkdirSync } from "node:fs"
+import { readFileSync, writeFileSync, copyFileSync, existsSync, mkdirSync, statSync } from "node:fs"
 import { spawn } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
@@ -14,6 +14,85 @@ const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_N
 const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "data")
 const listingsFile = path.join(dataDir, "listings.json")
 const ordersFile = path.join(dataDir, "orders.json")
+const cataloguePath = path.join(dataDir, "agmarknet-catalogue.json")
+let cachedAgmarknetCommodities = null
+
+function getAgmarknetCommodities() {
+  if (cachedAgmarknetCommodities) return cachedAgmarknetCommodities
+  try {
+    if (existsSync(cataloguePath)) {
+      const data = JSON.parse(readFileSync(cataloguePath, "utf8"))
+      if (data && Array.isArray(data.commodities)) {
+        cachedAgmarknetCommodities = data.commodities
+        return cachedAgmarknetCommodities
+      }
+    }
+  } catch (err) {
+    console.warn("Could not load agmarknet catalogue:", err.message)
+  }
+  return []
+}
+
+function categoryForCommodity(name) {
+  const value = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+  if (/redchilli|chillired|drychilli|chillidry/.test(value)) return "Spices and Condiments"
+  const categories = [
+    ["Cereals and Grains", /wheat|rice|paddy|maize|corn|jowar|sorghum|bajra|ragi|barley|oat|millet|cheena|kangni|kodon|sanwa/],
+    ["Pulses and Legumes", /gram|chana|chickpea|lentil|masur|moong|mung|urd|arhar|tur|pea|cowpea|lobia|kulthi|rajma|moth/],
+    ["Dry Fruits and Nuts", /almond|badam|cashew|pistachio|pista|walnut|akhrot|raisin|kismis|date|khajoor|fig|anjeer|apricot|khubani/],
+    ["Oilseeds", /groundnut|soyabean|soybean|mustard|sarson|rai|sunflower|sesame|til|gingelly|castor|linseed|alsi|safflower|kardi|niger/],
+    ["Processed Agricultural Products", /oil|coconutoil|mustardoil|sunfloweroil|jaggery|gur/],
+    ["Fruits", /apple|mango|banana|orange|grape|guava|papaya|pomegranate|watermelon|muskmelon|pineapple|coconut|lemon|lime|jackfruit|sapota|litchi|strawberry|sweetlime|pear|peach|plum|aonla|amla|fig|kiwi|fruit/],
+    ["Vegetables", /tomato|potato|onion|garlic|ginger|brinjal|eggplant|cabbage|cauliflower|carrot|beans|bhindi|okra|chilli|chili|cucumber|pumpkin|gourd|drumstick|radish|raddish|beetroot|spinach|palak|methi|vegetable/],
+    ["Spices and Condiments", /turmeric|haldi|chilli|chili|ginger|sonth|garlic|coriander|dhania|cumin|jeera|pepper|cardamom|elaichi|clove|laung|cinnamon|dalchini|fennel|saunf|fenugreek|ajwain|nutmeg|mace|spice/],
+    ["Fibre Crops", /cotton|kapas|jute|sunnhemp|hemp/],
+    ["Commercial and Plantation Crops", /sugarcane|tobacco|arecanut|supari|rubber|coffee|tea/],
+    ["Flowers", /marigold|genda|rose|gulab|jasmine|mogra|chrysanthemum|tuberose|gladiolus/]
+  ]
+  return categories.find(([, pattern]) => pattern.test(value))?.[0] || "Other Agricultural Products"
+}
+
+const distDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../frontend/dist")
+
+function serveStatic(pathname, res) {
+  if (!existsSync(distDir)) return false
+  const cleanPath = pathname.split("?")[0].replace(/^\/+/, "")
+  let targetFile = cleanPath ? path.join(distDir, cleanPath) : path.join(distDir, "index.html")
+
+  if (existsSync(targetFile) && statSync(targetFile).isDirectory()) {
+    targetFile = path.join(targetFile, "index.html")
+  }
+
+  if (!existsSync(targetFile) || !targetFile.startsWith(distDir)) {
+    targetFile = path.join(distDir, "index.html")
+  }
+
+  if (!existsSync(targetFile) || statSync(targetFile).isDirectory()) return false
+
+  const ext = path.extname(targetFile).toLowerCase()
+  const mimeTypes = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+    ".ttf": "font/ttf"
+  }
+  const contentType = mimeTypes[ext] || "application/octet-stream"
+  res.setHeader("Content-Type", contentType)
+  res.setHeader("Cache-Control", ext === ".html" ? "no-cache" : "public, max-age=31536000, immutable")
+  res.writeHead(200)
+  res.end(readFileSync(targetFile))
+  return true
+}
+
 
 function loadListings() {
   try {
@@ -1187,9 +1266,25 @@ const server = http.createServer(async (req, res) => {
       return false
     }
 
+    let targetAgmarknetName = ""
+    if (rawCommodity) {
+      const agList = getAgmarknetCommodities()
+      const matched = agList.find(c =>
+        normalize(c.name) === normalize(rawCommodity) ||
+        (c.agmarknet_name && normalize(c.agmarknet_name) === normalize(rawCommodity))
+      )
+      targetAgmarknetName = matched?.agmarknet_name || matched?.name || rawCommodity
+    }
+
     let allStateRows = []
     let sourceLabel = "AGMARKNET · Government of India"
     let isLive = true
+    let isSessionFallback = false
+    let currentSessionDate = ""
+    let districtFallback = false
+    let liveFetchSucceeded = false
+    const foundTarget = null
+    const matchedMaster = null
 
     // Fetch from data.gov.in using targeted parameters and in-memory caching
     try {
@@ -1391,13 +1486,8 @@ const server = http.createServer(async (req, res) => {
   res.writeHead(404).end(JSON.stringify({ error: "Endpoint not found." }))
 })
 
-const isMain = Boolean(process.argv[1] && (
-  fileURLToPath(import.meta.url) === path.resolve(process.argv[1]) ||
-  process.argv[1].endsWith("server.js")
-))
-
-if (isMain) {
-  server.listen(port, () => console.log("Farmezy official mandi API listening on http://localhost:" + port))
+if (!isVercel) {
+  server.listen(port, "0.0.0.0", () => console.log("Farmezy official mandi API listening on 0.0.0.0:" + port))
 }
 
 export { server }
