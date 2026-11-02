@@ -4,7 +4,7 @@ import { spawn } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
 
-const port = Number(process.env.API_PORT || 3001)
+const port = Number(process.env.PORT || process.env.API_PORT || 3001)
 const resourceId = "9ef84268-d588-465a-a308-a864a43d0070"
 const dataGovCache = new Map()
 const dataGovCacheTtlMs = 15 * 60 * 1000 // 15 minutes cache
@@ -222,6 +222,41 @@ async function parseBody(req) {
   }
 }
 
+const distDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../frontend/dist")
+
+function serveStatic(pathname, res) {
+  if (!existsSync(distDir)) return false
+  const safePath = path.normalize(decodeURIComponent(pathname)).replace(/^(\.\.[\/\\])+/, "")
+  let targetFile = path.join(distDir, safePath === "/" ? "index.html" : safePath)
+  if (!existsSync(targetFile) || !targetFile.startsWith(distDir)) {
+    targetFile = path.join(distDir, "index.html")
+  }
+  if (!existsSync(targetFile)) return false
+
+  const ext = path.extname(targetFile).toLowerCase()
+  const mimeTypes = {
+    ".html": "text/html; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".svg": "image/svg+xml",
+    ".ico": "image/x-icon",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2",
+    ".ttf": "font/ttf"
+  }
+  const contentType = mimeTypes[ext] || "application/octet-stream"
+  res.setHeader("Content-Type", contentType)
+  res.setHeader("Cache-Control", ext === ".html" ? "no-cache" : "public, max-age=31536000, immutable")
+  res.writeHead(200)
+  res.end(readFileSync(targetFile))
+  return true
+}
+
 export async function handleRequest(req, res) {
   res.setHeader("Content-Type", "application/json; charset=utf-8")
   res.setHeader("Cache-Control", "no-store")
@@ -235,6 +270,10 @@ export async function handleRequest(req, res) {
   }
 
   const requestUrl = new URL(req.url, "http://localhost")
+
+  if (req.method === "GET" && !requestUrl.pathname.startsWith("/api")) {
+    if (serveStatic(requestUrl.pathname, res)) return
+  }
 
   if (requestUrl.pathname === "/api/listings" && req.method === "GET") {
     const safeListings = listings.map(listing => {
