@@ -23,17 +23,21 @@ jobs:
         with:
           node-version: '22.x'
 
-      - name: Build frontend
+      - name: Build frontend and assemble production bundle
         run: |
           npm --prefix frontend install
           npm --prefix frontend run build
-          rm -rf frontend/node_modules
+          mkdir deploy-pkg
+          cp package.json server.js deploy-pkg/
+          cp -r backend deploy-pkg/
+          mkdir -p deploy-pkg/frontend
+          cp -r frontend/dist deploy-pkg/frontend/
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: deploy-pkg
 
   deploy:
     runs-on: ubuntu-latest
@@ -47,6 +51,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
+          path: deploy-pkg
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -68,8 +73,7 @@ jobs:
         with:
           app-name: 'farmezy'
           slot-name: 'Production'
-          package: .
-          startup-command: 'node server.js'
+          package: deploy-pkg
 
       - name: Restart Azure Web App
         uses: azure/cli@v2
