@@ -1295,6 +1295,10 @@ function App() {
     (Array.isArray(c.aliases) && c.aliases.some(a => String(a).toLowerCase() === (formCrop || "").trim().toLowerCase()))
   )
 
+  const registeredFormVarieties = selectedFormCommodityObj
+    ? (selectedFormCommodityObj.variety_names || (selectedFormCommodityObj.varieties || []).map(v => typeof v === "string" ? v : v.name)).filter(Boolean)
+    : []
+
   const displayedFormVarieties = registeredFormVarieties.filter(v => {
     if (!formVarietySearch.trim()) return true
     const q = formVarietySearch.toLowerCase().replace(/[^a-z0-9]/g, "")
@@ -1307,10 +1311,6 @@ function App() {
     const q = browseVarietySearch.toLowerCase().replace(/[^a-z0-9]/g, "")
     return v.toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)
   })
-
-  const registeredFormVarieties = selectedFormCommodityObj
-    ? (selectedFormCommodityObj.variety_names || (selectedFormCommodityObj.varieties || []).map(v => typeof v === "string" ? v : v.name)).filter(Boolean)
-    : []
 
   const registeredFormGrades = selectedFormCommodityObj?.grades?.length
     ? selectedFormCommodityObj.grades
