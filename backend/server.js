@@ -15,43 +15,87 @@ const imageTtlMs = 24 * 60 * 60 * 1000
 const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
 const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "data")
 const listingsFile = path.join(dataDir, "listings.json")
+const writableDataDir = isVercel ? path.join("/tmp", "farmezy-data") : dataDir
 const ordersFile = path.join(dataDir, "orders.json")
-const cataloguePath = path.join(dataDir, "agmarknet-catalogue.json")
-let cachedAgmarknetCommodities = null
+const catalogueFile = path.join(dataDir, "agmarknet-catalogue.json")
+const masterFile = path.join(dataDir, "commodity-master.json")
 
+let agmarknetCatalogueCache = null
 function getAgmarknetCommodities() {
-  if (cachedAgmarknetCommodities) return cachedAgmarknetCommodities
+  if (agmarknetCatalogueCache && agmarknetCatalogueCache.length > 0) return agmarknetCatalogueCache
   try {
-    if (existsSync(cataloguePath)) {
-      const data = JSON.parse(readFileSync(cataloguePath, "utf8"))
-      if (data && Array.isArray(data.commodities)) {
-        cachedAgmarknetCommodities = data.commodities
-        return cachedAgmarknetCommodities
-      }
+    if (existsSync(catalogueFile)) {
+      const parsed = JSON.parse(readFileSync(catalogueFile, "utf8"))
+      agmarknetCatalogueCache = Array.isArray(parsed) ? parsed : (parsed.commodities || [])
+      return agmarknetCatalogueCache
     }
   } catch (err) {
-    console.warn("Could not load agmarknet catalogue:", err.message)
+    console.warn("Could not read agmarknet-catalogue.json:", err.message)
   }
   return []
 }
 
+let commodityMasterCache = null
+function getCommodityMaster() {
+  if (commodityMasterCache && commodityMasterCache.length > 0) return commodityMasterCache
+  try {
+    if (existsSync(masterFile)) {
+      commodityMasterCache = JSON.parse(readFileSync(masterFile, "utf8"))
+      return commodityMasterCache
+    }
+  } catch (err) {
+    console.warn("Could not read commodity-master.json:", err.message)
+  }
+  return []
+}
+
+const commodityMaster = getCommodityMaster()
+
+const masterCategories = [
+  "Beverages",
+  "Cereals",
+  "Drug and Narcotics",
+  "Dry Fruits",
+  "Fibre Crops",
+  "Flowers",
+  "Forest Products",
+  "Fruits",
+  "Live Stock,Poultry,Fisheries",
+  "Medicinal and Aromatic Plants",
+  "Oil Seeds",
+  "Oils and Fats",
+  "Others",
+  "Pulses",
+  "Spices",
+  "Vegetables"
+]
+
+function findMasterCommodity(name) {
+  if (!name) return null
+  const norm = String(name).toLowerCase().replace(/[^a-z0-9]/g, "")
+  const agList = getAgmarknetCommodities()
+  let matched = agList.find(c =>
+    String(c.name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm ||
+    (c.display_name && String(c.display_name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) ||
+    (c.agmarknet_name && String(c.agmarknet_name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) ||
+    (Array.isArray(c.aliases) && c.aliases.some(a => String(a).toLowerCase().replace(/[^a-z0-9]/g, "") === norm))
+  )
+  if (matched) return matched
+  const master = getCommodityMaster()
+  return master.find(c =>
+    String(c.commodity || c.name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm ||
+    (c.agmarknet_name && String(c.agmarknet_name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) ||
+    (Array.isArray(c.aliases) && c.aliases.some(a => String(a).toLowerCase().replace(/[^a-z0-9]/g, "") === norm))
+  ) || null
+}
+
 function categoryForCommodity(name) {
-  const value = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "")
-  if (/redchilli|chillired|drychilli|chillidry/.test(value)) return "Spices and Condiments"
-  const categories = [
-    ["Cereals and Grains", /wheat|rice|paddy|maize|corn|jowar|sorghum|bajra|ragi|barley|oat|millet|cheena|kangni|kodon|sanwa/],
-    ["Pulses and Legumes", /gram|chana|chickpea|lentil|masur|moong|mung|urd|arhar|tur|pea|cowpea|lobia|kulthi|rajma|moth/],
-    ["Dry Fruits and Nuts", /almond|badam|cashew|pistachio|pista|walnut|akhrot|raisin|kismis|date|khajoor|fig|anjeer|apricot|khubani/],
-    ["Oilseeds", /groundnut|soyabean|soybean|mustard|sarson|rai|sunflower|sesame|til|gingelly|castor|linseed|alsi|safflower|kardi|niger/],
-    ["Processed Agricultural Products", /oil|coconutoil|mustardoil|sunfloweroil|jaggery|gur/],
-    ["Fruits", /apple|mango|banana|orange|grape|guava|papaya|pomegranate|watermelon|muskmelon|pineapple|coconut|lemon|lime|jackfruit|sapota|litchi|strawberry|sweetlime|pear|peach|plum|aonla|amla|fig|kiwi|fruit/],
-    ["Vegetables", /tomato|potato|onion|garlic|ginger|brinjal|eggplant|cabbage|cauliflower|carrot|beans|bhindi|okra|chilli|chili|cucumber|pumpkin|gourd|drumstick|radish|raddish|beetroot|spinach|palak|methi|vegetable/],
-    ["Spices and Condiments", /turmeric|haldi|chilli|chili|ginger|sonth|garlic|coriander|dhania|cumin|jeera|pepper|cardamom|elaichi|clove|laung|cinnamon|dalchini|fennel|saunf|fenugreek|ajwain|nutmeg|mace|spice/],
-    ["Fibre Crops", /cotton|kapas|jute|sunnhemp|hemp/],
-    ["Commercial and Plantation Crops", /sugarcane|tobacco|arecanut|supari|rubber|coffee|tea/],
-    ["Flowers", /marigold|genda|rose|gulab|jasmine|mogra|chrysanthemum|tuberose|gladiolus/]
-  ]
-  return categories.find(([, pattern]) => pattern.test(value))?.[0] || "Other Agricultural Products"
+  if (!name) return "Others"
+  const found = findMasterCommodity(name)
+  if (found && (found.category || found.group_name)) {
+    return found.category || found.group_name
+  }
+  return "Others"
 }
 
 const distDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../frontend/dist")
@@ -94,8 +138,6 @@ function serveStatic(pathname, res) {
   res.end(readFileSync(targetFile))
   return true
 }
-
-
 function loadListings() {
   try {
     if (!existsSync(listingsFile)) {
@@ -265,6 +307,185 @@ function findCuratedCropImage(name) {
   }
   return null
 }
+
+const INDIAN_DISTRICT_CENTROIDS = [
+        // Andhra Pradesh
+        { name: "Chittoor", city: "Chittoor", state: "Andhra Pradesh", lat: 13.2172, lng: 79.1003, pincode: "517001" },
+        { name: "Annamayya", city: "Madanapalle", state: "Andhra Pradesh", lat: 13.5560, lng: 78.5010, pincode: "517325" },
+        { name: "Tirupati", city: "Tirupati", state: "Andhra Pradesh", lat: 13.6288, lng: 79.4192, pincode: "517501" },
+        { name: "Guntur", city: "Guntur", state: "Andhra Pradesh", lat: 16.3067, lng: 80.4365, pincode: "522002" },
+        { name: "Krishna", city: "Vijayawada", state: "Andhra Pradesh", lat: 16.5062, lng: 80.6480, pincode: "520001" },
+        { name: "Visakhapatnam", city: "Visakhapatnam", state: "Andhra Pradesh", lat: 17.6868, lng: 83.2185, pincode: "530001" },
+        { name: "Kurnool", city: "Kurnool", state: "Andhra Pradesh", lat: 15.8281, lng: 78.0373, pincode: "518001" },
+        { name: "Anantapur", city: "Anantapur", state: "Andhra Pradesh", lat: 14.6819, lng: 77.6006, pincode: "515001" },
+        { name: "Prakasam", city: "Ongole", state: "Andhra Pradesh", lat: 15.5057, lng: 80.0499, pincode: "523001" },
+        { name: "SPSR Nellore", city: "Nellore", state: "Andhra Pradesh", lat: 14.4426, lng: 79.9865, pincode: "524001" },
+        { name: "YSR Kadapa", city: "Kadapa", state: "Andhra Pradesh", lat: 14.4673, lng: 78.8242, pincode: "516001" },
+        { name: "East Godavari", city: "Rajahmundry", state: "Andhra Pradesh", lat: 17.0005, lng: 81.8040, pincode: "533101" },
+        { name: "West Godavari", city: "Eluru", state: "Andhra Pradesh", lat: 16.7107, lng: 81.0952, pincode: "534001" },
+        // Karnataka
+        { name: "Bengaluru Urban", city: "Bengaluru", state: "Karnataka", lat: 12.9716, lng: 77.5946, pincode: "560001" },
+        { name: "Bengaluru Rural", city: "Devanahalli", state: "Karnataka", lat: 13.2847, lng: 77.5336, pincode: "562110" },
+        { name: "Kolar", city: "Kolar", state: "Karnataka", lat: 13.1367, lng: 78.1291, pincode: "563101" },
+        { name: "Mysuru", city: "Mysuru", state: "Karnataka", lat: 12.2958, lng: 76.6394, pincode: "570001" },
+        { name: "Mandya", city: "Mandya", state: "Karnataka", lat: 12.5244, lng: 76.8958, pincode: "571401" },
+        { name: "Tumakuru", city: "Tumakuru", state: "Karnataka", lat: 13.3379, lng: 77.1173, pincode: "572101" },
+        { name: "Hassan", city: "Hassan", state: "Karnataka", lat: 13.0033, lng: 76.1004, pincode: "573201" },
+        { name: "Belagavi", city: "Belagavi", state: "Karnataka", lat: 15.8497, lng: 74.4977, pincode: "590001" },
+        { name: "Dharwad", city: "Hubballi", state: "Karnataka", lat: 15.3647, lng: 75.1240, pincode: "580020" },
+        { name: "Ballari", city: "Ballari", state: "Karnataka", lat: 15.1394, lng: 76.9214, pincode: "583101" },
+        { name: "Shivamogga", city: "Shivamogga", state: "Karnataka", lat: 13.9299, lng: 75.5681, pincode: "577201" },
+        { name: "Davanagere", city: "Davanagere", state: "Karnataka", lat: 14.4644, lng: 75.9218, pincode: "577002" },
+        { name: "Dakshina Kannada", city: "Mangaluru", state: "Karnataka", lat: 12.9141, lng: 74.8560, pincode: "575001" },
+        { name: "Udupi", city: "Udupi", state: "Karnataka", lat: 13.3409, lng: 74.7421, pincode: "576101" },
+        { name: "Kalaburagi", city: "Kalaburagi", state: "Karnataka", lat: 17.3297, lng: 76.8343, pincode: "585101" },
+        // Tamil Nadu
+        { name: "Chennai", city: "Chennai", state: "Tamil Nadu", lat: 13.0827, lng: 80.2707, pincode: "600001" },
+        { name: "Coimbatore", city: "Coimbatore", state: "Tamil Nadu", lat: 11.0168, lng: 76.9558, pincode: "641001" },
+        { name: "Madurai", city: "Madurai", state: "Tamil Nadu", lat: 9.9252, lng: 78.1198, pincode: "625001" },
+        { name: "Tiruchirappalli", city: "Tiruchirappalli", state: "Tamil Nadu", lat: 10.7905, lng: 78.7047, pincode: "620001" },
+        { name: "Salem", city: "Salem", state: "Tamil Nadu", lat: 11.6643, lng: 78.1460, pincode: "636001" },
+        { name: "Erode", city: "Erode", state: "Tamil Nadu", lat: 11.3410, lng: 77.7172, pincode: "638001" },
+        { name: "Tirunelveli", city: "Tirunelveli", state: "Tamil Nadu", lat: 8.7139, lng: 77.7567, pincode: "627001" },
+        { name: "Vellore", city: "Vellore", state: "Tamil Nadu", lat: 12.9165, lng: 79.1325, pincode: "632001" },
+        { name: "Thanjavur", city: "Thanjavur", state: "Tamil Nadu", lat: 10.7870, lng: 79.1378, pincode: "613001" },
+        { name: "Dindigul", city: "Dindigul", state: "Tamil Nadu", lat: 10.3673, lng: 77.9803, pincode: "624001" },
+        { name: "Tiruppur", city: "Tiruppur", state: "Tamil Nadu", lat: 11.1085, lng: 77.3411, pincode: "641601" },
+        // Kerala
+        { name: "Thiruvananthapuram", city: "Thiruvananthapuram", state: "Kerala", lat: 8.5241, lng: 76.9366, pincode: "695001" },
+        { name: "Ernakulam", city: "Kochi", state: "Kerala", lat: 9.9312, lng: 76.2673, pincode: "682001" },
+        { name: "Kozhikode", city: "Kozhikode", state: "Kerala", lat: 11.2588, lng: 75.7804, pincode: "673001" },
+        { name: "Thrissur", city: "Thrissur", state: "Kerala", lat: 10.5276, lng: 76.2144, pincode: "680001" },
+        { name: "Palakkad", city: "Palakkad", state: "Kerala", lat: 10.7867, lng: 76.6548, pincode: "678001" },
+        { name: "Kollam", city: "Kollam", state: "Kerala", lat: 8.8932, lng: 76.6141, pincode: "691001" },
+        { name: "Wayanad", city: "Kalpetta", state: "Kerala", lat: 11.6854, lng: 76.1320, pincode: "673121" },
+        { name: "Idukki", city: "Painavu", state: "Kerala", lat: 9.8494, lng: 76.9740, pincode: "685603" },
+        // Telangana
+        { name: "Hyderabad", city: "Hyderabad", state: "Telangana", lat: 17.3850, lng: 78.4867, pincode: "500001" },
+        { name: "Warangal", city: "Warangal", state: "Telangana", lat: 17.9689, lng: 79.5941, pincode: "506002" },
+        { name: "Nizamabad", city: "Nizamabad", state: "Telangana", lat: 18.6725, lng: 78.0941, pincode: "503001" },
+        { name: "Karimnagar", city: "Karimnagar", state: "Telangana", lat: 18.4386, lng: 79.1288, pincode: "505001" },
+        { name: "Khammam", city: "Khammam", state: "Telangana", lat: 17.2473, lng: 80.1514, pincode: "507001" },
+        { name: "Nalgonda", city: "Nalgonda", state: "Telangana", lat: 17.0577, lng: 79.2684, pincode: "508001" },
+        { name: "Mahabubnagar", city: "Mahabubnagar", state: "Telangana", lat: 16.7488, lng: 77.9943, pincode: "509001" },
+        // Maharashtra
+        { name: "Pune", city: "Pune", state: "Maharashtra", lat: 18.5204, lng: 73.8567, pincode: "411001" },
+        { name: "Mumbai", city: "Mumbai", state: "Maharashtra", lat: 19.0760, lng: 72.8777, pincode: "400001" },
+        { name: "Nashik", city: "Nashik", state: "Maharashtra", lat: 19.9975, lng: 73.7898, pincode: "422001" },
+        { name: "Nagpur", city: "Nagpur", state: "Maharashtra", lat: 21.1458, lng: 79.0882, pincode: "440001" },
+        { name: "Ahmednagar", city: "Ahmednagar", state: "Maharashtra", lat: 19.0952, lng: 74.7480, pincode: "414001" },
+        { name: "Kolhapur", city: "Kolhapur", state: "Maharashtra", lat: 16.7050, lng: 74.2433, pincode: "416001" },
+        { name: "Solapur", city: "Solapur", state: "Maharashtra", lat: 17.6599, lng: 75.9064, pincode: "413001" },
+        { name: "Jalgaon", city: "Jalgaon", state: "Maharashtra", lat: 21.0077, lng: 75.5626, pincode: "425001" },
+        { name: "Aurangabad", city: "Chhatrapati Sambhajinagar", state: "Maharashtra", lat: 19.8762, lng: 75.3433, pincode: "431001" },
+        { name: "Satara", city: "Satara", state: "Maharashtra", lat: 17.6805, lng: 73.9997, pincode: "415001" },
+        { name: "Sangli", city: "Sangli", state: "Maharashtra", lat: 16.8524, lng: 74.5815, pincode: "416416" },
+        { name: "Amravati", city: "Amravati", state: "Maharashtra", lat: 20.9374, lng: 77.7796, pincode: "444601" },
+        // Gujarat
+        { name: "Ahmedabad", city: "Ahmedabad", state: "Gujarat", lat: 23.0225, lng: 72.5714, pincode: "380001" },
+        { name: "Surat", city: "Surat", state: "Gujarat", lat: 21.1702, lng: 72.8311, pincode: "395001" },
+        { name: "Vadodara", city: "Vadodara", state: "Gujarat", lat: 22.3072, lng: 73.1812, pincode: "390001" },
+        { name: "Rajkot", city: "Rajkot", state: "Gujarat", lat: 22.3039, lng: 70.8022, pincode: "360001" },
+        { name: "Bhavnagar", city: "Bhavnagar", state: "Gujarat", lat: 21.7645, lng: 72.1519, pincode: "364001" },
+        { name: "Junagadh", city: "Junagadh", state: "Gujarat", lat: 21.5222, lng: 70.4579, pincode: "362001" },
+        { name: "Anand", city: "Anand", state: "Gujarat", lat: 22.5645, lng: 72.9289, pincode: "388001" },
+        { name: "Mehsana", city: "Mehsana", state: "Gujarat", lat: 23.5880, lng: 72.3693, pincode: "384001" },
+        // Madhya Pradesh
+        { name: "Indore", city: "Indore", state: "Madhya Pradesh", lat: 22.7196, lng: 75.8577, pincode: "452001" },
+        { name: "Bhopal", city: "Bhopal", state: "Madhya Pradesh", lat: 23.2599, lng: 77.4126, pincode: "462001" },
+        { name: "Jabalpur", city: "Jabalpur", state: "Madhya Pradesh", lat: 23.1815, lng: 79.9864, pincode: "482001" },
+        { name: "Gwalior", city: "Gwalior", state: "Madhya Pradesh", lat: 26.2183, lng: 78.1828, pincode: "474001" },
+        { name: "Ujjain", city: "Ujjain", state: "Madhya Pradesh", lat: 23.1765, lng: 75.7885, pincode: "456001" },
+        { name: "Sagar", city: "Sagar", state: "Madhya Pradesh", lat: 23.8388, lng: 78.7378, pincode: "470001" },
+        { name: "Ratlam", city: "Ratlam", state: "Madhya Pradesh", lat: 23.3315, lng: 75.0367, pincode: "457001" },
+        // Rajasthan
+        { name: "Jaipur", city: "Jaipur", state: "Rajasthan", lat: 26.9124, lng: 75.7873, pincode: "302001" },
+        { name: "Jodhpur", city: "Jodhpur", state: "Rajasthan", lat: 26.2389, lng: 73.0243, pincode: "342001" },
+        { name: "Kota", city: "Kota", state: "Rajasthan", lat: 25.2138, lng: 75.8648, pincode: "324001" },
+        { name: "Bikaner", city: "Bikaner", state: "Rajasthan", lat: 28.0229, lng: 73.3119, pincode: "334001" },
+        { name: "Ajmer", city: "Ajmer", state: "Rajasthan", lat: 26.4499, lng: 74.6399, pincode: "305001" },
+        { name: "Udaipur", city: "Udaipur", state: "Rajasthan", lat: 24.5854, lng: 73.7125, pincode: "313001" },
+        { name: "Alwar", city: "Alwar", state: "Rajasthan", lat: 27.5530, lng: 76.6346, pincode: "301001" },
+        { name: "Sri Ganganagar", city: "Sri Ganganagar", state: "Rajasthan", lat: 29.9038, lng: 73.8772, pincode: "335001" },
+        // Punjab
+        { name: "Ludhiana", city: "Ludhiana", state: "Punjab", lat: 30.9010, lng: 75.8573, pincode: "141001" },
+        { name: "Amritsar", city: "Amritsar", state: "Punjab", lat: 31.6340, lng: 74.8723, pincode: "143001" },
+        { name: "Jalandhar", city: "Jalandhar", state: "Punjab", lat: 31.3260, lng: 75.5762, pincode: "144001" },
+        { name: "Patiala", city: "Patiala", state: "Punjab", lat: 30.3398, lng: 76.3869, pincode: "147001" },
+        { name: "Bathinda", city: "Bathinda", state: "Punjab", lat: 30.2110, lng: 74.9455, pincode: "151001" },
+        { name: "Hoshiarpur", city: "Hoshiarpur", state: "Punjab", lat: 31.5273, lng: 75.9149, pincode: "146001" },
+        { name: "Firozpur", city: "Firozpur", state: "Punjab", lat: 30.9237, lng: 74.6114, pincode: "152002" },
+        // Haryana
+        { name: "Karnal", city: "Karnal", state: "Haryana", lat: 29.6857, lng: 76.9905, pincode: "132001" },
+        { name: "Gurugram", city: "Gurugram", state: "Haryana", lat: 28.4595, lng: 77.0266, pincode: "122001" },
+        { name: "Faridabad", city: "Faridabad", state: "Haryana", lat: 28.4089, lng: 77.3178, pincode: "121001" },
+        { name: "Panipat", city: "Panipat", state: "Haryana", lat: 29.3909, lng: 76.9635, pincode: "132103" },
+        { name: "Ambala", city: "Ambala", state: "Haryana", lat: 30.3782, lng: 76.7767, pincode: "134003" },
+        { name: "Hisar", city: "Hisar", state: "Haryana", lat: 29.1492, lng: 75.7217, pincode: "125001" },
+        { name: "Rohtak", city: "Rohtak", state: "Haryana", lat: 28.8955, lng: 76.6066, pincode: "124001" },
+        { name: "Sonipat", city: "Sonipat", state: "Haryana", lat: 28.9931, lng: 77.0151, pincode: "131001" },
+        { name: "Sirsa", city: "Sirsa", state: "Haryana", lat: 29.5349, lng: 75.0270, pincode: "125055" },
+        // Uttar Pradesh
+        { name: "Lucknow", city: "Lucknow", state: "Uttar Pradesh", lat: 26.8467, lng: 80.9462, pincode: "226001" },
+        { name: "Kanpur", city: "Kanpur", state: "Uttar Pradesh", lat: 26.4499, lng: 80.3319, pincode: "208001" },
+        { name: "Agra", city: "Agra", state: "Uttar Pradesh", lat: 27.1767, lng: 78.0081, pincode: "282001" },
+        { name: "Varanasi", city: "Varanasi", state: "Uttar Pradesh", lat: 25.3176, lng: 82.9739, pincode: "221001" },
+        { name: "Meerut", city: "Meerut", state: "Uttar Pradesh", lat: 28.9845, lng: 77.7064, pincode: "250001" },
+        { name: "Prayagraj", city: "Prayagraj", state: "Uttar Pradesh", lat: 25.4358, lng: 81.8463, pincode: "211001" },
+        { name: "Bareilly", city: "Bareilly", state: "Uttar Pradesh", lat: 28.3670, lng: 79.4304, pincode: "243001" },
+        { name: "Aligarh", city: "Aligarh", state: "Uttar Pradesh", lat: 27.8974, lng: 78.0880, pincode: "202001" },
+        { name: "Moradabad", city: "Moradabad", state: "Uttar Pradesh", lat: 28.8386, lng: 78.7733, pincode: "244001" },
+        { name: "Saharanpur", city: "Saharanpur", state: "Uttar Pradesh", lat: 29.9640, lng: 77.5460, pincode: "247001" },
+        { name: "Gorakhpur", city: "Gorakhpur", state: "Uttar Pradesh", lat: 26.7606, lng: 83.3732, pincode: "273001" },
+        { name: "Mathura", city: "Mathura", state: "Uttar Pradesh", lat: 27.4924, lng: 77.6737, pincode: "281001" },
+        // Bihar
+        { name: "Patna", city: "Patna", state: "Bihar", lat: 25.5941, lng: 85.1376, pincode: "800001" },
+        { name: "Gaya", city: "Gaya", state: "Bihar", lat: 24.7914, lng: 85.0002, pincode: "823001" },
+        { name: "Muzaffarpur", city: "Muzaffarpur", state: "Bihar", lat: 26.1209, lng: 85.3647, pincode: "842001" },
+        { name: "Bhagalpur", city: "Bhagalpur", state: "Bihar", lat: 25.2425, lng: 86.9842, pincode: "812001" },
+        { name: "Darbhanga", city: "Darbhanga", state: "Bihar", lat: 26.1542, lng: 85.8918, pincode: "846004" },
+        { name: "Purnia", city: "Purnia", state: "Bihar", lat: 25.7771, lng: 87.4753, pincode: "854301" },
+        // West Bengal
+        { name: "Kolkata", city: "Kolkata", state: "West Bengal", lat: 22.5726, lng: 88.3639, pincode: "700001" },
+        { name: "Howrah", city: "Howrah", state: "West Bengal", lat: 22.5958, lng: 88.2636, pincode: "711101" },
+        { name: "Purba Bardhaman", city: "Bardhaman", state: "West Bengal", lat: 23.2324, lng: 87.8615, pincode: "713101" },
+        { name: "Hooghly", city: "Chinsurah", state: "West Bengal", lat: 22.9012, lng: 88.3968, pincode: "712101" },
+        { name: "Nadia", city: "Krishnanagar", state: "West Bengal", lat: 23.4710, lng: 88.5565, pincode: "741101" },
+        { name: "Siliguri", city: "Siliguri", state: "West Bengal", lat: 26.7271, lng: 88.3953, pincode: "734001" },
+        { name: "Malda", city: "English Bazar", state: "West Bengal", lat: 25.0108, lng: 88.1411, pincode: "732101" },
+        // Odisha
+        { name: "Khordha", city: "Bhubaneswar", state: "Odisha", lat: 20.2961, lng: 85.8245, pincode: "751001" },
+        { name: "Cuttack", city: "Cuttack", state: "Odisha", lat: 20.4625, lng: 85.8828, pincode: "753001" },
+        { name: "Sambalpur", city: "Sambalpur", state: "Odisha", lat: 21.4669, lng: 83.9812, pincode: "768001" },
+        { name: "Balasore", city: "Balasore", state: "Odisha", lat: 21.4934, lng: 86.9135, pincode: "756001" },
+        { name: "Puri", city: "Puri", state: "Odisha", lat: 19.8135, lng: 85.8312, pincode: "752001" },
+        // Assam
+        { name: "Kamrup Metropolitan", city: "Guwahati", state: "Assam", lat: 26.1445, lng: 91.7362, pincode: "781001" },
+        { name: "Dibrugarh", city: "Dibrugarh", state: "Assam", lat: 27.4728, lng: 94.9120, pincode: "786001" },
+        { name: "Jorhat", city: "Jorhat", state: "Assam", lat: 26.7509, lng: 94.2037, pincode: "785001" },
+        // Jharkhand
+        { name: "Ranchi", city: "Ranchi", state: "Jharkhand", lat: 23.3441, lng: 85.3096, pincode: "834001" },
+        { name: "East Singhbhum", city: "Jamshedpur", state: "Jharkhand", lat: 22.8046, lng: 86.2029, pincode: "831001" },
+        { name: "Dhanbad", city: "Dhanbad", state: "Jharkhand", lat: 23.7957, lng: 86.4304, pincode: "826001" },
+        // Chhattisgarh
+        { name: "Raipur", city: "Raipur", state: "Chhattisgarh", lat: 21.2514, lng: 81.6296, pincode: "492001" },
+        { name: "Bilaspur", city: "Bilaspur", state: "Chhattisgarh", lat: 22.0797, lng: 82.1409, pincode: "495001" },
+        // Uttarakhand
+        { name: "Dehradun", city: "Dehradun", state: "Uttarakhand", lat: 30.3165, lng: 78.0322, pincode: "248001" },
+        { name: "Haridwar", city: "Haridwar", state: "Uttarakhand", lat: 29.9457, lng: 78.1642, pincode: "249401" },
+        // Himachal Pradesh
+        { name: "Shimla", city: "Shimla", state: "Himachal Pradesh", lat: 31.1048, lng: 77.1734, pincode: "171001" },
+        { name: "Kangra", city: "Dharamshala", state: "Himachal Pradesh", lat: 32.2190, lng: 76.3234, pincode: "176215" },
+        // Delhi
+        { name: "New Delhi", city: "New Delhi", state: "Delhi", lat: 28.6139, lng: 77.2090, pincode: "110001" },
+        { name: "Central Delhi", city: "Delhi", state: "Delhi", lat: 28.6448, lng: 77.2167, pincode: "110005" },
+        // Jammu & Kashmir
+        { name: "Srinagar", city: "Srinagar", state: "Jammu and Kashmir", lat: 34.0837, lng: 74.7973, pincode: "190001" },
+        { name: "Jammu", city: "Jammu", state: "Jammu and Kashmir", lat: 32.7266, lng: 74.8570, pincode: "180001" },
+        // Goa
+        { name: "North Goa", city: "Panaji", state: "Goa", lat: 15.4909, lng: 73.8278, pincode: "403001" },
+        { name: "South Goa", city: "Margao", state: "Goa", lat: 15.2832, lng: 73.9862, pincode: "403601" }
+      ];
 
 const server = http.createServer(async (req, res) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8")
@@ -1232,6 +1453,36 @@ const server = http.createServer(async (req, res) => {
       return r.includes(t) || t.includes(r)
     }
 
+    function getDistrictMandi(district, state) {
+      const d = String(district || "").toLowerCase()
+      if (d.includes("bengaluru") || d.includes("bangalore")) {
+        if (d.includes("rural")) return "Doddaballapur APMC"
+        if (d.includes("south")) return "Bengaluru South APMC (Anekal)"
+        return "Yeshwanthpur APMC, Bengaluru"
+      }
+      if (d.includes("ramanagara")) return "Ramanagara APMC"
+      if (d.includes("kolar")) return "Kolar APMC"
+      if (d.includes("chikkaballapur")) return "Chintamani APMC"
+      if (d.includes("mysuru") || d.includes("mysore")) return "Bandipalya APMC, Mysuru"
+      if (d.includes("mandya")) return "Mandya APMC"
+      if (d.includes("tumakuru") || d.includes("tumkur")) return "Tumakuru APMC"
+      if (d.includes("hassan")) return "Hassan APMC"
+      if (d.includes("shivamogga") || d.includes("shimoga")) return "Shivamogga APMC"
+      if (d.includes("belagavi") || d.includes("belgaum")) return "Belagavi APMC"
+      if (d.includes("hubballi") || d.includes("dharwad")) return "Amargol APMC, Hubballi"
+      if (d.includes("pune")) return "Pune APMC (Gultekdi)"
+      if (d.includes("mumbai") || d.includes("thane")) return "Vashi APMC, Navi Mumbai"
+      if (d.includes("nashik")) return "Lasalgaon / Nashik APMC"
+      if (d.includes("nagpur")) return "Kalamna APMC, Nagpur"
+      if (d.includes("chennai")) return "Koyambedu Wholesale Market, Chennai"
+      if (d.includes("coimbatore")) return "Coimbatore APMC"
+      if (d.includes("delhi")) return "Azadpur APMC, Delhi"
+      if (d.includes("hyderabad")) return "Gaddiannaram / Bowenpally APMC, Hyderabad"
+      if (district) return `${district.trim()} Main APMC`
+      if (state && state !== "All India") return `${state.trim()} State Central APMC`
+      return "Official APMC Market"
+    }
+
     function matchesCommodity(recordCommodity, targetCommodity) {
       if (!targetCommodity) return true
       const r = normalize(recordCommodity)
@@ -1287,9 +1538,8 @@ const server = http.createServer(async (req, res) => {
     let liveFetchSucceeded = false
     let sourceLabel = "AGMARKNET · Government of India"
     let isLive = true
-    const foundTarget = null
-    const matchedMaster = null
-
+    const targetItem = rawCommodity ? findMasterCommodity(rawCommodity) : null
+    targetAgmarknetName = targetItem ? (targetItem.agmarknet_name || targetItem.commodity || targetItem.name) : rawCommodity
     // Fetch from data.gov.in using targeted parameters and in-memory caching
     try {
       if (!dataGovKey) throw new Error("DATA_GOV_API_KEY or DATA_GOVIN_API_KEY is not configured.")
@@ -1471,9 +1721,10 @@ const server = http.createServer(async (req, res) => {
       ? agmarknetList.map(item => ({ name: item.name, category: categoryForCommodity(item.name) }))
       : commodityMaster.map(item => ({ name: item.commodity, category: item.category }))
 
+    const foundTarget = rawCommodity ? findMasterCommodity(rawCommodity) : null
     const targetRegisteredVarieties = (foundTarget && Array.isArray(foundTarget.varieties))
       ? foundTarget.varieties.map(v => typeof v === "string" ? v : v.name)
-      : (matchedMaster && Array.isArray(matchedMaster.varieties) ? matchedMaster.varieties : [])
+      : []
 
     res.writeHead(200).end(JSON.stringify({
       records: pageRecords,

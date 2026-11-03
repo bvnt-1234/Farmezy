@@ -63,6 +63,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   })
   const [categories, setCategories] = useState(fallbackCategories)
   const [varieties, setVarieties] = useState([])
+  const [varietySearch, setVarietySearch] = useState("")
   const [cropImages, setCropImages] = useState({})
 
   // Update filters if location changes on profile
@@ -134,9 +135,6 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
 
   useEffect(() => {
     const params = new URLSearchParams()
-    if (applied.state && applied.state !== "All India") params.set("state", applied.state)
-    if (applied.district) params.set("district", applied.district)
-    if (applied.market) params.set("market", applied.market)
     if (applied.category) params.set("category", applied.category)
     const controller = new AbortController()
     fetch("/api/commodities?" + params, { signal: controller.signal })
@@ -152,12 +150,13 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
       })
       .catch(error => { if (error.name !== "AbortError") {} })
     return () => controller.abort()
-  }, [applied.state, applied.district, applied.market, applied.category])
+  }, [applied.category])
 
   useEffect(() => {
     const comm = (filters.commodity || "").trim()
     if (preview || comm.length < 2) {
       setVarieties([])
+      setVarietySearch("")
       return
     }
     const controller = new AbortController()
@@ -168,9 +167,11 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
         const payload = response.ok ? await response.json() : null
         if (payload && !controller.signal.aborted) {
           const names = Array.isArray(payload.varieties)
-            ? payload.varieties.map(item => typeof item === "string" ? item : item.name)
+            ? payload.varieties.map(item => typeof item === "string" ? item : (item.name || item.variety_name))
             : (Array.isArray(payload.variety_names) ? payload.variety_names : [])
-          setVarieties(names)
+          const uniqueNames = [...new Set(names.map(n => String(n).trim()).filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+          setVarieties(uniqueNames)
         }
       } catch (error) {
         if (error.name !== "AbortError") setVarieties([])
@@ -204,18 +205,26 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   function filterByCrop(cropName) {
     setFilters(prev => ({ ...prev, commodity: cropName, variety: "" }))
     setApplied(prev => ({ ...prev, commodity: cropName, variety: "" }))
+    setVarietySearch("")
     setOffset(0)
   }
 
   function clearCropFilter() {
     setFilters(prev => ({ ...prev, commodity: "", variety: "" }))
     setApplied(prev => ({ ...prev, commodity: "", variety: "" }))
+    setVarietySearch("")
     setOffset(0)
   }
 
   const filteredCommodities = commodityOptions.filter(item => {
     if (!filters.category) return true
     return item.category === filters.category || item.group_name === filters.category
+  })
+
+  const displayedVarieties = varieties.filter(name => {
+    if (!varietySearch.trim()) return true
+    const q = varietySearch.toLowerCase().replace(/[^a-z0-9]/g, "")
+    return name.toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)
   })
 
   return (
@@ -244,6 +253,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
               onChange={e => {
                 const newCat = e.target.value
                 setFilters(prev => ({ ...prev, category: newCat, commodity: "", variety: "" }))
+                setVarietySearch("")
               }}
             >
               <option value="">All categories (16 groups)</option>
@@ -257,6 +267,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
               onChange={e => {
                 const newComm = e.target.value
                 setFilters(prev => ({ ...prev, commodity: newComm, variety: "" }))
+                setVarietySearch("")
               }}
             >
               <option value="">
@@ -272,7 +283,28 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
             </select>
           </label>
           <label>
-            Variety {varieties.length > 0 ? `(${varieties.length} registered)` : ""}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span>Variety {varieties.length > 0 ? `(${varieties.length} registered)` : ""}</span>
+              {filters.variety && (
+                <button
+                  type="button"
+                  onClick={() => setFilters(prev => ({ ...prev, variety: "" }))}
+                  style={{ border: 0, background: "none", color: "#34794b", cursor: "pointer", fontSize: 9, padding: 0, textDecoration: "underline" }}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            {filters.commodity && varieties.length > 5 && (
+              <input
+                type="text"
+                value={varietySearch}
+                onChange={e => setVarietySearch(e.target.value)}
+                placeholder={`Search among ${varieties.length} varieties...`}
+                style={{ marginBottom: 4 }}
+                title="Type to quickly filter the variety list below"
+              />
+            )}
             <select
               value={filters.variety}
               onChange={e => setFilters(prev => ({ ...prev, variety: e.target.value }))}
@@ -281,15 +313,24 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
               <option value="">
                 {!filters.commodity
                   ? "Select a commodity first"
-                  : varieties.length > 0
-                    ? `All varieties (${varieties.length} Government registered)`
-                    : "All varieties (none registered)"}
+                  : displayedVarieties.length > 0
+                    ? (varietySearch
+                        ? `All matching varieties (${displayedVarieties.length} of ${varieties.length})`
+                        : `All varieties (${varieties.length} Government registered)`)
+                    : (varietySearch
+                        ? `No varieties match "${varietySearch}"`
+                        : "All varieties (none registered)")}
               </option>
-              {varieties.map(name => (
+              {displayedVarieties.map(name => (
                 <option key={name} value={name}>
                   {name}
                 </option>
               ))}
+              {filters.variety && !displayedVarieties.includes(filters.variety) && (
+                <option value={filters.variety}>
+                  {filters.variety} (selected)
+                </option>
+              )}
             </select>
           </label>
           <label>
