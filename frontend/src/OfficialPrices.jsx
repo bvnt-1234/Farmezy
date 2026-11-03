@@ -282,36 +282,10 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
     return null
   }
 
-  // Current price variety items: ONLY official varieties with at least one current AGMARKNET price record
-  const currentPriceVarietyItems = useMemo(() => {
-    return catalogVarietyItems.filter(item => {
-      const price = findPrice(item.commodity, item.variety)
-      return price !== null && Number(price.modal_price) > 0
-    })
-  }, [catalogVarietyItems, globalPriceMap, priceLookup])
-
-  // Current price commodity items: ONLY official commodities with at least one current AGMARKNET price record
-  const currentPriceCommodityItems = useMemo(() => {
-    return activeCommodities.filter(c => {
-      const price = findPrice(c.name, "")
-      return price !== null && Number(price.modal_price) > 0
-    })
-  }, [activeCommodities, globalCommodityPriceMap, priceLookup])
-
-  // Map of active variety count per commodity
-  const commodityActiveVarietyCountMap = useMemo(() => {
-    const map = new Map()
-    currentPriceVarietyItems.forEach(item => {
-      const cNorm = String(item.commodity || "").toLowerCase().replace(/[^a-z0-9]/g, "")
-      map.set(cNorm, (map.get(cNorm) || 0) + 1)
-    })
-    return map
-  }, [currentPriceVarietyItems])
-
-  // Display items strictly limited to active current-market price items
+  // Display items from the complete official AGMARKNET catalogue
   const activeItems = (cardViewMode === "commodities" && !applied.variety)
-    ? currentPriceCommodityItems
-    : currentPriceVarietyItems
+    ? activeCommodities
+    : catalogVarietyItems
 
   const totalItemsToDisplay = activeItems.length
 
@@ -579,22 +553,22 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
               {preview
                 ? "Official Produce Prices & Variety Directory"
                 : applied.variety
-                  ? `Current Market Price: ${applied.variety} · ${applied.commodity}`
+                  ? `Official Catalogue: ${applied.variety} · ${applied.commodity}`
                   : applied.commodity
-                    ? `Current Market Prices for ${applied.commodity} (${currentPriceVarietyItems.length} active ${currentPriceVarietyItems.length === 1 ? "variety" : "varieties"})`
+                    ? `Registered Varieties for ${applied.commodity} (${catalogVarietyItems.length} official ${catalogVarietyItems.length === 1 ? "variety" : "varieties"})`
                     : applied.category
-                      ? `Current Market Prices — ${applied.category} (${currentPriceVarietyItems.length} active varieties across ${currentPriceCommodityItems.length} commodities)`
+                      ? `Official Catalogue — ${applied.category} (${catalogVarietyItems.length} varieties across ${activeCommodities.length} commodities)`
                       : cardViewMode === "commodities"
-                        ? `Current Traded Commodities (${currentPriceCommodityItems.length} active commodities)`
-                        : `Current AGMARKNET Market Prices (${currentPriceVarietyItems.length} active varieties)`
+                        ? `Official AGMARKNET Commodities (${activeCommodities.length} commodities)`
+                        : `Official AGMARKNET Varieties (${catalogVarietyItems.length} registered varieties)`
               }
             </h3>
             <p style={{ margin: "3px 0 0", fontSize: "11px", color: "#617163" }}>
               {preview
-                ? "Representative images and live APMC mandi prices for actively traded produce."
+                ? "Representative images and live APMC mandi prices for all registered produce."
                 : applied.variety
-                  ? `Showing official AGMARKNET market prices for ${applied.commodity} → ${applied.variety}.`
-                  : `Showing ${displayedItems.length} of ${totalItemsToDisplay} active ${cardViewMode === "commodities" ? "commodities" : "varieties"} with current market prices reported today. (Official catalogue maintains all 609 commodities & 3,071 registered varieties).`}
+                  ? `Showing official AGMARKNET catalogue and market prices for ${applied.commodity} → ${applied.variety}.`
+                  : `Showing ${displayedItems.length} of ${totalItemsToDisplay} official ${cardViewMode === "commodities" ? "commodities" : "registered varieties"}. All 609 official commodities & 3,071 registered varieties maintained across 16 categories.`}
             </p>
             {applied.variety && (
               <button
@@ -639,7 +613,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                   cursor: "pointer"
                 }}
               >
-                By Variety ({currentPriceVarietyItems.length})
+                By Variety ({catalogVarietyItems.length})
               </button>
               <button
                 type="button"
@@ -656,7 +630,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                   cursor: "pointer"
                 }}
               >
-                By Commodity ({currentPriceCommodityItems.length})
+                By Commodity ({activeCommodities.length})
               </button>
             </div>
           )}
@@ -674,8 +648,8 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
               : findPrice(item.name || item.commodity, "")
 
             const title = isVariety ? item.variety : (item.name || item.commodity)
-            const activeVarCount = isVariety ? 0 : (commodityActiveVarietyCountMap.get(String(item.name || item.commodity).toLowerCase().replace(/[^a-z0-9]/g, "")) || 1)
-            const subTitle = isVariety ? item.commodity : `${activeVarCount} actively traded ${activeVarCount === 1 ? "variety" : "varieties"}`
+            const regVarCount = isVariety ? 0 : (item.variety_names || item.varieties || []).length
+            const subTitle = isVariety ? item.commodity : `${regVarCount} registered ${regVarCount === 1 ? "variety" : "varieties"}`
             const categoryName = item.category || item.group_name || "Others"
 
             const cardKey = isVariety
@@ -716,11 +690,16 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                   <small className="crop-category-tag">{categoryName} · AGMARKNET</small>
                   <b>{title}</b>
                   <span className="crop-commodity-sub">{subTitle}</span>
-                  {priceRecord && (
+                  {priceRecord ? (
                     <div className="crop-price-info">
                       <span>Modal <strong>{money(priceRecord.modal_price)}</strong> / quintal</span>
                       <small>Min: {money(priceRecord.min_price)} · Max: {money(priceRecord.max_price)}</small>
                       <small>{priceRecord.market || "Mandi"} · {priceRecord.state}{priceRecord.arrival_date ? " · " + priceRecord.arrival_date : ""}</small>
+                    </div>
+                  ) : (
+                    <div className="crop-no-price">
+                      <span className="no-price-msg">No current AGMARKNET mandi price available.</span>
+                      <small style={{ color: "#9ca3af", fontSize: "8px" }}>Registered in Official Catalogue</small>
                     </div>
                   )}
                 </div>
