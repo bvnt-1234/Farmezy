@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import OfficialPrices from "./OfficialPrices.jsx"
 import { supabase, isSupabaseConfigured } from "./supabase.js"
 import commodityMaster from "../../backend/data/commodity-master.json"
@@ -4549,10 +4549,7 @@ function PriceForecast({ location, onPrices }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const availableDistricts = useMemo(() => {
-    const list = STATE_DISTRICTS_MAP[state] || []
-    return ["All Districts (State Average)", ...list]
-  }, [state])
+  const availableDistricts = ["All Districts (State Average)", ...(STATE_DISTRICTS_MAP[state] || [])]
 
   const handleStateChange = (newState) => {
     setState(newState)
