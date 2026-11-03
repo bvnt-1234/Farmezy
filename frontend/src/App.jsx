@@ -4449,16 +4449,77 @@ function PriceForecast({ location, onPrices }) {
       {result && (
         <div className="forecast-result">
           <h3>{result.commodity} · {result.state}</h3>
-          <p>Last observed: <b>₹{Number(result.lastObserved.price).toLocaleString("en-IN")}/quintal</b> on {result.lastObserved.date}</p>
-          <div className="forecast-cards">
-            {result.predictions.map(item => (
-              <article key={item.day}>
-                <small>Day {item.day}</small>
-                <b>₹{item.price.toLocaleString("en-IN")}</b>
-                <span>Range ₹{item.lower.toLocaleString("en-IN")}–₹{item.upper.toLocaleString("en-IN")}</span>
-              </article>
-            ))}
-          </div>
+          <p>
+            Last observed: <b>₹{Number(result.lastObserved?.price || 0).toLocaleString("en-IN")}/{result.unit || "Quintal (100 KG)"}</b>{result.annualBenchmark ? (result.lastObserved?.year ? ` (Year ${result.lastObserved.year})` : "") : (result.lastObserved?.date ? ` on ${result.lastObserved.date}` : "")}
+          </p>
+          {result.model && (
+            <small style={{ display: "block", color: "#69766c", marginBottom: 12 }}>
+              {result.annualBenchmark ? "🤖 " : "📊 "}
+              {result.model}
+            </small>
+          )}
+
+          {result.annualBenchmark ? (
+            <div>
+              <p style={{ fontSize: "11px", color: "#566558", marginBottom: "10px" }}>
+                Annual wholesale trajectory & ML forecast ({result.unit || "Quintal (100 KG)"}):
+              </p>
+              <div className="forecast-cards" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "10px" }}>
+                <article style={{ background: "#fff", border: "1px solid #e2e8e0", borderRadius: "8px", padding: "12px" }}>
+                  <small style={{ color: "#7f8d81", fontSize: "10px" }}>2023 Historical</small>
+                  <b style={{ display: "block", fontSize: "15px", margin: "4px 0", color: "#24342b" }}>
+                    ₹{Number(result.annualBenchmark.historical_2023).toLocaleString("en-IN")}
+                  </b>
+                  <span style={{ fontSize: "10px", color: "#8a968b" }}>Wholesale Avg</span>
+                </article>
+
+                <article style={{ background: "#fff", border: "1px solid #e2e8e0", borderRadius: "8px", padding: "12px" }}>
+                  <small style={{ color: "#7f8d81", fontSize: "10px" }}>2024 Historical</small>
+                  <b style={{ display: "block", fontSize: "15px", margin: "4px 0", color: "#24342b" }}>
+                    ₹{Number(result.annualBenchmark.historical_2024).toLocaleString("en-IN")}
+                  </b>
+                  <span style={{ fontSize: "10px", color: "#8a968b" }}>Wholesale Avg</span>
+                </article>
+
+                <article style={{ background: "#fff", border: "1px solid #e2e8e0", borderRadius: "8px", padding: "12px" }}>
+                  <small style={{ color: "#7f8d81", fontSize: "10px" }}>2025 Observed</small>
+                  <b style={{ display: "block", fontSize: "15px", margin: "4px 0", color: "#24342b" }}>
+                    ₹{Number(result.annualBenchmark.actual_2025).toLocaleString("en-IN")}
+                  </b>
+                  <span style={{ fontSize: "10px", color: "#8a968b" }}>Wholesale Avg</span>
+                </article>
+
+                <article style={{ background: "#edf7ed", border: "1px solid #b8dfbe", borderRadius: "8px", padding: "12px" }}>
+                  <small style={{ color: "#2d6639", fontWeight: "700", fontSize: "10px" }}>2026 ML Forecast</small>
+                  <b style={{ display: "block", fontSize: "16px", margin: "4px 0", color: "#1e532a" }}>
+                    ₹{Number(result.annualBenchmark.forecast_2026).toLocaleString("en-IN")}
+                  </b>
+                  <span style={{ fontSize: "10px", color: "#4f7556" }}>
+                    Range ₹{Number(result.annualBenchmark.uncertainty_band?.lower_bound_2026 || 0).toLocaleString("en-IN")}–₹{Number(result.annualBenchmark.uncertainty_band?.upper_bound_2026 || 0).toLocaleString("en-IN")}
+                  </span>
+                </article>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p style={{ fontSize: "11px", color: "#566558", marginBottom: "10px" }}>
+                APMC Baseline Day-by-Day Projections ({result.unit || "Quintal (100 KG)"}) — <i>Historical APMC baseline, not ML forecast</i>:
+              </p>
+              <div className="forecast-cards" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "10px" }}>
+                {result.predictions.map(item => (
+                  <article key={item.day} style={{ background: "#fff", border: "1px solid #e2e8e0", borderRadius: "8px", padding: "12px" }}>
+                    <small style={{ color: "#7f8d81", fontSize: "10px" }}>Baseline Day {item.day}</small>
+                    <b style={{ display: "block", fontSize: "15px", margin: "4px 0", color: "#24342b" }}>
+                      ₹{item.price.toLocaleString("en-IN")}
+                    </b>
+                    <span style={{ fontSize: "10px", color: "#8a968b" }}>
+                      Range ₹{item.lower.toLocaleString("en-IN")}–₹{item.upper.toLocaleString("en-IN")}
+                    </span>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
       <button className="link" onClick={onPrices}>Check official observed prices →</button>
