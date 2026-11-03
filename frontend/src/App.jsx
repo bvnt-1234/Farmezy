@@ -768,6 +768,10 @@ function App() {
   const [showRoleAuthModal, setShowRoleAuthModal] = useState(false)
   const [roleAuthError, setRoleAuthError] = useState("")
   const [roleAuthLoading, setRoleAuthLoading] = useState(false)
+  const [customerNotifications, setCustomerNotifications] = useState([])
+  const orderStatusesRef = useRef(new Map())
+  const initialOrdersLoadedRef = useRef(false)
+  const notifiedKeysRef = useRef(new Set())
 
   // Customer / Buyer Marketplace Filter States
   const [browseSearch, setBrowseSearch] = useState("")
@@ -847,6 +851,10 @@ function App() {
       } else {
         setRole(null)
         setProfile(null)
+        setCustomerNotifications([])
+        orderStatusesRef.current = new Map()
+        initialOrdersLoadedRef.current = false
+        notifiedKeysRef.current = new Set()
       }
     })
 
@@ -861,6 +869,10 @@ function App() {
     setRole(null)
     setProfile(null)
     setPage("Home")
+    setCustomerNotifications([])
+    orderStatusesRef.current = new Map()
+    initialOrdersLoadedRef.current = false
+    notifiedKeysRef.current = new Set()
   }
 
   useEffect(() => {
@@ -884,7 +896,15 @@ function App() {
       const response = await fetch("/api/orders?" + params)
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Could not load orders.")
-      setOrders(Array.isArray(data.orders) ? data.orders.map(order => ({ ...order, status: order.status === "new" ? "Requested" : order.status })) : [])
+      const freshOrders = Array.isArray(data.orders) ? data.orders.map(order => ({ ...order, status: order.status === "new" ? "Requested" : order.status })) : []
+      setOrders(freshOrders)
+      if (role === "Customer") {
+        freshOrders.forEach(o => {
+          if (!orderStatusesRef.current.has(o.id)) {
+            orderStatusesRef.current.set(o.id, o.status)
+          }
+        })
+      }
     } catch (error) {
       setListingError(error.message)
     }
@@ -895,6 +915,107 @@ function App() {
       loadOrders()
     }
   }, [role])
+
+  const dismissNotification = id => {
+    setCustomerNotifications(prev => prev.filter(n => n.id !== id))
+  }
+
+  // Auto-dismiss oldest notification after 15 seconds
+  useEffect(() => {
+    if (customerNotifications.length === 0) return
+    const timer = setTimeout(() => {
+      setCustomerNotifications(prev => prev.slice(1))
+    }, 15000)
+    return () => clearTimeout(timer)
+  }, [customerNotifications])
+
+  // Lightweight polling of customer orders every 20s while customer is active
+  useEffect(() => {
+    if (role !== "Customer" || !customerId) return
+
+    let isMounted = true
+
+    const pollCustomerOrders = async () => {
+      if (typeof document !== "undefined" && document.hidden) return
+      try {
+        const response = await fetch("/api/orders?customerId=" + encodeURIComponent(customerId))
+        if (!response.ok) return
+        const data = await response.json()
+        if (!isMounted || !Array.isArray(data.orders)) return
+
+        const freshOrders = data.orders.map(order => ({
+          ...order,
+          status: order.status === "new" ? "Requested" : order.status
+        }))
+
+        if (initialOrdersLoadedRef.current) {
+          const prevStatuses = orderStatusesRef.current
+          const newNotifications = []
+
+          for (const order of freshOrders) {
+            const prevStatus = prevStatuses.get(order.id)
+            const newStatus = order.status
+            const notifyKey = `${order.id}:${newStatus}`
+
+            if (
+              prevStatus === "Requested" &&
+              (newStatus === "Accepted" || newStatus === "Rejected") &&
+              !notifiedKeysRef.current.has(notifyKey)
+            ) {
+              notifiedKeysRef.current.add(notifyKey)
+              newNotifications.push({
+                id: `${order.id}-${newStatus}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                orderId: order.id,
+                farmerName: order.farmerName || "Farmer",
+                crop: order.crop,
+                quantity: order.quantity,
+                unit: order.unit,
+                status: newStatus,
+                timestamp: Date.now()
+              })
+            }
+          }
+
+          if (newNotifications.length > 0) {
+            setCustomerNotifications(prev => [...prev, ...newNotifications])
+          }
+        } else {
+          // Initial baseline: mark existing accepted/rejected orders as already handled
+          freshOrders.forEach(o => {
+            if (o.status === "Accepted" || o.status === "Rejected") {
+              notifiedKeysRef.current.add(`${o.id}:${o.status}`)
+            }
+          })
+          initialOrdersLoadedRef.current = true
+        }
+
+        const updatedMap = new Map()
+        freshOrders.forEach(o => updatedMap.set(o.id, o.status))
+        orderStatusesRef.current = updatedMap
+
+        setOrders(freshOrders)
+      } catch {
+        // Silent catch for background polling
+      }
+    }
+
+    pollCustomerOrders()
+
+    const intervalId = setInterval(pollCustomerOrders, 20000)
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        pollCustomerOrders()
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    return () => {
+      isMounted = false
+      clearInterval(intervalId)
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    }
+  }, [role, customerId])
 
   const deleteListing = async (id, cropName) => {
     if (!window.confirm(`Are you sure you want to delete the listing for "${cropName}"? This action cannot be undone.`)) {
@@ -1315,7 +1436,6 @@ function App() {
     const q = browseVarietySearch.toLowerCase().replace(/[^a-z0-9]/g, "")
     return v.toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)
   })
-
   const clearFilters = () => {
     setBrowseSearch("")
     setBrowseCategory("All Categories")
@@ -1869,6 +1989,46 @@ function App() {
         )}
 
         <div className="page">
+          {role === "Customer" && customerNotifications.length > 0 && (
+            <div className="customer-notifications-container">
+              {customerNotifications.map(notification => (
+                <div
+                  key={notification.id}
+                  className={`customer-status-banner ${notification.status === "Accepted" ? "accepted" : "rejected"}`}
+                >
+                  <div className="banner-content">
+                    <span className="banner-icon">{notification.status === "Accepted" ? "✓" : "✕"}</span>
+                    <span>
+                      <b>{notification.farmerName}</b> has{" "}
+                      <b>{notification.status}</b> your request for <b>{notification.crop}</b>
+                      {notification.quantity ? ` (${notification.quantity} ${notification.unit || "kg"})` : ""}.
+                    </span>
+                  </div>
+                  <div className="banner-actions">
+                    <button
+                      type="button"
+                      className="banner-link"
+                      onClick={() => {
+                        setPage("Orders")
+                        dismissNotification(notification.id)
+                      }}
+                    >
+                      View in My Requests →
+                    </button>
+                    <button
+                      type="button"
+                      className="banner-close"
+                      onClick={() => dismissNotification(notification.id)}
+                      aria-label="Dismiss notification"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {page === "Home" && (
             <>
               <div className="welcome">
@@ -1913,7 +2073,17 @@ function App() {
                       <div className="saved-row-with-action" key={item.id}>
                         <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           {item.image ? (
-                            <img src={item.image} alt={item.crop} style={{ width: 28, height: 28, borderRadius: 5, objectFit: "cover" }} />
+                            <img
+                              src={item.image}
+                              alt={item.crop}
+                              style={{ width: 28, height: 28, borderRadius: 5, objectFit: "cover" }}
+                              onError={e => {
+                                if (e.currentTarget.src !== "/placeholder.png") {
+                                  e.currentTarget.onerror = null
+                                  e.currentTarget.src = "/placeholder.png"
+                                }
+                              }}
+                            />
                           ) : (
                             <span>🌾</span>
                           )}
@@ -2394,13 +2564,39 @@ function App() {
                     return (
                       <article className="listing-card" key={item.id}>
                         {item.image && (
-                          <div
-                            className="listing-photo-thumb"
-                            onClick={() => { setBuyItem(item); setBuyQuantity("") }}
-                            style={{ cursor: "pointer" }}
-                            title={`Click to view/request ${item.crop}`}
-                          >
-                            <img src={item.image} alt={item.crop} />
+                          <div className="listing-photo-thumb-container">
+                            <div
+                              className="listing-photo-thumb"
+                              onClick={() => { setBuyItem(item); setBuyQuantity("") }}
+                              style={{ cursor: "pointer" }}
+                              title={`Click to view/request ${item.crop}`}
+                            >
+                              <img
+                                src={item.image}
+                                alt={item.crop}
+                                onError={e => {
+                                  if (e.currentTarget.src !== "/placeholder.png") {
+                                    e.currentTarget.onerror = null
+                                    e.currentTarget.src = "/placeholder.png"
+                                  }
+                                }}
+                              />
+                              {item.imageSource === "farmer" && (
+                                <span className="listing-photo-badge" title="Harvest photo uploaded by farmer">📸 Farmer</span>
+                              )}
+                            </div>
+                            {item.imagePhotographer && item.imageLink && (
+                              <a
+                                href={item.imageLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="listing-photo-credit"
+                                onClick={e => e.stopPropagation()}
+                                title={`Photo by ${item.imagePhotographer} on Unsplash`}
+                              >
+                                Photo: {item.imagePhotographer.replace(/\s*\(Unsplash\)/i, "")}
+                              </a>
+                            )}
                           </div>
                         )}
                         <div
@@ -2473,14 +2669,36 @@ function App() {
                           <span>{contactPhone(item) ? "📞 " + contactPhone(item) : "Contact details unavailable"}</span>
                           {km !== null && <span>{formatDistance(km)}</span>}
                           <div className="listing-actions">
-                            <button className="btn-action-buy" onClick={() => { setBuyItem(item); setBuyQuantity("") }}>
+                            <button
+                              type="button"
+                              className="btn-action-buy"
+                              onClick={() => {
+                                setBuyItem(item)
+                                setBuyQuantity("")
+                                setTimeout(() => {
+                                  document.getElementById("produce-request-panel")?.scrollIntoView({ behavior: "smooth" })
+                                }, 50)
+                              }}
+                            >
                               🧺 {t("buyRequest")}
                             </button>
                             {contactPhone(item) && phoneUrl(contactPhone(item)) && (
                               <a href={phoneUrl(contactPhone(item))} className="btn-action-link">📞 {t("call")}</a>
                             )}
                             {contactPhone(item) && whatsappUrl(contactPhone(item)) && (
-                              <a href={whatsappUrl(contactPhone(item))} target="_blank" rel="noopener noreferrer" className="btn-action-link">💬 {t("whatsapp")}</a>
+                              <button
+                                type="button"
+                                className="btn-action-link"
+                                onClick={() => {
+                                  setBuyItem(item)
+                                  setBuyQuantity("")
+                                  setTimeout(() => {
+                                    document.getElementById("produce-request-panel")?.scrollIntoView({ behavior: "smooth" })
+                                  }, 50)
+                                }}
+                              >
+                                💬 {t("whatsapp")}
+                              </button>
                             )}
                             {routeUrl(item) && (
                               <a href={routeUrl(item)} target="_blank" rel="noopener noreferrer" className="btn-action-link">🗺️ {t("bestRoute")} ↗</a>
@@ -2516,7 +2734,7 @@ function App() {
                 </section>
               )}
               {buyItem && (
-                <section className="panel form-panel request-panel">
+                <section id="produce-request-panel" className="panel form-panel request-panel">
                   <h3>Request {buyItem.crop}</h3>
                   <p>Farmer: <b>{buyItem.farmerName}</b> · ₹{buyItem.price}/{buyItem.unit}</p>
                   <label>
@@ -2537,6 +2755,7 @@ function App() {
                       onClick={async () => {
                         setOrderLoading(true)
                         try {
+                          const phone = contactPhone(buyItem) || buyItem.farmerPhone || ""
                           const response = await fetch("/api/orders", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -2549,7 +2768,7 @@ function App() {
                               availableQuantity: buyItem.quantity,
                               farmerId: buyItem.farmerId,
                               farmerName: buyItem.farmerName,
-                              farmerPhone: buyItem.farmerPhone,
+                              farmerPhone: phone,
                               customerId,
                               customerName: profile?.name || "Customer",
                               customerPhone: profile?.phone || "",
@@ -2560,11 +2779,18 @@ function App() {
                           if (!response.ok) throw new Error(data.error || "Could not create request.")
                           await loadOrders()
                           const text = "Hi " + buyItem.farmerName + ", I requested " + buyQuantity + " " + buyItem.unit + " of your " + buyItem.crop + " on Farmezy. Request ID: " + data.order.id
-                          const url = whatsappUrl(buyItem.farmerPhone, text)
+                          const url = whatsappUrl(phone, text)
                           if (!url) {
                             alert("Request saved, but this farmer has not added a valid WhatsApp number yet.")
                           } else {
-                            window.location.href = url
+                            try {
+                              const win = window.open(url, "_blank", "noopener,noreferrer")
+                              if (!win || win.closed || typeof win.closed === "undefined") {
+                                window.location.href = url
+                              }
+                            } catch {
+                              window.location.href = url
+                            }
                           }
                           setBuyItem(null)
                           setBuyQuantity("")
@@ -2699,7 +2925,34 @@ function App() {
                   <h2>✓ &nbsp; Crop saved in your listings</h2>
                   {listing?.image && (
                     <div style={{ margin: "14px 0" }}>
-                      <img src={listing.image} alt={listing.crop} style={{ width: 120, height: 120, borderRadius: 8, objectFit: "cover" }} />
+                      <img
+                        src={listing.image}
+                        alt={listing.crop}
+                        style={{ width: 120, height: 120, borderRadius: 8, objectFit: "cover" }}
+                        onError={e => {
+                          if (e.currentTarget.src !== "/placeholder.png") {
+                            e.currentTarget.onerror = null
+                            e.currentTarget.src = "/placeholder.png"
+                          }
+                        }}
+                      />
+                      {listing.imageSource === "farmer" ? (
+                        <div style={{ marginTop: 4 }}>
+                          <span style={{ fontSize: 11, color: "#2d6e42", fontWeight: 600 }}>📸 Your harvest photo</span>
+                        </div>
+                      ) : listing.imagePhotographer && listing.imageLink ? (
+                        <div style={{ marginTop: 4 }}>
+                          <a
+                            href={listing.imageLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="listing-photo-credit"
+                            style={{ display: "inline-block", fontSize: 10, maxWidth: "none" }}
+                          >
+                            Photo by {listing.imagePhotographer} on Unsplash
+                          </a>
+                        </div>
+                      ) : null}
                     </div>
                   )}
                   <p>{listing?.crop} · {listing?.quantity} {listing?.unit} · ₹{listing?.price}/{listing?.unit}</p>
@@ -3464,8 +3717,34 @@ function App() {
                     displayedFarmerListings.map(item => (
                       <article className="listing-card" key={item.id}>
                         {item.image && (
-                          <div className="listing-photo-thumb">
-                            <img src={item.image} alt={item.crop} />
+                          <div className="listing-photo-thumb-container">
+                            <div className="listing-photo-thumb">
+                              <img
+                                src={item.image}
+                                alt={item.crop}
+                                onError={e => {
+                                  if (e.currentTarget.src !== "/placeholder.png") {
+                                    e.currentTarget.onerror = null
+                                    e.currentTarget.src = "/placeholder.png"
+                                  }
+                                }}
+                              />
+                              {item.imageSource === "farmer" && (
+                                <span className="listing-photo-badge" title="Harvest photo uploaded by farmer">📸 Farmer</span>
+                              )}
+                            </div>
+                            {item.imagePhotographer && item.imageLink && (
+                              <a
+                                href={item.imageLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="listing-photo-credit"
+                                onClick={e => e.stopPropagation()}
+                                title={`Photo by ${item.imagePhotographer} on Unsplash`}
+                              >
+                                Photo: {item.imagePhotographer.replace(/\s*\(Unsplash\)/i, "")}
+                              </a>
+                            )}
                           </div>
                         )}
                         <div>
