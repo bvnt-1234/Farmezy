@@ -1895,7 +1895,7 @@ export async function handleRequest(req, res) {
   if (requestUrl.pathname === "/api/price-forecast" && req.method === "GET") {
     try {
       const { forecastPrice } = await import("./scripts/forecast.js")
-      const result = forecastPrice({
+      const result = await forecastPrice({
         commodity: requestUrl.searchParams.get("commodity") || "",
         state: requestUrl.searchParams.get("state") || "",
         district: requestUrl.searchParams.get("district") || "",
