@@ -728,6 +728,7 @@ function App() {
   const [formCategory, setFormCategory] = useState("Vegetables")
   const [formCrop, setFormCrop] = useState("Tomato")
   const [formVariety, setFormVariety] = useState("")
+  const [formVarietySearch, setFormVarietySearch] = useState("")
   const [formCustomVariety, setFormCustomVariety] = useState("")
   const [formGrade, setFormGrade] = useState("FAQ")
   const [formOrganic, setFormOrganic] = useState("Conventional")
@@ -777,6 +778,7 @@ function App() {
   const [browseCategory, setBrowseCategory] = useState("All Categories")
   const [browseCommodity, setBrowseCommodity] = useState("All Commodities")
   const [browseVariety, setBrowseVariety] = useState("All Varieties")
+  const [browseVarietySearch, setBrowseVarietySearch] = useState("")
   const [browseMinPrice, setBrowseMinPrice] = useState("")
   const [browseMaxPrice, setBrowseMaxPrice] = useState("")
   const [browseUnit, setBrowseUnit] = useState("All Units")
@@ -1388,7 +1390,9 @@ function App() {
   // Variety options for Marketplace Filter
   const selectedMarketplaceCommodityObj = allOfficialCommodities.find(c =>
     (c.name || "").toLowerCase() === browseCommodity.toLowerCase() ||
-    (c.display_name && c.display_name.toLowerCase() === browseCommodity.toLowerCase())
+    (c.display_name && c.display_name.toLowerCase() === browseCommodity.toLowerCase()) ||
+    (c.agmarknet_name && c.agmarknet_name.toLowerCase() === browseCommodity.toLowerCase()) ||
+    (Array.isArray(c.aliases) && c.aliases.some(a => String(a).toLowerCase() === browseCommodity.toLowerCase()))
   )
   const officialVarietiesForMarketplace = selectedMarketplaceCommodityObj
     ? (selectedMarketplaceCommodityObj.varieties || []).map(v => typeof v === "string" ? v : v.name).filter(Boolean)
@@ -1408,12 +1412,26 @@ function App() {
   const selectedFormCommodityObj = allOfficialCommodities.find(c =>
     (c.name || "").toLowerCase() === (formCrop || "").trim().toLowerCase() ||
     (c.display_name && c.display_name.toLowerCase() === (formCrop || "").trim().toLowerCase()) ||
-    (c.agmarknet_name && c.agmarknet_name.toLowerCase() === (formCrop || "").trim().toLowerCase())
+    (c.agmarknet_name && c.agmarknet_name.toLowerCase() === (formCrop || "").trim().toLowerCase()) ||
+    (Array.isArray(c.aliases) && c.aliases.some(a => String(a).toLowerCase() === (formCrop || "").trim().toLowerCase()))
   )
 
   const registeredFormVarieties = selectedFormCommodityObj
     ? (selectedFormCommodityObj.variety_names || (selectedFormCommodityObj.varieties || []).map(v => typeof v === "string" ? v : v.name)).filter(Boolean)
     : []
+
+  const displayedFormVarieties = registeredFormVarieties.filter(v => {
+    if (!formVarietySearch.trim()) return true
+    const q = formVarietySearch.toLowerCase().replace(/[^a-z0-9]/g, "")
+    return v.toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)
+  })
+
+  const displayedMarketplaceVarieties = marketplaceVarieties.filter(v => {
+    if (v === "All Varieties") return true
+    if (!browseVarietySearch.trim()) return true
+    const q = browseVarietySearch.toLowerCase().replace(/[^a-z0-9]/g, "")
+    return v.toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)
+  })
 
   const registeredFormGrades = selectedFormCommodityObj?.grades?.length
     ? selectedFormCommodityObj.grades
@@ -1424,6 +1442,7 @@ function App() {
     setBrowseCategory("All Categories")
     setBrowseCommodity("All Commodities")
     setBrowseVariety("All Varieties")
+    setBrowseVarietySearch("")
     setBrowseGrade("All Grades")
     setBrowseMinQuantity("")
     setBrowseMinPrice("")
@@ -2163,6 +2182,7 @@ function App() {
                         setBrowseCategory(e.target.value)
                         setBrowseCommodity("All Commodities")
                         setBrowseVariety("All Varieties")
+                        setBrowseVarietySearch("")
                       }}
                     >
                       {MARKETPLACE_CATEGORIES.map(cat => (
@@ -2189,14 +2209,37 @@ function App() {
 
                   {/* 3. Variety */}
                   <div className="filter-field">
-                    <label>3. Variety</label>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <label>3. Variety {marketplaceVarieties.length > 1 ? `(${marketplaceVarieties.length - 1})` : ""}</label>
+                      {browseVariety !== "All Varieties" && (
+                        <button
+                          type="button"
+                          onClick={() => setBrowseVariety("All Varieties")}
+                          style={{ border: 0, background: "none", color: "#34794b", cursor: "pointer", fontSize: 9, padding: 0, textDecoration: "underline" }}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    {marketplaceVarieties.length > 15 && (
+                      <input
+                        type="text"
+                        placeholder="Search variety..."
+                        value={browseVarietySearch}
+                        onChange={e => setBrowseVarietySearch(e.target.value)}
+                        style={{ marginBottom: 4 }}
+                      />
+                    )}
                     <select
                       value={browseVariety}
                       onChange={e => setBrowseVariety(e.target.value)}
                     >
-                      {marketplaceVarieties.map(v => (
+                      {displayedMarketplaceVarieties.map(v => (
                         <option key={v} value={v}>{v}</option>
                       ))}
+                      {browseVariety !== "All Varieties" && !displayedMarketplaceVarieties.includes(browseVariety) && (
+                        <option value={browseVariety}>{browseVariety} (selected)</option>
+                      )}
                     </select>
                   </div>
 
@@ -3113,6 +3156,7 @@ function App() {
                               }
                               setFormVariety("")
                               setFormCustomVariety("")
+                              setFormVarietySearch("")
                               if (match.grades && match.grades.length > 0) {
                                 setFormGrade(match.grades[0])
                               }
@@ -3132,9 +3176,29 @@ function App() {
                       </label>
 
                       <label className="wide">
-                        Variety
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span>Variety</span>
+                          {formVariety && (
+                            <button
+                              type="button"
+                              onClick={() => { setFormVariety(""); setFormCustomVariety(""); setFormVarietySearch("") }}
+                              style={{ border: 0, background: "none", color: "#34794b", cursor: "pointer", fontSize: 9, padding: 0, textDecoration: "underline" }}
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
                         {registeredFormVarieties.length > 0 ? (
                           <div className="variety-selection-group">
+                            {registeredFormVarieties.length > 10 && (
+                              <input
+                                type="text"
+                                placeholder={`Search among ${registeredFormVarieties.length} official varieties...`}
+                                value={formVarietySearch}
+                                onChange={e => setFormVarietySearch(e.target.value)}
+                                style={{ marginBottom: 6 }}
+                              />
+                            )}
                             <select
                               value={formVariety}
                               onChange={e => {
@@ -3144,10 +3208,19 @@ function App() {
                                 }
                               }}
                             >
-                              <option value="">-- Select official registered variety ({registeredFormVarieties.length} available) --</option>
-                              {registeredFormVarieties.map(v => (
+                              <option value="">
+                                {displayedFormVarieties.length > 0
+                                  ? (formVarietySearch
+                                      ? `-- ${displayedFormVarieties.length} matching varieties --`
+                                      : `-- Select official registered variety (${registeredFormVarieties.length} available) --`)
+                                  : `-- No varieties match "${formVarietySearch}" --`}
+                              </option>
+                              {displayedFormVarieties.map(v => (
                                 <option key={v} value={v}>{v}</option>
                               ))}
+                              {formVariety && formVariety !== "__custom__" && !displayedFormVarieties.includes(formVariety) && (
+                                <option value={formVariety}>{formVariety} (selected)</option>
+                              )}
                               <option value="__custom__">➕ Other / Custom variety...</option>
                             </select>
 
