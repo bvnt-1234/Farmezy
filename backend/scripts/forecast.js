@@ -101,6 +101,45 @@ const ML_COMMODITY_ALIASES = {
   "arhar (tur/red gram)(whole)": "Tur (Arhar) Dal"
 }
 
+// Common alias normalizer for APMC catalogue crops
+const APMC_CROP_ALIASES = {
+  "cucumber": "cucumbar(kheera)",
+  "kheera": "cucumbar(kheera)",
+  "bhindi": "bhindi(ladies finger)",
+  "bhindi (ladies finger)": "bhindi(ladies finger)",
+  "ladies finger": "bhindi(ladies finger)",
+  "okra": "bhindi(ladies finger)",
+  "ginger": "ginger(green)",
+  "ginger green": "ginger(green)",
+  "green chilli": "green chilli",
+  "chilli": "green chilli",
+  "chilli green": "green chilli",
+  "peas": "green peas",
+  "green peas": "green peas",
+  "groundnut": "groundnut",
+  "peanuts": "groundnut",
+  "cotton": "cotton",
+  "maize": "maize",
+  "corn": "maize",
+  "lemon": "lemon",
+  "lime": "lime",
+  "grapes": "grapes",
+  "guava": "guava",
+  "pomegranate": "pomegranate",
+  "coconut": "coconut",
+  "watermelon": "karbuja(musk melon)",
+  "muskmelon": "karbuja(musk melon)",
+  "turmeric": "turmeric",
+  "black pepper": "black pepper",
+  "chana dal": "bengal gram dal (chana dal)",
+  "bengal gram dal": "bengal gram dal (chana dal)",
+  "moong dal": "green gram dal (moong dal)",
+  "urad dal": "black gram dal (urd dal)",
+  "jowar": "jowar(sorghum)",
+  "bajra": "bajra(pearl millet/cumbu)",
+  "barley": "barley (jau)"
+}
+
 // Commodity seasonal momentum multipliers for current month trading periods
 const CROP_MOMENTUM_PROFILE = {
   "Tomato": { monthlyTrendRate: -0.012, weeklyVolatility: 0.012, type: "perishable" },
@@ -358,12 +397,13 @@ export function forecastPrice({ commodity = "", state = "", district = "", days 
   // =========================================================================
   // PATH B: APMC CATALOGUE BASELINE FALLBACK (For unsupported crops: Garlic, Ginger, etc.)
   // =========================================================================
-  let baselineKey = commKey
+  const aliasedKey = APMC_CROP_ALIASES[commKey] || commKey
+  let baselineKey = aliasedKey
   let baselinePrice = baselines[baselineKey]
 
   if (!baselinePrice) {
     for (const [k, v] of Object.entries(baselines)) {
-      if (k === commKey || k.startsWith(commKey + "(") || k.startsWith(commKey + " -") || k.startsWith(commKey + " ")) {
+      if (k === aliasedKey || k === commKey || k.startsWith(aliasedKey + "(") || k.startsWith(commKey + "(") || k.startsWith(aliasedKey + " -") || k.startsWith(commKey + " ")) {
         baselineKey = k
         baselinePrice = v
         break
