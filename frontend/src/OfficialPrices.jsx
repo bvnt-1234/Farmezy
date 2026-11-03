@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import agmarknetCatalogue from "../../backend/data/agmarknet-catalogue.json"
+import {
+  resolveVarietyImage,
+  resolveCommodityImage,
+  getCategorySvgDataUri,
+  getCommoditySymbol,
+  categoryFallbackImages
+} from "./cropImageCatalog.js"
 
 const states = [
   "Andaman and Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh",
@@ -65,6 +72,10 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   const [varieties, setVarieties] = useState([])
   const [varietySearch, setVarietySearch] = useState("")
   const [cropImages, setCropImages] = useState({})
+  const [cardViewMode, setCardViewMode] = useState("varieties")
+  const [cardLimit, setCardLimit] = useState(60)
+  const [globalPriceMap, setGlobalPriceMap] = useState({})
+  const [globalCommodityPriceMap, setGlobalCommodityPriceMap] = useState({})
 
   // Update filters if location changes on profile
   useEffect(() => {
@@ -110,16 +121,23 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
 
       setRecords(current => append ? [...current, ...rows] : rows)
       setTotal(Number(payload.total ?? payload.total_count ?? rows.length))
-      setDataSource({ live: payload.live !== false, source: payload.source || "AGMARKNET · Government of India" })
+      setDataSource({ live: payload.live !== false, source: payload.source || "Source: Government of India — AGMARKNET" })
+      if (payload.price_map && typeof payload.price_map === "object") {
+        setGlobalPriceMap(prev => append ? ({ ...prev, ...payload.price_map }) : payload.price_map)
+      } else if (!append) {
+        setGlobalPriceMap({})
+      }
+      if (payload.commodity_price_map && typeof payload.commodity_price_map === "object") {
+        setGlobalCommodityPriceMap(prev => append ? ({ ...prev, ...payload.commodity_price_map }) : payload.commodity_price_map)
+      } else if (!append) {
+        setGlobalCommodityPriceMap({})
+      }
       if (Array.isArray(payload.commodity_options) && payload.commodity_options.length > 0) {
         setCommodityOptions(payload.commodity_options)
       }
       if (Array.isArray(payload.categories) && payload.categories.length > 0) {
         setCategories(payload.categories)
       }
-      // CRITICAL: We NEVER overwrite `varieties` with today's observed mandi rows here!
-      // The complete Government Variety Master for the selected commodity is managed exclusively
-      // by the commodity selection effect to guarantee all registered varieties remain visible.
       setOffset(nextOffset + rows.length)
     } catch (err) {
       setError(err.message || "Could not load official mandi prices.")
@@ -180,21 +198,130 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
     return () => { clearTimeout(timer); controller.abort() }
   }, [preview, filters.commodity])
 
-  // Distinct crop cards to showcase vegetables with photos & modal rates
-  const cropCards = [...new Map(records.filter(r => r.commodity).map(r => [r.commodity, r])).values()].slice(0, 8)
-  const cropNames = cropCards.map(record => record.commodity).join(",")
+  // Active commodities based on applied category, commodity, and search
+  const activeCommodities = useMemo(() => {
+    const list = Array.isArray(agmarknetCatalogue?.commodities) ? agmarknetCatalogue.commodities : []
+    return list.filter(c => {
+      const cat = c.category || c.group_name || "Others"
+      if (applied.category && cat !== applied.category) return false
+      if (applied.commodity && String(c.name || "").toLowerCase() !== applied.commodity.toLowerCase()) return false
+      if (applied.query) {
+        const q = applied.query.toLowerCase().replace(/[^a-z0-9]/g, "")
+        const cMatch = (c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)
+        const vMatch = (c.variety_names || []).some(v => String(v).toLowerCase().replace(/[^a-z0-9]/g, "").includes(q))
+        if (!cMatch && !vMatch) return false
+      }
+      return true
+    })
+  }, [applied.category, applied.commodity, applied.query])
 
-  useEffect(() => {
-    if (!cropNames) return
-    let cancelled = false
-    fetch("/api/crop-images?crops=" + encodeURIComponent(cropNames))
-      .then(response => response.ok ? response.json() : null)
-      .then(payload => {
-        if (!cancelled && payload?.images) setCropImages(payload.images)
+  // Complete official AGMARKNET commodity-variety catalog items
+  const catalogVarietyItems = useMemo(() => {
+    const items = []
+    const seenIdentities = new Set()
+    activeCommodities.forEach(c => {
+      const vNames = c.variety_names || (c.varieties || []).map(v => typeof v === "string" ? v : (v.name || v.variety_name))
+      const cat = c.category || c.group_name || "Others"
+      const cleanVNames = [...new Set((vNames || []).map(n => String(n || "").trim()).filter(Boolean))]
+      cleanVNames.forEach(vName => {
+        if (applied.variety && vName.toLowerCase() !== applied.variety.toLowerCase()) return
+        if (applied.query) {
+          const q = applied.query.toLowerCase().replace(/[^a-z0-9]/g, "")
+          const cMatch = (c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)
+          const vMatch = vName.toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)
+          if (!cMatch && !vMatch) return
+        }
+        const identity = `${cat}:::${c.name}:::${vName}`
+        if (seenIdentities.has(identity)) return
+        seenIdentities.add(identity)
+
+        items.push({
+          id: `${c.id || c.name}-${vName}`,
+          identity,
+          commodity: c.name,
+          variety: vName,
+          category: cat,
+          grades: c.grades || [],
+          arrival_unit: c.arrival_unit || "Quintal",
+          price_unit: c.price_unit || "Quintal"
+        })
       })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [cropNames])
+    })
+    return items
+  }, [activeCommodities, applied.variety, applied.query])
+
+  // Fast normalized price lookup from reported records
+  const priceLookup = useMemo(() => {
+    const map = new Map()
+    records.forEach(r => {
+      const c = String(r.commodity || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+      const v = String(r.variety || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+      if (c && v && !map.has(c + "::" + v)) {
+        map.set(c + "::" + v, r)
+      }
+      if (c && !map.has(c)) {
+        map.set(c, r)
+      }
+    })
+    return map
+  }, [records])
+
+  function findPrice(commName, varName) {
+    const c = String(commName || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    const v = String(varName || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    if (c && v) {
+      const key = `${c}::${v}`
+      if (globalPriceMap[key]) return globalPriceMap[key]
+      if (priceLookup.has(key)) return priceLookup.get(key)
+      return null
+    }
+    if (c) {
+      if (globalCommodityPriceMap[c]) return globalCommodityPriceMap[c]
+      if (priceLookup.has(c)) return priceLookup.get(c)
+    }
+    return null
+  }
+
+  // Current price variety items: ONLY official varieties with at least one current AGMARKNET price record
+  const currentPriceVarietyItems = useMemo(() => {
+    return catalogVarietyItems.filter(item => {
+      const price = findPrice(item.commodity, item.variety)
+      return price !== null && Number(price.modal_price) > 0
+    })
+  }, [catalogVarietyItems, globalPriceMap, priceLookup])
+
+  // Current price commodity items: ONLY official commodities with at least one current AGMARKNET price record
+  const currentPriceCommodityItems = useMemo(() => {
+    return activeCommodities.filter(c => {
+      const price = findPrice(c.name, "")
+      return price !== null && Number(price.modal_price) > 0
+    })
+  }, [activeCommodities, globalCommodityPriceMap, priceLookup])
+
+  // Map of active variety count per commodity
+  const commodityActiveVarietyCountMap = useMemo(() => {
+    const map = new Map()
+    currentPriceVarietyItems.forEach(item => {
+      const cNorm = String(item.commodity || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+      map.set(cNorm, (map.get(cNorm) || 0) + 1)
+    })
+    return map
+  }, [currentPriceVarietyItems])
+
+  // Display items strictly limited to active current-market price items
+  const activeItems = (cardViewMode === "commodities" && !applied.variety)
+    ? currentPriceCommodityItems
+    : currentPriceVarietyItems
+
+  const totalItemsToDisplay = activeItems.length
+
+  const effectiveLimit = preview
+    ? 8
+    : (applied.category || applied.commodity || applied.variety || applied.query)
+      ? 5000
+      : cardLimit
+
+  const displayedItems = activeItems.slice(0, effectiveLimit)
 
   function submit(e) {
     e.preventDefault()
@@ -205,6 +332,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   function filterByCrop(cropName) {
     setFilters(prev => ({ ...prev, commodity: cropName, variety: "" }))
     setApplied(prev => ({ ...prev, commodity: cropName, variety: "" }))
+    setCardViewMode("varieties")
     setVarietySearch("")
     setOffset(0)
   }
@@ -214,6 +342,26 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
     setApplied(prev => ({ ...prev, commodity: "", variety: "" }))
     setVarietySearch("")
     setOffset(0)
+  }
+
+  function handleVarietyCardClick(item) {
+    if (preview) {
+      if (onViewAll) onViewAll(item.commodity)
+    } else {
+      setFilters(prev => ({ ...prev, commodity: item.commodity, variety: item.variety }))
+      setApplied(prev => ({ ...prev, commodity: item.commodity, variety: item.variety }))
+      setCardViewMode("varieties")
+      setVarietySearch("")
+      setOffset(0)
+    }
+  }
+
+  function handleCommodityCardClick(commName) {
+    if (preview) {
+      if (onViewAll) onViewAll(commName)
+    } else {
+      filterByCrop(commName)
+    }
   }
 
   const filteredCommodities = commodityOptions.filter(item => {
@@ -240,7 +388,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
         </div>
         <span className="official-badge" style={!isLive ? { borderColor: "#fde047", color: "#854d0e", background: "#fefce8" } : {}}>
           <i style={{ background: isLive ? "#22c55e" : "#eab308" }} />
-          {isLive ? "GOVERNMENT OF INDIA · LIVE" : "AGMARKNET · RECENT SESSION"}
+          {isLive ? "Source: Government of India — AGMARKNET (Live)" : "Source: Government of India — AGMARKNET"}
         </span>
       </div>
 
@@ -406,12 +554,6 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
         )}
       </div>
 
-      {false && (
-        <p className="official-fallback">
-          ⓘ Showing official prices from across {applied.state}. (No specific records reported today for {applied.district} mandi).
-        </p>
-      )}
-
       {sessionFallback && (
         <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "10px 14px", borderRadius: "8px", margin: "14px 0", fontSize: "13px", color: "#166534" }}>
           <b>🕒 Latest Confirmed APMC Session Rates ({sessionDate || "Current"})</b>
@@ -429,56 +571,202 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
         </div>
       )}
 
-      {!error && records.length > 0 && (
-        <section className="crop-price-cards">
-          {cropCards.map(r => {
-            const image = cropImages[r.commodity]
+      {/* Visual Commodity & Variety Representation (Completely Independent of Price Availability) */}
+      <section className="catalogue-cards-section" style={{ margin: "20px 0" }}>
+        <div className="catalogue-cards-header">
+          <div>
+            <h3 style={{ margin: 0, fontSize: "15px", color: "#253b2a", fontWeight: "700" }}>
+              {preview
+                ? "Official Produce Prices & Variety Directory"
+                : applied.variety
+                  ? `Current Market Price: ${applied.variety} · ${applied.commodity}`
+                  : applied.commodity
+                    ? `Current Market Prices for ${applied.commodity} (${currentPriceVarietyItems.length} active ${currentPriceVarietyItems.length === 1 ? "variety" : "varieties"})`
+                    : applied.category
+                      ? `Current Market Prices — ${applied.category} (${currentPriceVarietyItems.length} active varieties across ${currentPriceCommodityItems.length} commodities)`
+                      : cardViewMode === "commodities"
+                        ? `Current Traded Commodities (${currentPriceCommodityItems.length} active commodities)`
+                        : `Current AGMARKNET Market Prices (${currentPriceVarietyItems.length} active varieties)`
+              }
+            </h3>
+            <p style={{ margin: "3px 0 0", fontSize: "11px", color: "#617163" }}>
+              {preview
+                ? "Representative images and live APMC mandi prices for actively traded produce."
+                : applied.variety
+                  ? `Showing official AGMARKNET market prices for ${applied.commodity} → ${applied.variety}.`
+                  : `Showing ${displayedItems.length} of ${totalItemsToDisplay} active ${cardViewMode === "commodities" ? "commodities" : "varieties"} with current market prices reported today. (Official catalogue maintains all 609 commodities & 3,071 registered varieties).`}
+            </p>
+            {applied.variety && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFilters(prev => ({ ...prev, variety: "" }))
+                  setApplied(prev => ({ ...prev, variety: "" }))
+                }}
+                style={{
+                  marginTop: "6px",
+                  border: "1px solid #bbf7d0",
+                  background: "#f0fdf4",
+                  color: "#166534",
+                  padding: "4px 10px",
+                  borderRadius: "5px",
+                  fontSize: "11px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px"
+                }}
+              >
+                ← Show all varieties of {applied.commodity}
+              </button>
+            )}
+          </div>
+          {!preview && (
+            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+              <button
+                type="button"
+                onClick={() => setCardViewMode("varieties")}
+                style={{
+                  border: "1px solid",
+                  borderColor: cardViewMode === "varieties" ? "#34794b" : "#d7dfd5",
+                  background: cardViewMode === "varieties" ? "#34794b" : "#fff",
+                  color: cardViewMode === "varieties" ? "#fff" : "#495b4c",
+                  padding: "5px 12px",
+                  borderRadius: "5px",
+                  fontSize: "11px",
+                  fontWeight: "700",
+                  cursor: "pointer"
+                }}
+              >
+                By Variety ({currentPriceVarietyItems.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setCardViewMode("commodities")}
+                style={{
+                  border: "1px solid",
+                  borderColor: cardViewMode === "commodities" ? "#34794b" : "#d7dfd5",
+                  background: cardViewMode === "commodities" ? "#34794b" : "#fff",
+                  color: cardViewMode === "commodities" ? "#fff" : "#495b4c",
+                  padding: "5px 12px",
+                  borderRadius: "5px",
+                  fontSize: "11px",
+                  fontWeight: "700",
+                  cursor: "pointer"
+                }}
+              >
+                By Commodity ({currentPriceCommodityItems.length})
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="crop-price-cards">
+          {displayedItems.map(item => {
+            const isVariety = Boolean(item.variety)
+            const imgInfo = isVariety
+              ? resolveVarietyImage(item.commodity, item.variety, item.category)
+              : resolveCommodityImage(item.name || item.commodity, item.category || item.group_name)
+
+            const priceRecord = isVariety
+              ? findPrice(item.commodity, item.variety)
+              : findPrice(item.name || item.commodity, "")
+
+            const title = isVariety ? item.variety : (item.name || item.commodity)
+            const activeVarCount = isVariety ? 0 : (commodityActiveVarietyCountMap.get(String(item.name || item.commodity).toLowerCase().replace(/[^a-z0-9]/g, "")) || 1)
+            const subTitle = isVariety ? item.commodity : `${activeVarCount} actively traded ${activeVarCount === 1 ? "variety" : "varieties"}`
+            const categoryName = item.category || item.group_name || "Others"
+
+            const cardKey = isVariety
+              ? `${item.category}-${item.commodity}-${item.variety}`
+              : `${item.category || item.group_name || "Others"}-${item.name || item.commodity}`
+
             return (
               <article
                 className="crop-price-card"
-                key={r.commodity}
+                key={cardKey}
                 onClick={() => {
-                  if (preview) {
-                    if (onViewAll) onViewAll(r.commodity)
+                  if (isVariety) {
+                    handleVarietyCardClick(item)
                   } else {
-                    filterByCrop(r.commodity)
+                    handleCommodityCardClick(item.name || item.commodity)
                   }
                 }}
                 style={{ cursor: "pointer" }}
-                title={preview ? `View official prices for ${r.commodity}` : `Click to view all records for ${r.commodity}`}
+                title={isVariety ? `Click to filter records for ${item.commodity} - ${item.variety}` : `Click to view varieties of ${item.name || item.commodity}`}
               >
                 <div className="crop-photo">
                   <img
-                    src={image?.url || cropPhoto(r.commodity)}
-                    alt={image?.alt || r.commodity}
+                    src={imgInfo.url}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
                     onError={event => {
                       event.currentTarget.onerror = null
-                      event.currentTarget.src = cropPhoto(r.commodity)
+                      event.currentTarget.src = getCategorySvgDataUri(categoryName, isVariety ? `${item.commodity} (${item.variety})` : (item.name || item.commodity))
                     }}
                   />
-                  <span>{cropSymbol(r.commodity)}</span>
+                  <span className="crop-symbol">{imgInfo.symbol}</span>
+                  <span className={imgInfo.isExact ? "crop-img-tag exact-tag" : "crop-img-tag rep-tag"}>
+                    {imgInfo.isExact ? "Exact Match" : "Representative Image"}
+                  </span>
                 </div>
                 <div className="crop-card-copy">
-                  <small>{r.market || "Reported mandi"}</small>
-                  <b>{r.commodity}</b>
-                  <span>Modal <strong>{money(r.modal_price)}</strong> / quintal</span>
-                  <small>{r.district ? r.district + ", " : ""}{r.state}{r.arrival_date ? " · " + r.arrival_date : ""}</small>
-                  {image && (
-                    <a className="image-credit" href={image.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>
-                      Image: {image.photographer}
-                    </a>
+                  <small className="crop-category-tag">{categoryName} · AGMARKNET</small>
+                  <b>{title}</b>
+                  <span className="crop-commodity-sub">{subTitle}</span>
+                  {priceRecord && (
+                    <div className="crop-price-info">
+                      <span>Modal <strong>{money(priceRecord.modal_price)}</strong> / quintal</span>
+                      <small>Min: {money(priceRecord.min_price)} · Max: {money(priceRecord.max_price)}</small>
+                      <small>{priceRecord.market || "Mandi"} · {priceRecord.state}{priceRecord.arrival_date ? " · " + priceRecord.arrival_date : ""}</small>
+                    </div>
                   )}
                 </div>
               </article>
             )
           })}
-          {preview && onViewAll && (
-            <button className="crop-card-more" onClick={onViewAll}>
-              View all commodity prices →
+        </div>
+
+        {/* Load More / Show All Controls */}
+        {!preview && totalItemsToDisplay > displayedItems.length && (
+          <div className="crop-show-more-bar">
+            <button
+              type="button"
+              className="crop-show-more-btn"
+              onClick={() => setCardLimit(prev => prev + 96)}
+            >
+              Load more (+96 {cardViewMode === "commodities" ? "commodities" : "varieties"})
             </button>
-          )}
-        </section>
-      )}
+            <button
+              type="button"
+              className="crop-show-more-btn"
+              style={{ background: "#2b633b", color: "#fff" }}
+              onClick={() => setCardLimit(5000)}
+            >
+              Show all {totalItemsToDisplay} {cardViewMode === "commodities" ? "commodities" : "varieties"}
+            </button>
+          </div>
+        )}
+
+        {activeItems.length === 0 && !loading && (
+          <div className="crop-no-active-records" style={{ background: "#f8fafc", border: "1px dashed #cbd5e1", borderRadius: "8px", padding: "24px 16px", textAlign: "center", color: "#64748b", margin: "16px 0" }}>
+            <p style={{ margin: 0, fontWeight: "600", fontSize: "14px", color: "#334155" }}>
+              No active mandi trades reported for the selected filters today.
+            </p>
+            <small style={{ display: "block", marginTop: "6px", fontSize: "12px", color: "#64748b" }}>
+              All 609 official commodities and 3,071 registered varieties remain available in the official catalogue and farmer listings.
+            </small>
+          </div>
+        )}
+
+        {preview && onViewAll && (
+          <button className="crop-card-more" onClick={onViewAll} style={{ width: "100%", marginTop: "8px" }}>
+            View all current market prices &amp; full AGMARKNET directory →
+          </button>
+        )}
+      </section>
 
       {!preview && !error && (
         <div className="official-table-wrap">
@@ -521,7 +809,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
           </table>
           {!records.length && !loading && !error && (
             <div className="official-empty">
-              No current AGMARKNET price available.
+              No current AGMARKNET mandi price available.
             </div>
           )}
         </div>
@@ -536,7 +824,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
       <p className="official-source">
         Source:{" "}
         <a href="https://www.data.gov.in/catalog/current-daily-price-various-commodities-various-markets-mandi" target="_blank" rel="noreferrer">
-          Ministry of Agriculture & Farmers Welfare · AGMARKNET on data.gov.in ↗
+          Government of India — AGMARKNET (Ministry of Agriculture & Farmers Welfare · data.gov.in) ↗
         </a>{" "}
         · Reported daily; wholesale rates are ₹ per quintal.
       </p>
@@ -545,81 +833,11 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
 }
 
 function cropSymbol(name) {
-  const n = String(name || "").toLowerCase()
-  if (n.includes("ginger")) return "🫚"
-  if (n.includes("lady") || n.includes("ladies") || n.includes("okra") || n.includes("bhindi")) return "🫛"
-  if (n.includes("garlic")) return "🧄"
-  if (n.includes("tomato")) return "🍅"
-  if (n.includes("onion")) return "🧅"
-  if (n.includes("potato")) return "🥔"
-  if (n.includes("chilli") || n.includes("chili") || n.includes("mirchi")) return "🌶️"
-  if (n.includes("capsicum")) return "🫑"
-  if (n.includes("carrot")) return "🥕"
-  if (n.includes("cucumber") || n.includes("kheera")) return "🥒"
-  if (n.includes("cabbage")) return "🥬"
-  if (n.includes("spinach") || n.includes("palak")) return "🥬"
-  if (n.includes("cauliflower") || n.includes("kohl") || n.includes("gobi")) return "🥦"
-  if (n.includes("broccoli")) return "🥦"
-  if (n.includes("drumstick") || n.includes("moringa")) return "🌿"
-  if (n.includes("coriander") || n.includes("mint") || n.includes("methi")) return "🌿"
-  if (n.includes("brinjal") || n.includes("eggplant") || n.includes("baingan")) return "🍆"
-  if (n.includes("pea")) return "🫛"
-  if (n.includes("corn") || n.includes("maize")) return "🌽"
-  if (n.includes("banana")) return "🍌"
-  if (n.includes("apple")) return "🍎"
-  if (n.includes("mango")) return "🥭"
-  if (n.includes("lemon") || n.includes("lime") || n.includes("nimbu")) return "🍋"
-  if (n.includes("grape")) return "🍇"
-  if (n.includes("pumpkin")) return "🎃"
-  if (n.includes("watermelon")) return "🍉"
-  if (n.includes("papaya")) return "🍈"
-  if (n.includes("coconut")) return "🥥"
-  if (n.includes("rice") || n.includes("paddy") || n.includes("wheat") || n.includes("ragi") || n.includes("jowar")) return "🌾"
-  if (n.includes("bean")) return "🫘"
-  if (n.includes("beetroot")) return "🟣"
-  if (n.includes("radish") || n.includes("mooli")) return "🥕"
-  return "🌱"
+  return getCommoditySymbol(name)
 }
 
-const genericCropImage = "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&w=520&q=75"
-
 function cropPhoto(name) {
-  const n = String(name || "").toLowerCase()
-  if (n.includes("ginger")) return "/ginger.jpg"
-  if (n.includes("bhindi") || n.includes("okra") || n.includes("lady") || n.includes("ladies")) return "/ladies_finger.jpg"
-  if (n.includes("tomato")) return "/tomato.jpg"
-  if (n.includes("onion")) return "/onion.jpg"
-  if (n.includes("potato")) return "/potato.jpg"
-  if (n.includes("carrot")) return "/carrot.jpg"
-  if (n.includes("cabbage")) return "/cabbage.jpg"
-  if (n.includes("ridgeguard") || n.includes("ridgegourd") || n.includes("tori")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Luffa_acutangula.jpg/640px-Luffa_acutangula.jpg"
-  if (n.includes("knool") || n.includes("kohlrabi")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Kohlrabi.jpg/640px-Kohlrabi.jpg"
-  if (n.includes("yam") || n.includes("suran") || n.includes("amphophalus")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Amorphophallus_paeoniifolius_corms_-_Kerala.jpg/640px-Amorphophallus_paeoniifolius_corms_-_Kerala.jpg"
-  if (n.includes("bengal gram") || n.includes("chana")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Bengal_Gram.jpg/640px-Bengal_Gram.jpg"
-  if (n.includes("arecanut") || n.includes("supari")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Areca_nut_in_a_basket.jpg/640px-Areca_nut_in_a_basket.jpg"
-  if (n.includes("gur") || n.includes("jaggery")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Jaggery_blocks.jpg/640px-Jaggery_blocks.jpg"
-  if (n.includes("drumstick") || n.includes("moringa")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Moringa_oleifera_pods.JPG/640px-Moringa_oleifera_pods.JPG"
-  if (n.includes("garlic")) return "https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("chilli") || n.includes("chili") || n.includes("mirchi")) return "https://images.unsplash.com/photo-1565685110871-1324fc462c84?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("cucumber") || n.includes("kheera")) return "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("cauliflower") || n.includes("gobi")) return "https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("broccoli")) return "https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("brinjal") || n.includes("eggplant")) return "https://images.unsplash.com/photo-1528823872057-9c018a7a7553?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("bean")) return "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("beetroot")) return "https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("capsicum")) return "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("pea")) return "https://images.unsplash.com/photo-1587735243615-c03f25aaff15?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("radish") || n.includes("raddish")) return "https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("spinach")) return "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("banana")) return "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("apple")) return "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("mango")) return "https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("lemon") || n.includes("lime")) return "https://images.unsplash.com/photo-1582281298055-e25b84a30b0b?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("pumpkin")) return "https://images.unsplash.com/photo-1570586437263-ab629fccc818?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("gourd")) return "https://images.unsplash.com/photo-1597362925123-77861d3fbac7?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("coriander") || n.includes("mint")) return "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("rice") || n.includes("paddy") || n.includes("wheat") || n.includes("maize") || n.includes("corn") || n.includes("ragi")) return "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=520&q=75"
-  return genericCropImage
+  return resolveCommodityImage(name).url
 }
 
 function money(value) {

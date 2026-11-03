@@ -19,6 +19,32 @@ const writableDataDir = isVercel ? path.join("/tmp", "farmezy-data") : dataDir
 const ordersFile = path.join(dataDir, "orders.json")
 const catalogueFile = path.join(dataDir, "agmarknet-catalogue.json")
 const masterFile = path.join(dataDir, "commodity-master.json")
+const currentPricesFile = path.join(dataDir, "current-mandi-prices.json")
+const mandiHistoryFile = path.join(dataDir, "mandi-history.json")
+
+let currentAgmarknetPricesCache = null
+function getCurrentAgmarknetPrices() {
+  if (currentAgmarknetPricesCache && currentAgmarknetPricesCache.length > 0) return currentAgmarknetPricesCache
+  try {
+    if (existsSync(currentPricesFile)) {
+      const parsed = JSON.parse(readFileSync(currentPricesFile, "utf8"))
+      currentAgmarknetPricesCache = Array.isArray(parsed) ? parsed : (parsed.records || [])
+      if (currentAgmarknetPricesCache.length > 0) return currentAgmarknetPricesCache
+    }
+  } catch (err) {
+    console.warn("Could not read current-mandi-prices.json:", err.message)
+  }
+  try {
+    if (existsSync(mandiHistoryFile)) {
+      const parsed = JSON.parse(readFileSync(mandiHistoryFile, "utf8"))
+      currentAgmarknetPricesCache = Array.isArray(parsed) ? parsed : (parsed.rows || [])
+      return currentAgmarknetPricesCache
+    }
+  } catch (err) {
+    console.warn("Could not read mandi-history.json:", err.message)
+  }
+  return []
+}
 
 let agmarknetCatalogueCache = null
 function getAgmarknetCommodities() {
@@ -1443,6 +1469,20 @@ const server = http.createServer(async (req, res) => {
         .replace(/[^a-z0-9]/g, "")
     }
 
+    function matchesState(recordState, targetState) {
+      if (!targetState || targetState.toLowerCase() === "all india") return true
+      const r = normalize(recordState)
+      const t = normalize(targetState)
+      if (r === t || r.startsWith(t) || t.startsWith(r)) return true
+      if ((r.includes("kerala") || r.includes("keralam")) && (t.includes("kerala") || t.includes("keralam"))) return true
+      if ((r.includes("chattis") || r.includes("chhattis")) && (t.includes("chattis") || t.includes("chhattis"))) return true
+      if ((r.includes("pondicherry") || r.includes("puducherry")) && (t.includes("pondicherry") || t.includes("puducherry"))) return true
+      if ((r.includes("odisha") || r.includes("orissa")) && (t.includes("odisha") || t.includes("orissa"))) return true
+      if ((r.includes("uttaranchal") || r.includes("uttarakhand")) && (t.includes("uttaranchal") || t.includes("uttarakhand"))) return true
+      if (r.includes("andaman") && t.includes("andaman")) return true
+      return false
+    }
+
     function matchesDistrict(recordDistrict, targetDistrict) {
       if (!targetDistrict) return true
       const r = normalize(recordDistrict).replace("rural", "").replace("urban", "").replace("south", "").replace("north", "")
@@ -1451,36 +1491,6 @@ const server = http.createServer(async (req, res) => {
         return t.includes("bangalore") || t.includes("bengaluru")
       }
       return r.includes(t) || t.includes(r)
-    }
-
-    function getDistrictMandi(district, state) {
-      const d = String(district || "").toLowerCase()
-      if (d.includes("bengaluru") || d.includes("bangalore")) {
-        if (d.includes("rural")) return "Doddaballapur APMC"
-        if (d.includes("south")) return "Bengaluru South APMC (Anekal)"
-        return "Yeshwanthpur APMC, Bengaluru"
-      }
-      if (d.includes("ramanagara")) return "Ramanagara APMC"
-      if (d.includes("kolar")) return "Kolar APMC"
-      if (d.includes("chikkaballapur")) return "Chintamani APMC"
-      if (d.includes("mysuru") || d.includes("mysore")) return "Bandipalya APMC, Mysuru"
-      if (d.includes("mandya")) return "Mandya APMC"
-      if (d.includes("tumakuru") || d.includes("tumkur")) return "Tumakuru APMC"
-      if (d.includes("hassan")) return "Hassan APMC"
-      if (d.includes("shivamogga") || d.includes("shimoga")) return "Shivamogga APMC"
-      if (d.includes("belagavi") || d.includes("belgaum")) return "Belagavi APMC"
-      if (d.includes("hubballi") || d.includes("dharwad")) return "Amargol APMC, Hubballi"
-      if (d.includes("pune")) return "Pune APMC (Gultekdi)"
-      if (d.includes("mumbai") || d.includes("thane")) return "Vashi APMC, Navi Mumbai"
-      if (d.includes("nashik")) return "Lasalgaon / Nashik APMC"
-      if (d.includes("nagpur")) return "Kalamna APMC, Nagpur"
-      if (d.includes("chennai")) return "Koyambedu Wholesale Market, Chennai"
-      if (d.includes("coimbatore")) return "Coimbatore APMC"
-      if (d.includes("delhi")) return "Azadpur APMC, Delhi"
-      if (d.includes("hyderabad")) return "Gaddiannaram / Bowenpally APMC, Hyderabad"
-      if (district) return `${district.trim()} Main APMC`
-      if (state && state !== "All India") return `${state.trim()} State Central APMC`
-      return "Official APMC Market"
     }
 
     function matchesCommodity(recordCommodity, targetCommodity) {
@@ -1498,28 +1508,39 @@ const server = http.createServer(async (req, res) => {
         (Array.isArray(c.aliases) && c.aliases.some(a => normalize(a) === t))
       )
       if (targetItem) {
-        if (normalize(targetItem.name) === r) return true
+        const tiName = normalize(targetItem.name)
+        if (tiName === r) return true
         if (targetItem.agmarknet_name && normalize(targetItem.agmarknet_name) === r) return true
         if (targetItem.display_name && normalize(targetItem.display_name) === r) return true
         if (Array.isArray(targetItem.aliases) && targetItem.aliases.some(a => normalize(a) === r)) return true
-        if (r.includes(normalize(targetItem.name)) || normalize(targetItem.name).includes(r)) return true
+        if (tiName && (r.includes(tiName) || tiName.includes(r))) return true
       }
 
       const master = findMasterCommodity(targetCommodity)
       if (master) {
-        if (normalize(master.commodity) === r) return true
+        const mName = normalize(master.name || master.commodity || "")
+        if (mName && mName === r) return true
         if (master.agmarknet_name && normalize(master.agmarknet_name) === r) return true
         if (Array.isArray(master.aliases) && master.aliases.some(alias => normalize(alias) === r)) return true
-        if (r.includes(normalize(master.commodity)) || normalize(master.commodity).includes(r)) return true
-        if (master.agmarknet_name && (r.includes(normalize(master.agmarknet_name)) || normalize(master.agmarknet_name).includes(r))) return true
       }
 
       const recordMaster = findMasterCommodity(recordCommodity)
-      if (recordMaster && master && recordMaster.commodity === master.commodity) return true
+      if (recordMaster && master) {
+        const rName = normalize(recordMaster.name || recordMaster.commodity || "")
+        const mName = normalize(master.name || master.commodity || "")
+        if (rName && mName && rName === mName) return true
+      }
 
-      if (r && (r.includes(t) || t.includes(r))) return true
+      if (r && t && (r.includes(t) || t.includes(r))) return true
       return false
     }
+
+    let allStateRows = []
+    let isSessionFallback = false
+    let currentSessionDate = ""
+    let liveFetchSucceeded = false
+    let sourceLabel = "Source: Government of India — AGMARKNET"
+    let isLive = true
 
     let targetAgmarknetName = ""
     if (rawCommodity) {
@@ -1531,18 +1552,9 @@ const server = http.createServer(async (req, res) => {
       targetAgmarknetName = matched?.agmarknet_name || matched?.name || rawCommodity
     }
 
-    let allStateRows = []
-    let isSessionFallback = false
-    let currentSessionDate = ""
-    let districtFallback = false
-    let liveFetchSucceeded = false
-    let sourceLabel = "AGMARKNET · Government of India"
-    let isLive = true
-    const targetItem = rawCommodity ? findMasterCommodity(rawCommodity) : null
-    targetAgmarknetName = targetItem ? (targetItem.agmarknet_name || targetItem.commodity || targetItem.name) : rawCommodity
-    // Fetch from data.gov.in using targeted parameters and in-memory caching
+    // Attempt live fetch from data.gov.in if API key is configured
     try {
-      if (!dataGovKey) throw new Error("DATA_GOV_API_KEY or DATA_GOVIN_API_KEY is not configured.")
+      if (!dataGovKey) throw new Error("DATA_GOV_API_KEY is not configured.")
       const cacheKey = "gov_" + (allIndia ? "allindia" : normalize(rawState)) + (targetAgmarknetName ? "_" + normalize(targetAgmarknetName) : "")
       const cached = dataGovCache.get(cacheKey)
 
@@ -1550,12 +1562,11 @@ const server = http.createServer(async (req, res) => {
         allStateRows = cached.rows
         liveFetchSucceeded = true
       } else {
-        const pageSize = 500
+        const pageSize = 1000
         let govOffset = 0
-        const maxRecords = (allIndia && !targetAgmarknetName) ? 500 : 3000
         let reportedTotal = Infinity
 
-        while (govOffset < reportedTotal && allStateRows.length < maxRecords) {
+        while (govOffset < reportedTotal) {
           const govUrl = new URL("https://api.data.gov.in/resource/" + resourceId)
           govUrl.searchParams.set("api-key", dataGovKey)
           govUrl.searchParams.set("format", "json")
@@ -1565,7 +1576,6 @@ const server = http.createServer(async (req, res) => {
           if (!allIndia) {
             govUrl.searchParams.set("filters[state]", rawState)
           }
-
           if (targetAgmarknetName) {
             govUrl.searchParams.set("filters[commodity]", targetAgmarknetName)
           }
@@ -1575,14 +1585,10 @@ const server = http.createServer(async (req, res) => {
               Accept: "application/json",
               "User-Agent": "Farmezy/2.0"
             },
-            signal: AbortSignal.timeout(12000)
+            signal: AbortSignal.timeout(3000)
           })
 
-          if (!response.ok) {
-            throw new Error("Government API returned status " + response.status)
-          }
-
-          liveFetchSucceeded = true
+          if (!response.ok) throw new Error("Government API returned status " + response.status)
 
           const payload = await response.json()
           const pageRows = Array.isArray(payload.records) ? payload.records : []
@@ -1596,86 +1602,56 @@ const server = http.createServer(async (req, res) => {
             reportedTotal = totalAvailable
           }
 
-          if (pageRows.length < pageSize || govOffset >= reportedTotal) {
-            break
-          }
+          if (pageRows.length < pageSize || govOffset >= reportedTotal) break
         }
 
-        if (liveFetchSucceeded) {
+        if (allStateRows.length > 0) {
+          liveFetchSucceeded = true
           dataGovCache.set(cacheKey, {
             rows: allStateRows,
             savedAt: Date.now()
           })
+          if (allIndia && !targetAgmarknetName && allStateRows.length >= 1000) {
+            try {
+              writeFileSync(currentPricesFile, JSON.stringify({
+                fetchedAt: new Date().toISOString(),
+                total: allStateRows.length,
+                records: allStateRows
+              }, null, 2))
+            } catch (wErr) {
+              console.warn("Could not write current-mandi-prices.json:", wErr.message)
+            }
+          }
         }
       }
     } catch (e) {
-      console.warn("Live Government API query failed:", e.message)
+      liveFetchSucceeded = false
     }
 
-    // Offline / Local Dataset Fallback if live feed is down
+    // If live fetch was not performed or failed, load the authentic Government dataset
     if (!allStateRows.length) {
-      try {
-        const baselineFile = path.join(dataDir, "user-baselines.json")
-        if (existsSync(baselineFile)) {
-          const baselineData = JSON.parse(readFileSync(baselineFile, "utf8"))
-          const baselines = baselineData?.baselines || {}
-          
-          // Calculate realistic latest session date (today if midday/evening, yesterday if early morning)
-          const now = new Date()
-          const isEarlyMorning = now.getHours() < 11
-          const sessionDateObj = new Date(now)
-          if (isEarlyMorning) {
-            sessionDateObj.setDate(sessionDateObj.getDate() - 1)
-          }
-          const yyyy = sessionDateObj.getFullYear()
-          const mm = String(sessionDateObj.getMonth() + 1).padStart(2, "0")
-          const dd = String(sessionDateObj.getDate()).padStart(2, "0")
-          const sessionDateStr = `${yyyy}-${mm}-${dd}`
-          currentSessionDate = sessionDateStr
-          const defaultMandiName = getDistrictMandi(rawDistrict, rawState)
+      allStateRows = getCurrentAgmarknetPrices()
+      isLive = false
+      isSessionFallback = true
+    }
 
-          allStateRows = Object.entries(baselines).map(([name, price]) => ({
-            arrival_date: sessionDateStr,
-            commodity: name.charAt(0).toUpperCase() + name.slice(1),
-            state: allIndia ? "All India" : rawState,
-            district: rawDistrict || "All districts",
-            market: "Official Mandi Baseline",
-            min_price: Math.round(price * 0.9),
-            modal_price: price,
-            max_price: null,
-            variety: "Standard",
-            grade: "FAQ"
-          }))
-          sourceLabel = "Farmezy Government Mandi Baseline Dataset"
-          isLive = false
-          isSessionFallback = true
-        }
-      } catch (err) {
-        console.warn("Baseline fallback failed:", err.message)
+    // Determine latest session arrival date from records
+    if (allStateRows.length > 0) {
+      const dates = allStateRows.map(r => String(r.arrival_date || r.arrivalDate || "").slice(0, 10)).filter(Boolean)
+      if (dates.length > 0) {
+        currentSessionDate = dates[0]
       }
     }
 
-    // Apply geographic and specific commodity/variety filters
+    // Apply filters first so prices and cards accurately reflect the active query
     let filtered = allStateRows
 
-    // Apply district filter
+    if (!allIndia && rawState) {
+      filtered = filtered.filter(row => matchesState(row.state, rawState))
+    }
+
     if (rawDistrict) {
       filtered = filtered.filter(row => matchesDistrict(row.district, rawDistrict))
-    }
-
-    // Apply commodity filter if specified (otherwise show all vegetables/crops!)
-    if (rawCommodity) {
-      filtered = filtered.filter(row => matchesCommodity(row.commodity, rawCommodity))
-    }
-
-    // Apply market filter if specified
-    if (rawMarket) {
-      const targetMarket = normalize(rawMarket)
-      filtered = filtered.filter(row => normalize(row.market).includes(targetMarket))
-    }
-
-    if (rawCategory) {
-      filtered = filtered.filter(row => categoryForCommodity(row.commodity) === rawCategory)
     }
 
     if (rawCommodity) {
@@ -1684,7 +1660,16 @@ const server = http.createServer(async (req, res) => {
 
     if (rawVariety) {
       const targetVariety = normalize(rawVariety)
-      filtered = filtered.filter(row => normalize(row.variety).includes(targetVariety))
+      filtered = filtered.filter(row => normalize(row.variety) === targetVariety)
+    }
+
+    if (rawCategory) {
+      filtered = filtered.filter(row => categoryForCommodity(row.commodity).toLowerCase() === rawCategory.toLowerCase())
+    }
+
+    if (rawMarket) {
+      const targetMarket = normalize(rawMarket)
+      filtered = filtered.filter(row => normalize(row.market).includes(targetMarket))
     }
 
     if (rawSearch) {
@@ -1693,16 +1678,59 @@ const server = http.createServer(async (req, res) => {
         .some(value => normalize(value).includes(query)))
     }
 
-    // Pass Government values through unchanged; only choose canonical API fields.
-    const originalField = (row, field, alternate) => Object.prototype.hasOwnProperty.call(row, field)
-      ? row[field]
-      : alternate && Object.prototype.hasOwnProperty.call(row, alternate) ? row[alternate] : ""
+    // Build comprehensive session price maps across the filtered Government records
+    const sessionPriceMap = {}
+    const sessionCommodityPriceMap = {}
+
+    filtered.forEach(row => {
+      const c = normalize(row.commodity)
+      const v = normalize(row.variety)
+      const modal = Number(row.modal_price || row.modalPrice || 0)
+      const minP = Number(row.min_price || row.minPrice || 0)
+      const maxP = Number(row.max_price || row.maxPrice || 0)
+
+      if (c && v && modal > 0) {
+        const key = `${c}::${v}`
+        if (!sessionPriceMap[key]) {
+          sessionPriceMap[key] = {
+            commodity: String(row.commodity || ""),
+            variety: String(row.variety || ""),
+            modal_price: modal,
+            min_price: minP,
+            max_price: maxP,
+            market: String(row.market || "Reported APMC"),
+            district: String(row.district || ""),
+            state: String(row.state || ""),
+            arrival_date: String(row.arrival_date || row.arrivalDate || "").slice(0, 10),
+            grade: String(row.grade || ""),
+            market_count: 1
+          }
+        } else {
+          sessionPriceMap[key].market_count = (sessionPriceMap[key].market_count || 1) + 1
+        }
+      }
+      if (c && modal > 0 && !sessionCommodityPriceMap[c]) {
+        sessionCommodityPriceMap[c] = {
+          commodity: String(row.commodity || ""),
+          variety: String(row.variety || ""),
+          modal_price: modal,
+          min_price: minP,
+          max_price: maxP,
+          market: String(row.market || "Reported APMC"),
+          district: String(row.district || ""),
+          state: String(row.state || ""),
+          arrival_date: String(row.arrival_date || row.arrivalDate || "").slice(0, 10),
+          grade: String(row.grade || "")
+        }
+      }
+    })
+
     const records = filtered.map(row => ({
       arrival_date: String(row.arrival_date || row.arrivalDate || "").slice(0, 10),
       commodity: String(row.commodity || ""),
       state: String(row.state || rawState),
       district: String(row.district || rawDistrict || ""),
-      market: String(row.market || "Reported Mandi"),
+      market: String(row.market || "Reported APMC"),
       min_price: Number(row.min_price || row.minPrice || 0),
       modal_price: Number(row.modal_price || row.modalPrice || 0),
       max_price: Number(row.max_price || row.maxPrice || 0),
@@ -1712,27 +1740,23 @@ const server = http.createServer(async (req, res) => {
 
     const pageRecords = records.slice(offset, offset + limit)
 
-    // Varieties associated with the current filtered view or AGMARKNET catalogue
-    const observedVarieties = [...new Set(filtered.map(row => row.variety == null ? "" : String(row.variety)).filter(name => name.trim()))]
-      .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
-
     const agmarknetList = getAgmarknetCommodities()
     const allCommoditiesOptions = agmarknetList.length > 0
       ? agmarknetList.map(item => ({ name: item.name, category: categoryForCommodity(item.name) }))
       : commodityMaster.map(item => ({ name: item.commodity, category: item.category }))
 
-    const foundTarget = rawCommodity ? findMasterCommodity(rawCommodity) : null
-    const targetRegisteredVarieties = (foundTarget && Array.isArray(foundTarget.varieties))
-      ? foundTarget.varieties.map(v => typeof v === "string" ? v : v.name)
-      : []
-
     res.writeHead(200).end(JSON.stringify({
       records: pageRecords,
       total: records.length,
       total_count: records.length,
-      source: sourceLabel,
+      source: "Source: Government of India — AGMARKNET",
       live: isLive,
-      district_fallback: districtFallback,
+      session_date: currentSessionDate,
+      session_fallback: isSessionFallback,
+      price_map: sessionPriceMap,
+      commodity_price_map: sessionCommodityPriceMap,
+      categories: masterCategories,
+      commodity_options: allCommoditiesOptions,
       all_vegetables: !rawCommodity
     }))
     return

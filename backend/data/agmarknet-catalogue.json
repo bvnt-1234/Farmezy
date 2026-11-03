@@ -38468,7 +38468,7 @@
       ],
       "varieties": [
         {
-          "name": "Isbgol(Psyllium Husk) ",
+          "name": "Isbgol(Psyllium Husk)",
           "variety_id": 1954,
           "registered": true,
           "observed_in_history": true,
@@ -38477,7 +38477,7 @@
         }
       ],
       "variety_names": [
-        "Isbgol(Psyllium Husk) "
+        "Isbgol(Psyllium Husk)"
       ],
       "registered_varieties": [
         {
@@ -46114,9 +46114,9 @@
     },
     {
       "id": 498,
-      "name": "Little Millet ",
-      "agmarknet_name": "Little Millet ",
-      "display_name": "Little Millet ",
+      "name": "Little Millet",
+      "agmarknet_name": "Little Millet",
+      "display_name": "Little Millet",
       "group_id": 1,
       "group_name": "Cereals",
       "category": "Cereals",
@@ -46124,12 +46124,12 @@
       "arrival_unit": "Tonne",
       "price_unit": "Quintal",
       "aliases": [
-        "little millet ",
+        "little millet",
         "Little Millet"
       ],
       "varieties": [
         {
-          "name": "Little Millet ",
+          "name": "Little Millet",
           "variety_id": 1956,
           "registered": true,
           "observed_in_history": true,
@@ -46138,7 +46138,7 @@
         }
       ],
       "variety_names": [
-        "Little Millet "
+        "Little Millet"
       ],
       "registered_varieties": [
         {
@@ -77486,9 +77486,9 @@
     },
     {
       "id": 256,
-      "name": "Spiny Gourd / Kartali(Kantola)\n",
-      "agmarknet_name": "Spiny Gourd / Kartali(Kantola)\n",
-      "display_name": "Spiny Gourd / Kartali(Kantola)\n",
+      "name": "Spiny Gourd / Kartali(Kantola)",
+      "agmarknet_name": "Spiny Gourd / Kartali(Kantola)",
+      "display_name": "Spiny Gourd / Kartali(Kantola)",
       "group_id": 6,
       "group_name": "Vegetables",
       "category": "Vegetables",
@@ -77496,7 +77496,7 @@
       "arrival_unit": "Tonne",
       "price_unit": "Quintal",
       "aliases": [
-        "spiny gourd / kartali(kantola)\n",
+        "spiny gourd / kartali(kantola)",
         "कार्ताली (कांटोला)",
         "কৰতালী (কান্তোলা)",
         "കാർത്താലി (കാന്തോല)",
@@ -79682,9 +79682,9 @@
     },
     {
       "id": 534,
-      "name": "Sweet Corn ",
-      "agmarknet_name": "Sweet Corn ",
-      "display_name": "Sweet Corn ",
+      "name": "Sweet Corn",
+      "agmarknet_name": "Sweet Corn",
+      "display_name": "Sweet Corn",
       "group_id": 1,
       "group_name": "Cereals",
       "category": "Cereals",
@@ -79692,12 +79692,12 @@
       "arrival_unit": "Tonne",
       "price_unit": "Quintal",
       "aliases": [
-        "sweet corn ",
+        "sweet corn",
         "Sweet Corn"
       ],
       "varieties": [
         {
-          "name": "Sweet Corn ",
+          "name": "Sweet Corn",
           "variety_id": 1964,
           "registered": true,
           "observed_in_history": true,
@@ -79706,7 +79706,7 @@
         }
       ],
       "variety_names": [
-        "Sweet Corn "
+        "Sweet Corn"
       ],
       "registered_varieties": [
         {
