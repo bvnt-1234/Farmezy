@@ -21,6 +21,27 @@
     "createdAt": "2026-10-31T03:23:15.236Z"
   },
   {
+    "id": "1793369656587",
+    "crop": "Mango",
+    "variety": "a",
+    "quantity": "200",
+    "unit": "kg",
+    "price": "100",
+    "date": "2026-10-30",
+    "address": "Chittoor",
+    "notes": "",
+    "farmerId": "farmer-1793369424218",
+    "farmerName": "Chitra T",
+    "farmerPhone": "9663429751",
+    "farmerLocation": "ambedkar nagar whitefield bangalore",
+    "farmerDistrict": "Bengaluru Rural",
+    "farmerState": "Karnataka",
+    "farmerLat": "",
+    "farmerLng": "",
+    "image": "",
+    "createdAt": "2026-10-30T14:14:16.587Z"
+  },
+  {
     "id": "1793282763758",
     "crop": "tomato",
     "variety": "a",

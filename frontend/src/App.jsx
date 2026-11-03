@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef } from "react"
 import OfficialPrices from "./OfficialPrices.jsx"
 import { supabase, isSupabaseConfigured } from "./supabase.js"
+import commodityMaster from "../../backend/data/commodity-master.json"
+import agmarknetCatalogue from "../../backend/data/agmarknet-catalogue.json"
 import "./App.css"
 
 export const translations = {
@@ -13,7 +15,7 @@ export const translations = {
     browse: "Browse produce",
     requests: "Requests",
     myRequests: "My requests",
-    greeting: "Good morning",
+    greeting: "Good Morning!",
     tagline: "A fairer market starts here.",
     farmerWorkspace: "FARMER WORKSPACE",
     customerWorkspace: "CUSTOMER MARKETPLACE",
@@ -288,26 +290,200 @@ export const translations = {
   }
 }
 
-export function getTimeGreeting(language = "English") {
-  const hour = new Date().getHours()
-  const isMorning = hour >= 4 && hour < 12
-  const isAfternoon = hour >= 12 && hour < 17
+export function getGreeting(timeInput = new Date(), language = "English") {
+  let hour
+  let minute = 0
+  if (typeof timeInput === "string") {
+    const trimmed = timeInput.trim()
+    if (["English", "हिन्दी", "ಕನ್ನಡ", "తెలుగు", "தமிழ்", "मराठी"].includes(trimmed)) {
+      language = trimmed
+      const now = new Date()
+      hour = now.getHours()
+      minute = now.getMinutes()
+    } else if (/am|pm/i.test(trimmed)) {
+      const match = trimmed.match(/(\d{1,2}):(\d{2})\s*(am|pm)/i) || trimmed.match(/(\d{1,2})\s*(am|pm)/i)
+      if (match) {
+        let h = parseInt(match[1], 10)
+        const m = match[2] && !/am|pm/i.test(match[2]) ? parseInt(match[2], 10) : 0
+        const ampm = (match[3] || match[2] || "").toLowerCase()
+        if (ampm === "pm" && h < 12) h += 12
+        if (ampm === "am" && h === 12) h = 0
+        hour = h
+        minute = m
+      }
+    } else if (trimmed.includes(":")) {
+      const parts = trimmed.split(":")
+      hour = parseInt(parts[0], 10)
+      minute = parseInt(parts[1], 10) || 0
+    } else {
+      const parsed = parseInt(trimmed, 10)
+      if (!isNaN(parsed)) hour = parsed
+      else {
+        const now = new Date()
+        hour = now.getHours()
+        minute = now.getMinutes()
+      }
+    }
+  } else if (typeof timeInput === "number") {
+    hour = timeInput
+  } else if (timeInput instanceof Date) {
+    hour = timeInput.getHours()
+    minute = timeInput.getMinutes()
+  } else {
+    const now = new Date()
+    hour = now.getHours()
+    minute = now.getMinutes()
+  }
+
+  hour = Number.isFinite(hour) ? hour : new Date().getHours()
+
+  const totalMinutes = hour * 60 + minute
+  let period = "night"
+  if (totalMinutes >= 5 * 60 && totalMinutes < 12 * 60) period = "morning"
+  else if (totalMinutes >= 12 * 60 && totalMinutes < 17 * 60) period = "afternoon"
+  else if (totalMinutes >= 17 * 60 && totalMinutes < 21 * 60) period = "evening"
+  else period = "night"
 
   switch (language) {
     case "हिन्दी":
-      return isMorning ? "शुभ प्रभात" : isAfternoon ? "शुभ दोपहर" : "शुभ संध्या"
+      return period === "morning" ? "शुभ प्रभात!" : period === "afternoon" ? "शुभ दोपहर!" : period === "evening" ? "शुभ संध्या!" : "शुभ रात्रि!"
     case "ಕನ್ನಡ":
-      return isMorning ? "ಶುಭೋದಯ" : isAfternoon ? "ಶುಭ ಮಧ್ಯಾಹ್ನ" : "ಶುಭ ಸಂಜೆ"
+      return period === "morning" ? "ಶುಭೋದಯ!" : period === "afternoon" ? "ಶುಭ ಮಧ್ಯಾಹ್ನ!" : period === "evening" ? "ಶುಭ ಸಂಜೆ!" : "ಶುಭ ರಾತ್ರಿ!"
     case "తెలుగు":
-      return isMorning ? "శుభోదయం" : isAfternoon ? "శుభ మధ్యాహ్నం" : "శుభ సాయంత్రం"
+      return period === "morning" ? "శుభోదయం!" : period === "afternoon" ? "శుభ మధ్యాహ్నం!" : period === "evening" ? "శుభ సాయంత్రం!" : "శుభ రాత్రి!"
     case "தமிழ்":
-      return isMorning ? "காலை வணக்கம்" : isAfternoon ? "மதிய வணக்கம்" : "மாலை வணக்கம்"
+      return period === "morning" ? "காலை வணக்கம்!" : period === "afternoon" ? "மதிய வணக்கம்!" : period === "evening" ? "மாலை வணக்கம்!" : "இனிய இரவு!"
     case "मराठी":
-      return isMorning ? "शुभ प्रभात" : isAfternoon ? "शुभ दुपार" : "शुभ संध्याकाळ"
+      return period === "morning" ? "शुभ प्रभात!" : period === "afternoon" ? "शुभ दुपार!" : period === "evening" ? "शुभ संध्याकाळ!" : "शुभ रात्री!"
     case "English":
     default:
-      return isMorning ? "Good morning" : isAfternoon ? "Good afternoon" : "Good evening"
+      return period === "morning" ? "Good Morning!" : period === "afternoon" ? "Good Afternoon!" : period === "evening" ? "Good Evening!" : "Good Night!"
   }
+}
+
+export function getTimeGreeting(param1 = "English", param2 = null) {
+  if (typeof param1 === "string" && ["English", "हिन्दी", "ಕನ್ನಡ", "తెలుగు", "தமிழ்", "मराठी"].includes(param1)) {
+    return getGreeting(param2 || new Date(), param1)
+  }
+  return getGreeting(param1, param2 || "English")
+}
+
+export const MARKETPLACE_CATEGORIES = [
+  "All Categories",
+  "Vegetables",
+  "Fruits",
+  "Cereals",
+  "Pulses",
+  "Oil Seeds",
+  "Spices",
+  "Dry Fruits",
+  "Flowers",
+  "Beverages",
+  "Fibre Crops",
+  "Drug and Narcotics",
+  "Forest Products",
+  "Medicinal and Aromatic Plants",
+  "Live Stock,Poultry,Fisheries",
+  "Oils and Fats",
+  "Others"
+]
+
+export const INDIAN_STATES = [
+  "All States",
+  "Andaman and Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh",
+  "Dadra and Nagar Haveli and Daman and Diu","Delhi","Goa","Gujarat","Haryana","Himachal Pradesh","Jammu and Kashmir",
+  "Jharkhand","Karnataka","Kerala","Ladakh","Lakshadweep","Madhya Pradesh","Maharashtra","Manipur","Meghalaya",
+  "Mizoram","Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura",
+  "Uttar Pradesh","Uttarakhand","West Bengal"
+]
+
+const CROP_CATEGORIES = [
+  ["Vegetables", /vegetable|onion|potato|tomato|brinjal|cabbage|cauliflower|carrot|radish|okra|bhindi|beetroot|gourd|cucumber|spinach|beans|peas|capsicum|chilli\s*green|garlic/i],
+  ["Fruits", /fruit|apple|banana|mango|orange|grape|papaya|guava|pomegranate|watermelon|muskmelon|lemon|lime|pineapple|sweet\s*orange|mosambi|chikoo|sapota/i],
+  ["Cereals", /paddy|rice|wheat|maize|corn|barley|jowar|sorghum|bajra|pearl\s*millet|ragi|finger\s*millet|oats|cereal/i],
+  ["Pulses", /gram|chana|arhar|tur|moong|urad|masoor|lentil|pulse|pea|cowpea|rajma/i],
+  ["Oil Seeds", /groundnut|mustard|soyabean|soybean|sunflower|sesamum|til|castor|linseed|safflower|oilseed/i],
+  ["Spices", /turmeric|chilli|chili|ginger|garlic|coriander|cumin|pepper|cardamom|clove|cinnamon|fennel|fenugreek|ajwain|spice/i],
+  ["Dry Fruits", /almond|cashew|walnut|raisin|date|pistachio|anjeer|fig/i],
+  ["Fibre Crops", /cotton|jute|hemp/i],
+  ["Drug and Narcotics", /sugarcane|tobacco|arecanut/i],
+  ["Beverages", /coffee|tea|cocoa/i],
+  ["Flowers", /marigold|rose|jasmine|chrysanthemum|tuberose|gladiolus/i]
+]
+
+export function getCategoryForCrop(crop) {
+  if (!crop) return "Others"
+  const clean = String(crop).trim()
+  if (Array.isArray(agmarknetCatalogue?.commodities)) {
+    const norm = clean.toLowerCase().replace(/[^a-z0-9]/g, "")
+    const found = agmarknetCatalogue.commodities.find(c => {
+      if (String(c.name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) return true
+      if (c.agmarknet_name && String(c.agmarknet_name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) return true
+      if (c.display_name && String(c.display_name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) return true
+      return false
+    })
+    if (found && (found.category || found.group_name)) {
+      return found.category || found.group_name
+    }
+  }
+  const match = CROP_CATEGORIES.find(([, regex]) => regex.test(clean))
+  return match ? match[0] : "Others"
+}
+
+export function isListingExpired(dateStr) {
+  if (!dateStr) return false
+  const parts = String(dateStr).split("-").map(Number)
+  if (parts.length !== 3 || parts.some(isNaN)) {
+    const parsed = new Date(dateStr)
+    if (isNaN(parsed.getTime())) return false
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    parsed.setHours(0, 0, 0, 0)
+    return parsed < today
+  }
+  const [year, month, day] = parts
+  const itemDate = new Date(year, month - 1, day, 0, 0, 0, 0)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return itemDate < today
+}
+
+export function isExpiringToday(dateStr) {
+  if (!dateStr) return false
+  const parts = String(dateStr).split("-").map(Number)
+  const itemDate = parts.length === 3 ? new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0) : new Date(dateStr)
+  if (isNaN(itemDate.getTime())) return false
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return itemDate.getTime() === today.getTime()
+}
+
+export function isExpiringWithinDays(dateStr, days) {
+  if (!dateStr) return false
+  const parts = String(dateStr).split("-").map(Number)
+  const itemDate = parts.length === 3 ? new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0) : new Date(dateStr)
+  if (isNaN(itemDate.getTime())) return false
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const limit = new Date(today)
+  limit.setDate(limit.getDate() + days)
+  limit.setHours(23, 59, 59, 999)
+  return itemDate >= today && itemDate <= limit
+}
+
+export function isBeforeCustomDate(dateStr, customDateStr) {
+  if (!dateStr || !customDateStr) return false
+  const parts = String(dateStr).split("-").map(Number)
+  const itemDate = parts.length === 3 ? new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0) : new Date(dateStr)
+  if (isNaN(itemDate.getTime())) return false
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const customParts = String(customDateStr).split("-").map(Number)
+  const customLimit = customParts.length === 3
+    ? new Date(customParts[0], customParts[1] - 1, customParts[2], 23, 59, 59, 999)
+    : new Date(customDateStr)
+  if (isNaN(customLimit.getTime())) return false
+  return itemDate >= today && itemDate <= customLimit
 }
 
 function CropCameraCapture({ image, onCapture, onClear }) {
@@ -544,6 +720,43 @@ function App() {
   const [buyItem, setBuyItem] = useState(null)
   const [buyQuantity, setBuyQuantity] = useState("")
   const [orderLoading, setOrderLoading] = useState(false)
+  const [editingListingId, setEditingListingId] = useState(null)
+  const [locating, setLocating] = useState(false)
+  const [locationStatus, setLocationStatus] = useState(null)
+
+  // Farmer Listing Form States
+  const [formCategory, setFormCategory] = useState("Vegetables")
+  const [formCrop, setFormCrop] = useState("Tomato")
+  const [formVariety, setFormVariety] = useState("")
+  const [formCustomVariety, setFormCustomVariety] = useState("")
+  const [formGrade, setFormGrade] = useState("FAQ")
+  const [formOrganic, setFormOrganic] = useState("Conventional")
+  const [formProductionMethod, setFormProductionMethod] = useState("Open Field")
+  const [formPackaging, setFormPackaging] = useState("Plastic Crates")
+  const [formMinOrder, setFormMinOrder] = useState("")
+  const [formQuantity, setFormQuantity] = useState("")
+  const [formUnit, setFormUnit] = useState("kg")
+  const [formPrice, setFormPrice] = useState("")
+  const [formHarvestDate, setFormHarvestDate] = useState("")
+  const [formAvailableFrom, setFormAvailableFrom] = useState("")
+  const [formExpiryDate, setFormExpiryDate] = useState("")
+  const [formNotes, setFormNotes] = useState("")
+  const [formPickup, setFormPickup] = useState(true)
+  const [formDelivery, setFormDelivery] = useState(false)
+  const [formDeliveryRadius, setFormDeliveryRadius] = useState("")
+  const [formLocation, setFormLocation] = useState({
+    address: "",
+    village: "",
+    city: "",
+    district: "",
+    state: "",
+    pincode: "",
+    latitude: "",
+    longitude: ""
+  })
+  const [addressSearchQuery, setAddressSearchQuery] = useState("")
+  const [addressSearchResults, setAddressSearchResults] = useState([])
+  const [searchingAddress, setSearchingAddress] = useState(false)
   const [page, setPage] = useState("Home")
   const [lang, setLang] = useState("English")
   const [listed, setListed] = useState(false)
@@ -559,8 +772,44 @@ function App() {
   const initialOrdersLoadedRef = useRef(false)
   const notifiedKeysRef = useRef(new Set())
 
+  // Customer / Buyer Marketplace Filter States
+  const [browseSearch, setBrowseSearch] = useState("")
+  const [browseCategory, setBrowseCategory] = useState("All Categories")
+  const [browseCommodity, setBrowseCommodity] = useState("All Commodities")
+  const [browseVariety, setBrowseVariety] = useState("All Varieties")
+  const [browseMinPrice, setBrowseMinPrice] = useState("")
+  const [browseMaxPrice, setBrowseMaxPrice] = useState("")
+  const [browseUnit, setBrowseUnit] = useState("All Units")
+  const [browseMinQuantity, setBrowseMinQuantity] = useState("")
+  const [browseHarvestFrom, setBrowseHarvestFrom] = useState("")
+  const [browseAvailableFrom, setBrowseAvailableFrom] = useState("")
+  const [browseExpiry, setBrowseExpiry] = useState("all") // "all", "today", "3days", "7days", "custom"
+  const [browseCustomDate, setBrowseCustomDate] = useState("")
+  const [browseDistance, setBrowseDistance] = useState("all") // "all", "near_me", "5", "10", "25", "50", "100"
+  const [browseDelivery, setBrowseDelivery] = useState("All Options") // "All Options", "Delivery Available", "Delivery Not Available"
+  const [browsePickup, setBrowsePickup] = useState("All Options") // "All Options", "Pickup Available", "Pickup Not Available"
+  const [browseState, setBrowseState] = useState("All States")
+  const [browseDistrict, setBrowseDistrict] = useState("All Districts")
+  const [browseCity, setBrowseCity] = useState("All Cities")
+  const [browsePincode, setBrowsePincode] = useState("")
+  const [browseGrade, setBrowseGrade] = useState("All Grades")
+  const [browseOrganic, setBrowseOrganic] = useState("All")
+  const [browseProductionMethod, setBrowseProductionMethod] = useState("All Methods")
+  const [browsePackaging, setBrowsePackaging] = useState("All Packaging")
+  const [browseSort, setBrowseSort] = useState("newest")
+
+  const [greeting, setGreeting] = useState(() => getTimeGreeting(lang))
+
+  useEffect(() => {
+    setGreeting(getTimeGreeting(lang))
+    const timer = setInterval(() => {
+      setGreeting(getTimeGreeting(lang))
+    }, 60000)
+    return () => clearInterval(timer)
+  }, [lang])
+
   const t = (key) => {
-    if (key === "greeting") return getTimeGreeting(lang)
+    if (key === "greeting") return greeting || getTimeGreeting(lang)
     return translations[lang]?.[key] || translations.English[key] || key
   }
 
@@ -804,6 +1053,248 @@ function App() {
     )
   }
 
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationStatus({
+        type: "warning",
+        message: "Geolocation is not supported by your browser. Please enter your address manually."
+      })
+      return
+    }
+
+    setLocating(true)
+    setLocationStatus({
+      type: "info",
+      message: "Getting your location..."
+    })
+
+    navigator.geolocation.getCurrentPosition(
+      async position => {
+        const lat = position.coords.latitude
+        const lng = position.coords.longitude
+
+        setLocationStatus({
+          type: "info",
+          message: "Finding your address..."
+        })
+
+        try {
+          const res = await fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`)
+          const data = res.ok ? await res.json() : null
+          if (data && data.success) {
+            const resolvedVillage = (data.village || data.locality || "").trim()
+            const resolvedCity = (data.city || data.town || "").trim()
+            const resolvedDistrict = (data.district || "").trim()
+            const resolvedState = (data.state || "").trim()
+            const resolvedPincode = (data.pincode || "").trim()
+
+            const parts = [
+              resolvedVillage,
+              resolvedCity && resolvedCity !== resolvedVillage ? resolvedCity : null,
+              resolvedDistrict,
+              resolvedState,
+              resolvedPincode
+            ].filter(Boolean)
+
+            const resolvedAddress = (data.address && data.address.trim())
+              ? data.address.trim()
+              : parts.join(", ")
+
+            const hasPopulatedData = Boolean(resolvedAddress || resolvedState || resolvedDistrict || resolvedCity || resolvedVillage || resolvedPincode)
+
+            if (hasPopulatedData) {
+              setFormLocation({
+                address: resolvedAddress,
+                village: resolvedVillage || resolvedCity,
+                city: resolvedCity || resolvedVillage,
+                district: resolvedDistrict,
+                state: resolvedState,
+                pincode: resolvedPincode,
+                latitude: String(lat),
+                longitude: String(lng)
+              })
+              setAddressSearchResults([])
+              setAddressSearchQuery("")
+              setLocationStatus({
+                type: "success",
+                message: "✓ Address filled successfully! Please review and confirm your details below."
+              })
+            } else {
+              setFormLocation(prev => ({
+                ...prev,
+                latitude: String(lat),
+                longitude: String(lng)
+              }))
+              setLocationStatus({
+                type: "warning",
+                message: "Coordinates detected, but address lookup could not resolve fields. Please enter your address manually."
+              })
+            }
+          } else {
+            setFormLocation(prev => ({
+              ...prev,
+              latitude: String(lat),
+              longitude: String(lng)
+            }))
+            setLocationStatus({
+              type: "warning",
+              message: "Coordinates detected, but address lookup could not resolve all fields. Please enter your address details manually."
+            })
+          }
+        } catch (err) {
+          setFormLocation(prev => ({
+            ...prev,
+            latitude: String(lat),
+            longitude: String(lng)
+          }))
+          setLocationStatus({
+            type: "warning",
+            message: "Coordinates detected, but address lookup could not resolve all fields. Please enter your address details manually."
+          })
+        } finally {
+          setLocating(false)
+        }
+      },
+      error => {
+        setLocating(false)
+        let msg = "Could not retrieve location. Please check browser permissions or enter address manually."
+        if (error.code === 1) msg = "Location permission denied. Please allow location access in your browser or type your address manually."
+        else if (error.code === 2) msg = "Location unavailable. Please enter your address manually."
+        else if (error.code === 3) msg = "Location request timed out. Please try again or enter your address manually."
+        setLocationStatus({ type: "warning", message: msg })
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
+  }
+
+  const handleSearchAddress = async query => {
+    const q = (query || "").trim()
+    if (!q || q.length < 2) {
+      setAddressSearchResults([])
+      return
+    }
+    setSearchingAddress(true)
+    try {
+      const res = await fetch(`/api/address-search?q=${encodeURIComponent(q)}`)
+      if (res.ok) {
+        const data = await res.json()
+        setAddressSearchResults(data.results || [])
+      }
+    } catch (e) {
+      // ignore network errors for typeahead
+    } finally {
+      setSearchingAddress(false)
+    }
+  }
+
+  const applySelectedAddress = item => {
+    if (!item) return
+    const lat = item.latitude ? String(item.latitude) : ""
+    const lng = item.longitude ? String(item.longitude) : ""
+    const village = (item.village || item.city || "").trim()
+    const city = (item.city || item.village || "").trim()
+    const district = (item.district || "").trim()
+    const state = (item.state || "").trim()
+    const pincode = (item.pincode || "").trim()
+    const fullAddress = (item.address || [village, city !== village ? city : null, district, state, pincode].filter(Boolean).join(", ")).trim()
+
+    setFormLocation({
+      address: fullAddress,
+      village,
+      city,
+      district,
+      state,
+      pincode,
+      latitude: lat,
+      longitude: lng
+    })
+
+    setLocationStatus({
+      type: "success",
+      message: `✓ Address auto-populated from ${city || district || "selected location"}! Please review and confirm your details below.`
+    })
+  }
+
+  const startEditListing = item => {
+    setEditingListingId(item.id)
+    setCropImage(item.image || null)
+    setFormCategory(item.category || getCategoryForCrop(item.crop) || "Vegetables")
+    setFormCrop(item.crop || "")
+    setFormVariety(item.variety || "")
+    setFormCustomVariety("")
+    setFormGrade(item.grade || "FAQ")
+    setFormOrganic(item.organic || "Conventional")
+    setFormProductionMethod(item.productionMethod || "Open Field")
+    setFormPackaging(item.packaging || "Plastic Crates")
+    setFormMinOrder(item.minOrder || "")
+    setFormQuantity(item.quantity || "")
+    setFormUnit(item.unit || "kg")
+    setFormPrice(item.price || "")
+    setFormHarvestDate(item.harvestDate || "")
+    setFormAvailableFrom(item.availableFrom || "")
+    setFormExpiryDate(item.expiryDate || item.date || "")
+    setFormNotes(item.notes || item.description || "")
+    setFormPickup(item.pickupAvailable !== undefined ? Boolean(item.pickupAvailable) : true)
+    setFormDelivery(Boolean(item.deliveryAvailable))
+    setFormDeliveryRadius(item.deliveryRadius || "")
+    setFormLocation({
+      address: item.address || "",
+      village: item.village || item.locality || "",
+      city: item.city || "",
+      district: item.district || item.farmerDistrict || "",
+      state: item.state || item.farmerState || "",
+      pincode: item.pincode || "",
+      latitude: item.latitude || item.farmerLat || "",
+      longitude: item.longitude || item.farmerLng || ""
+    })
+    setLocationStatus(
+      (item.latitude || item.farmerLat) && (item.longitude || item.farmerLng)
+        ? {
+            type: "info",
+            message: `Existing coordinates on file (${Number(item.latitude || item.farmerLat).toFixed(4)}, ${Number(item.longitude || item.farmerLng).toFixed(4)}). Click "📍 Use My Current Location" to re-detect.`
+          }
+        : null
+    )
+    setListed(false)
+    const formEl = document.querySelector(".form-panel")
+    if (formEl) formEl.scrollIntoView({ behavior: "smooth" })
+  }
+
+  const cancelEditListing = () => {
+    setEditingListingId(null)
+    setCropImage(null)
+    setFormCategory("Vegetables")
+    setFormCrop("Tomato")
+    setFormVariety("")
+    setFormCustomVariety("")
+    setFormGrade("FAQ")
+    setFormOrganic("Conventional")
+    setFormProductionMethod("Open Field")
+    setFormPackaging("Plastic Crates")
+    setFormMinOrder("")
+    setFormQuantity("")
+    setFormUnit("kg")
+    setFormPrice("")
+    setFormHarvestDate("")
+    setFormAvailableFrom("")
+    setFormExpiryDate("")
+    setFormNotes("")
+    setFormPickup(true)
+    setFormDelivery(false)
+    setFormDeliveryRadius("")
+    setFormLocation({
+      address: "",
+      village: "",
+      city: "",
+      district: "",
+      state: "",
+      pincode: "",
+      latitude: "",
+      longitude: ""
+    })
+    setLocationStatus(null)
+  }
+
   const distanceKm = (lat1, lng1, lat2, lng2) => {
     if ([lat1, lng1, lat2, lng2].some(value => value === undefined || value === null || value === "")) return null
     const R = 6371
@@ -820,6 +1311,365 @@ function App() {
     if (km < 1.0) return `📍 ${t("nearby")}`
     return `📍 ${km.toFixed(1)} ${t("kmAway")}`
   }
+
+  const availableStates = Array.from(new Set([
+    "All States",
+    ...listings.map(l => l.state || l.farmerState).filter(Boolean),
+    ...INDIAN_STATES.slice(1)
+  ]))
+
+  const availableDistricts = Array.from(new Set([
+    "All Districts",
+    ...listings
+      .filter(l => browseState === "All States" || [l.state, l.farmerState, l.address].some(s => s && String(s).toLowerCase().includes(browseState.toLowerCase())))
+      .flatMap(l => [
+        l.district,
+        l.farmerDistrict,
+        l.address && l.address.toLowerCase().includes("chittoor") ? "Chittoor" : null
+      ])
+      .filter(Boolean)
+  ])).sort()
+
+  const availableCities = Array.from(new Set([
+    "All Cities",
+    ...listings
+      .filter(l => {
+        if (browseState !== "All States" && ![l.state, l.farmerState, l.address].some(s => s && String(s).toLowerCase().includes(browseState.toLowerCase()))) return false
+        if (browseDistrict !== "All Districts" && ![l.district, l.farmerDistrict, l.address].some(d => d && String(d).toLowerCase().includes(browseDistrict.toLowerCase()))) return false
+        return true
+      })
+      .map(l => l.city)
+      .filter(Boolean)
+  ])).sort()
+
+  const availableGrades = Array.from(new Set([
+    "All Grades",
+    ...listings.map(l => l.grade).filter(Boolean),
+    "FAQ", "Grade A", "Grade B", "Grade C", "Premium", "Export Quality", "Local"
+  ]))
+
+  const availableUnits = Array.from(new Set([
+    "All Units",
+    ...listings.map(l => l.unit).filter(Boolean),
+    "kg", "quintal", "tonne", "crate", "bag", "box"
+  ]))
+
+  const availableOrganic = Array.from(new Set([
+    "All",
+    "Organic Only",
+    "Conventional Only",
+    ...listings.map(l => l.organic).filter(Boolean)
+  ]))
+
+  const availableProductionMethods = Array.from(new Set([
+    "All Methods",
+    ...listings.map(l => l.productionMethod).filter(Boolean),
+    "Open Field", "Greenhouse / Polyhouse", "Hydroponic", "Shade Net", "Traditional / Natural"
+  ]))
+
+  const availablePackaging = Array.from(new Set([
+    "All Packaging",
+    ...listings.map(l => l.packaging).filter(Boolean),
+    "Plastic Crates", "Gunny Bags", "Boxes", "Mesh Bags", "Loose", "Vacuum Pack"
+  ]))
+
+  // Official commodities from AGMARKNET catalogue
+  const allOfficialCommodities = agmarknetCatalogue?.commodities || []
+
+  // Commodity options for Marketplace Filter (existing listed crops + official commodities)
+  const marketplaceCommodities = Array.from(new Set([
+    "All Commodities",
+    ...listings.map(l => l.crop).filter(Boolean),
+    ...(browseCategory && browseCategory !== "All Categories"
+      ? allOfficialCommodities.filter(c => (c.category || c.group_name || "").toLowerCase() === browseCategory.toLowerCase()).map(c => c.name)
+      : allOfficialCommodities.map(c => c.name))
+  ])).sort((a, b) => (a === "All Commodities" ? -1 : b === "All Commodities" ? 1 : a.localeCompare(b)))
+
+  // Variety options for Marketplace Filter
+  const selectedMarketplaceCommodityObj = allOfficialCommodities.find(c =>
+    (c.name || "").toLowerCase() === browseCommodity.toLowerCase() ||
+    (c.display_name && c.display_name.toLowerCase() === browseCommodity.toLowerCase())
+  )
+  const officialVarietiesForMarketplace = selectedMarketplaceCommodityObj
+    ? (selectedMarketplaceCommodityObj.varieties || []).map(v => typeof v === "string" ? v : v.name).filter(Boolean)
+    : []
+  const listedVarietiesForMarketplace = listings
+    .filter(l => browseCommodity === "All Commodities" || (l.crop || "").toLowerCase() === browseCommodity.toLowerCase())
+    .map(l => l.variety)
+    .filter(Boolean)
+
+  const marketplaceVarieties = Array.from(new Set([
+    "All Varieties",
+    ...officialVarietiesForMarketplace,
+    ...listedVarietiesForMarketplace
+  ])).sort((a, b) => (a === "All Varieties" ? -1 : b === "All Varieties" ? 1 : a.localeCompare(b)))
+
+  // Matched commodity object in official catalogue for the farmer form
+  const selectedFormCommodityObj = allOfficialCommodities.find(c =>
+    (c.name || "").toLowerCase() === (formCrop || "").trim().toLowerCase() ||
+    (c.display_name && c.display_name.toLowerCase() === (formCrop || "").trim().toLowerCase()) ||
+    (c.agmarknet_name && c.agmarknet_name.toLowerCase() === (formCrop || "").trim().toLowerCase())
+  )
+
+  const registeredFormVarieties = selectedFormCommodityObj
+    ? (selectedFormCommodityObj.variety_names || (selectedFormCommodityObj.varieties || []).map(v => typeof v === "string" ? v : v.name)).filter(Boolean)
+    : []
+
+  const registeredFormGrades = selectedFormCommodityObj?.grades?.length
+    ? selectedFormCommodityObj.grades
+    : ["FAQ", "Grade A", "Grade B", "Grade C", "Local", "Export Quality", "Premium"]
+
+  const clearFilters = () => {
+    setBrowseSearch("")
+    setBrowseCategory("All Categories")
+    setBrowseCommodity("All Commodities")
+    setBrowseVariety("All Varieties")
+    setBrowseGrade("All Grades")
+    setBrowseMinQuantity("")
+    setBrowseMinPrice("")
+    setBrowseMaxPrice("")
+    setBrowseUnit("All Units")
+    setBrowseHarvestFrom("")
+    setBrowseAvailableFrom("")
+    setBrowseExpiry("all")
+    setBrowseCustomDate("")
+    setBrowseOrganic("All")
+    setBrowseProductionMethod("All Methods")
+    setBrowsePackaging("All Packaging")
+    setBrowseDelivery("All Options")
+    setBrowsePickup("All Options")
+    setBrowseState("All States")
+    setBrowseDistrict("All Districts")
+    setBrowseCity("All Cities")
+    setBrowsePincode("")
+    setBrowseDistance("all")
+    setBrowseSort("newest")
+  }
+
+  const hasActiveFilters = Boolean(
+    browseSearch.trim() ||
+    (browseCategory && browseCategory !== "All Categories") ||
+    (browseCommodity && browseCommodity !== "All Commodities") ||
+    (browseVariety && browseVariety !== "All Varieties") ||
+    (browseGrade && browseGrade !== "All Grades") ||
+    browseMinQuantity !== "" ||
+    browseMinPrice !== "" ||
+    browseMaxPrice !== "" ||
+    (browseUnit && browseUnit !== "All Units") ||
+    browseHarvestFrom !== "" ||
+    browseAvailableFrom !== "" ||
+    browseExpiry !== "all" ||
+    browseCustomDate ||
+    (browseOrganic && browseOrganic !== "All") ||
+    (browseProductionMethod && browseProductionMethod !== "All Methods") ||
+    (browsePackaging && browsePackaging !== "All Packaging") ||
+    (browseDelivery && browseDelivery !== "All Options") ||
+    (browsePickup && browsePickup !== "All Options") ||
+    (browseState && browseState !== "All States") ||
+    (browseDistrict && browseDistrict !== "All Districts" && browseDistrict.trim() !== "") ||
+    (browseCity && browseCity !== "All Cities" && browseCity.trim() !== "") ||
+    browsePincode.trim() !== "" ||
+    browseDistance !== "all"
+  )
+
+  const filteredMarketplaceListings = listings.filter(item => {
+    // 0. Expired listings must not appear as active listings
+    const itemExpiry = item.expiryDate || item.date
+    if (isListingExpired(itemExpiry)) return false
+
+    // Search query (crop name, variety, notes, description, farmer name, address, village, city, district, state)
+    if (browseSearch.trim()) {
+      const q = browseSearch.toLowerCase().trim()
+      const match = [
+        item.crop,
+        item.variety,
+        item.grade,
+        item.organic,
+        item.productionMethod,
+        item.packaging,
+        item.farmerName,
+        item.address,
+        item.village,
+        item.city,
+        item.district,
+        item.farmerDistrict,
+        item.state,
+        item.farmerState,
+        item.pincode,
+        item.notes,
+        item.description
+      ].some(val => val && String(val).toLowerCase().includes(q))
+      if (!match) return false
+    }
+
+    // 1. Crop category
+    if (browseCategory && browseCategory !== "All Categories") {
+      const cat = item.category || getCategoryForCrop(item.crop)
+      if (!cat || cat.toLowerCase() !== browseCategory.toLowerCase()) return false
+    }
+
+    // 2. Commodity / Crop
+    if (browseCommodity && browseCommodity !== "All Commodities") {
+      if ((item.crop || "").toLowerCase() !== browseCommodity.toLowerCase()) return false
+    }
+
+    // 3. Variety
+    if (browseVariety && browseVariety !== "All Varieties") {
+      if (!item.variety || !item.variety.toLowerCase().includes(browseVariety.toLowerCase())) return false
+    }
+
+    // 4. Grade / Quality (Empty Data Rule: missing grade must NOT match)
+    if (browseGrade && browseGrade !== "All Grades") {
+      if (!item.grade || !item.grade.toLowerCase().includes(browseGrade.toLowerCase())) return false
+    }
+
+    // 5. Available quantity (Min available qty - Empty Data Rule)
+    if (browseMinQuantity !== "") {
+      const minQty = Number(browseMinQuantity)
+      if (Number.isFinite(minQty)) {
+        if (item.quantity === undefined || item.quantity === null || item.quantity === "") return false
+        if (Number(item.quantity) < minQty) return false
+      }
+    }
+
+    // 6. Price range
+    if (browseMinPrice !== "" && Number.isFinite(Number(browseMinPrice))) {
+      if (item.price === undefined || item.price === null || item.price === "") return false
+      if (Number(item.price) < Number(browseMinPrice)) return false
+    }
+    if (browseMaxPrice !== "" && Number.isFinite(Number(browseMaxPrice))) {
+      if (item.price === undefined || item.price === null || item.price === "") return false
+      if (Number(item.price) > Number(browseMaxPrice)) return false
+    }
+
+    // 7. Unit of measurement
+    if (browseUnit && browseUnit !== "All Units") {
+      if (String(item.unit || "").toLowerCase() !== browseUnit.toLowerCase()) return false
+    }
+
+    // 8. Harvest date (Harvested on or after - Empty Data Rule)
+    if (browseHarvestFrom) {
+      if (!item.harvestDate || item.harvestDate < browseHarvestFrom) return false
+    }
+
+    // 9. Available-from date (Available on or before - Empty Data Rule)
+    if (browseAvailableFrom) {
+      if (!item.availableFrom || item.availableFrom > browseAvailableFrom) return false
+    }
+
+    // 10. Expiry filter
+    if (browseExpiry && browseExpiry !== "all") {
+      if (!itemExpiry) return false
+      if (browseExpiry === "today") {
+        if (!isExpiringToday(itemExpiry)) return false
+      } else if (browseExpiry === "3days") {
+        if (!isExpiringWithinDays(itemExpiry, 3)) return false
+      } else if (browseExpiry === "7days") {
+        if (!isExpiringWithinDays(itemExpiry, 7)) return false
+      } else if (browseExpiry === "custom" && browseCustomDate) {
+        if (!isBeforeCustomDate(itemExpiry, browseCustomDate)) return false
+      }
+    }
+
+    // 11. Organic / Conventional (Empty Data Rule: missing organic must NOT match)
+    if (browseOrganic && browseOrganic !== "All") {
+      if (!item.organic) return false
+      if (browseOrganic === "Organic Only") {
+        if (!/organic|natural|jaivik/i.test(item.organic)) return false
+      } else if (browseOrganic === "Conventional Only") {
+        if (!/conventional/i.test(item.organic)) return false
+      } else {
+        if (item.organic.toLowerCase() !== browseOrganic.toLowerCase()) return false
+      }
+    }
+
+    // 12. Production Method (Empty Data Rule: missing method must NOT match)
+    if (browseProductionMethod && browseProductionMethod !== "All Methods") {
+      if (!item.productionMethod || item.productionMethod.toLowerCase() !== browseProductionMethod.toLowerCase()) return false
+    }
+
+    // 13. Packaging Type (Empty Data Rule: missing packaging must NOT match)
+    if (browsePackaging && browsePackaging !== "All Packaging") {
+      if (!item.packaging || !item.packaging.toLowerCase().includes(browsePackaging.toLowerCase())) return false
+    }
+
+    // 14. Delivery Availability
+    if (browseDelivery && browseDelivery !== "All Options") {
+      if (browseDelivery === "Delivery Available") {
+        if (!item.deliveryAvailable) return false
+      } else if (browseDelivery === "Delivery Not Available") {
+        if (item.deliveryAvailable) return false
+      }
+    }
+
+    // 15. Pickup Availability
+    if (browsePickup && browsePickup !== "All Options") {
+      if (browsePickup === "Pickup Available") {
+        if (item.pickupAvailable === false) return false
+      } else if (browsePickup === "Pickup Not Available") {
+        if (item.pickupAvailable !== false) return false
+      }
+    }
+
+    // 16. State
+    if (browseState && browseState !== "All States") {
+      const qState = browseState.toLowerCase()
+      const stateMatch = [item.state, item.farmerState, item.address].some(val => val && String(val).toLowerCase().includes(qState))
+      if (!stateMatch) return false
+    }
+
+    // 17. District
+    if (browseDistrict && browseDistrict !== "All Districts" && browseDistrict.trim() !== "") {
+      const qDist = browseDistrict.toLowerCase().trim()
+      const districtMatch = [item.district, item.farmerDistrict, item.city, item.village, item.address].some(val => val && String(val).toLowerCase().includes(qDist))
+      if (!districtMatch) return false
+    }
+
+    // 18. City (Empty Data Rule)
+    if (browseCity && browseCity !== "All Cities" && browseCity.trim() !== "") {
+      const qCity = browseCity.toLowerCase().trim()
+      const cityMatch = [item.city, item.village, item.locality, item.address].some(val => val && String(val).toLowerCase().includes(qCity))
+      if (!cityMatch) return false
+    }
+
+    // 19. PIN Code (Empty Data Rule)
+    if (browsePincode.trim() !== "") {
+      const qPin = browsePincode.trim()
+      const pinMatch = [item.pincode, item.address].some(val => val && String(val).includes(qPin))
+      if (!pinMatch) return false
+    }
+
+    // 20. Distance / Delivery Radius
+    if (browseDistance && browseDistance !== "all") {
+      const itemLat = item.latitude || item.farmerLat
+      const itemLng = item.longitude || item.farmerLng
+      if (!itemLat || !itemLng) return false
+      if (customerLocation && customerLocation.lat && customerLocation.lng) {
+        const km = distanceKm(customerLocation.lat, customerLocation.lng, itemLat, itemLng)
+        if (km === null) return false
+        const maxKm = browseDistance === "near_me" ? 15 : Number(browseDistance)
+        if (Number.isFinite(maxKm) && km > maxKm) return false
+      }
+    }
+
+    return true
+  }).sort((a, b) => {
+    if (browseSort === "price_asc") {
+      return Number(a.price || 0) - Number(b.price || 0)
+    }
+    if (browseSort === "price_desc") {
+      return Number(b.price || 0) - Number(a.price || 0)
+    }
+    if (browseSort === "expiry_asc") {
+      const timeA = a.date ? new Date(a.date).getTime() : Infinity
+      const timeB = b.date ? new Date(b.date).getTime() : Infinity
+      return timeA - timeB
+    }
+    // default: "newest"
+    const timeA = new Date(a.createdAt || Number(a.id) || 0).getTime()
+    const timeB = new Date(b.createdAt || Number(b.id) || 0).getTime()
+    return timeB - timeA
+  })
 
   const contactPhone = item => item?.farmerPhone || item?.contact?.phone || item?.contact?.whatsapp || item?.phone || ""
   const whatsappNumber = phone => {
@@ -840,8 +1690,10 @@ function App() {
     return digits.length === 10 ? "tel:+91" + digits : digits.startsWith("91") ? "tel:+" + digits : "tel:+" + digits
   }
   const routeUrl = item => {
-    const hasCoords = item.farmerLat !== undefined && item.farmerLat !== "" && item.farmerLng !== undefined && item.farmerLng !== ""
-    const destination = hasCoords ? encodeURIComponent(String(item.farmerLat) + "," + String(item.farmerLng)) : encodeURIComponent(String(item.address || ""))
+    const lat = item.latitude || item.farmerLat
+    const lng = item.longitude || item.farmerLng
+    const hasCoords = lat !== undefined && lat !== "" && lng !== undefined && lng !== ""
+    const destination = hasCoords ? encodeURIComponent(String(lat) + "," + String(lng)) : encodeURIComponent(String(item.address || ""))
     if (!destination) return ""
     const origin = customerLocation ? encodeURIComponent(customerLocation.lat + "," + customerLocation.lng) : "Current+Location"
     return "https://www.google.com/maps/dir/?api=1&origin=" + origin + "&destination=" + destination + "&travelmode=driving"
@@ -1272,24 +2124,411 @@ function App() {
                   <p>{listingError}</p>
                 </section>
               )}
-              {listingLoading ? (
-                <section className="panel no-demo"><p>Loading farmer listings…</p></section>
-              ) : listings.length ? (
-                <section className="panel farmer-listings">
-                  <div className="panel-head">
-                    <div>
-                      <h3>Available from farmers</h3>
-                      <p>{listings.length} listing{listings.length === 1 ? "" : "s"} available</p>
+              {/* Customer Marketplace Filters */}
+              <section className="marketplace-filters">
+                <div className="filters-top">
+                  <div className="filters-top-title">
+                    <span>⚡ Filter Marketplace Produce</span>
+                  </div>
+                  {hasActiveFilters && (
+                    <button type="button" className="btn-clear-filters" onClick={clearFilters}>
+                      ✕ Clear Filters
+                    </button>
+                  )}
+                </div>
+
+                <div className="filters-grid">
+                  {/* Search query across produce */}
+                  <div className="filter-field" style={{ gridColumn: "1 / -1" }}>
+                    <label>Search Produce</label>
+                    <input
+                      type="text"
+                      value={browseSearch}
+                      onChange={e => setBrowseSearch(e.target.value)}
+                      placeholder="Search by crop, variety, farmer, district, state..."
+                    />
+                  </div>
+
+                  {/* SUBGROUP 1: Crop & Produce Identity */}
+                  <div className="filters-subgroup-title">
+                    <span>🌾 1. Crop & Produce Identity</span>
+                  </div>
+
+                  {/* 1. Category */}
+                  <div className="filter-field">
+                    <label>1. Category</label>
+                    <select
+                      value={browseCategory}
+                      onChange={e => {
+                        setBrowseCategory(e.target.value)
+                        setBrowseCommodity("All Commodities")
+                        setBrowseVariety("All Varieties")
+                      }}
+                    >
+                      {MARKETPLACE_CATEGORIES.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 2. Commodity / Crop */}
+                  <div className="filter-field">
+                    <label>2. Commodity / Crop</label>
+                    <select
+                      value={browseCommodity}
+                      onChange={e => {
+                        setBrowseCommodity(e.target.value)
+                        setBrowseVariety("All Varieties")
+                      }}
+                    >
+                      {marketplaceCommodities.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 3. Variety */}
+                  <div className="filter-field">
+                    <label>3. Variety</label>
+                    <select
+                      value={browseVariety}
+                      onChange={e => setBrowseVariety(e.target.value)}
+                    >
+                      {marketplaceVarieties.map(v => (
+                        <option key={v} value={v}>{v}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 4. Quality / Grade */}
+                  <div className="filter-field">
+                    <label>4. Quality / Grade</label>
+                    <select
+                      value={browseGrade}
+                      onChange={e => setBrowseGrade(e.target.value)}
+                    >
+                      {availableGrades.map(g => (
+                        <option key={g} value={g}>{g}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* SUBGROUP 2: Pricing & Quantity */}
+                  <div className="filters-subgroup-title">
+                    <span>⚖️ 2. Pricing & Quantity</span>
+                  </div>
+
+                  {/* 5. Available Quantity */}
+                  <div className="filter-field">
+                    <label>5. Min Available Qty</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      placeholder="e.g. 50"
+                      value={browseMinQuantity}
+                      onChange={e => setBrowseMinQuantity(e.target.value)}
+                    />
+                  </div>
+
+                  {/* 6. Price Range (Min & Max Price) */}
+                  <div className="filter-field">
+                    <label>6. Price Range (₹)</label>
+                    <div className="price-inputs-group" style={{ gridTemplateColumns: "1fr 1fr" }}>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        placeholder="Min ₹"
+                        value={browseMinPrice}
+                        onChange={e => setBrowseMinPrice(e.target.value)}
+                      />
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        placeholder="Max ₹"
+                        value={browseMaxPrice}
+                        onChange={e => setBrowseMaxPrice(e.target.value)}
+                      />
                     </div>
                   </div>
-                  {listings.map(item => {
-                    const km = distanceKm(customerLocation?.lat, customerLocation?.lng, item.farmerLat, item.farmerLng)
+
+                  {/* 7. Unit of Measurement */}
+                  <div className="filter-field">
+                    <label>7. Unit</label>
+                    <select
+                      value={browseUnit}
+                      onChange={e => setBrowseUnit(e.target.value)}
+                    >
+                      {availableUnits.map(u => (
+                        <option key={u} value={u}>{u}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* SUBGROUP 3: Dates & Shelf Life */}
+                  <div className="filters-subgroup-title">
+                    <span>📅 3. Dates & Shelf Life</span>
+                  </div>
+
+                  {/* 8. Harvest Date */}
+                  <div className="filter-field">
+                    <label>8. Harvested On / After</label>
+                    <input
+                      type="date"
+                      value={browseHarvestFrom}
+                      onChange={e => setBrowseHarvestFrom(e.target.value)}
+                    />
+                  </div>
+
+                  {/* 9. Available-From Date */}
+                  <div className="filter-field">
+                    <label>9. Available By / On</label>
+                    <input
+                      type="date"
+                      value={browseAvailableFrom}
+                      onChange={e => setBrowseAvailableFrom(e.target.value)}
+                    />
+                  </div>
+
+                  {/* 10. Expiry Date */}
+                  <div className="filter-field">
+                    <label>10. Expiry Date</label>
+                    <select
+                      value={browseExpiry}
+                      onChange={e => setBrowseExpiry(e.target.value)}
+                    >
+                      <option value="all">All active produce</option>
+                      <option value="today">Expiring today</option>
+                      <option value="3days">Within 3 days</option>
+                      <option value="7days">Within 7 days</option>
+                      <option value="custom">Before custom date...</option>
+                    </select>
+                    {browseExpiry === "custom" && (
+                      <input
+                        type="date"
+                        value={browseCustomDate}
+                        onChange={e => setBrowseCustomDate(e.target.value)}
+                        style={{ marginTop: 4 }}
+                      />
+                    )}
+                  </div>
+
+                  {/* SUBGROUP 4: Cultivation & Packaging */}
+                  <div className="filters-subgroup-title">
+                    <span>🌱 4. Cultivation & Packaging</span>
+                  </div>
+
+                  {/* 11. Organic Status */}
+                  <div className="filter-field">
+                    <label>11. Organic Status</label>
+                    <select
+                      value={browseOrganic}
+                      onChange={e => setBrowseOrganic(e.target.value)}
+                    >
+                      {availableOrganic.map(o => (
+                        <option key={o} value={o}>{o}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 12. Production Method */}
+                  <div className="filter-field">
+                    <label>12. Production Method</label>
+                    <select
+                      value={browseProductionMethod}
+                      onChange={e => setBrowseProductionMethod(e.target.value)}
+                    >
+                      {availableProductionMethods.map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 13. Packaging Type */}
+                  <div className="filter-field">
+                    <label>13. Packaging Type</label>
+                    <select
+                      value={browsePackaging}
+                      onChange={e => setBrowsePackaging(e.target.value)}
+                    >
+                      {availablePackaging.map(p => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* SUBGROUP 5: Delivery & Logistics */}
+                  <div className="filters-subgroup-title">
+                    <span>🚚 5. Delivery & Logistics</span>
+                  </div>
+
+                  {/* 14. Delivery Availability */}
+                  <div className="filter-field">
+                    <label>14. Delivery Availability</label>
+                    <select
+                      value={browseDelivery}
+                      onChange={e => setBrowseDelivery(e.target.value)}
+                    >
+                      <option value="All Options">All Options</option>
+                      <option value="Delivery Available">Delivery to Buyer Available</option>
+                      <option value="Delivery Not Available">No Delivery (Pickup Only)</option>
+                    </select>
+                  </div>
+
+                  {/* 15. Pickup Availability */}
+                  <div className="filter-field">
+                    <label>15. Pickup Availability</label>
+                    <select
+                      value={browsePickup}
+                      onChange={e => setBrowsePickup(e.target.value)}
+                    >
+                      <option value="All Options">All Options</option>
+                      <option value="Pickup Available">Farm Pickup Available</option>
+                      <option value="Pickup Not Available">No Farm Pickup</option>
+                    </select>
+                  </div>
+
+                  {/* 20. Delivery Radius / Max Distance */}
+                  <div className="filter-field">
+                    <label>20. Distance / Radius</label>
+                    <select
+                      value={browseDistance}
+                      onChange={e => {
+                        const val = e.target.value
+                        setBrowseDistance(val)
+                        if (val !== "all" && !customerLocation) {
+                          locateCustomer()
+                        }
+                      }}
+                    >
+                      <option value="all">All Distances</option>
+                      <option value="near_me">Near Me (&lt; 15 km)</option>
+                      <option value="5">Within 5 km</option>
+                      <option value="10">Within 10 km</option>
+                      <option value="25">Within 25 km</option>
+                      <option value="50">Within 50 km</option>
+                      <option value="100">Within 100 km</option>
+                    </select>
+                    {browseDistance !== "all" && !customerLocation && (
+                      <small style={{ color: "#b45309", fontSize: 10, marginTop: 2 }}>
+                        📍 Enable location above to filter by distance
+                      </small>
+                    )}
+                  </div>
+
+                  {/* SUBGROUP 6: Location & Region */}
+                  <div className="filters-subgroup-title">
+                    <span>📍 6. Location & Region</span>
+                  </div>
+
+                  {/* 16. State */}
+                  <div className="filter-field">
+                    <label>16. State</label>
+                    <select
+                      value={browseState}
+                      onChange={e => {
+                        setBrowseState(e.target.value)
+                        setBrowseDistrict("All Districts")
+                        setBrowseCity("All Cities")
+                      }}
+                    >
+                      {availableStates.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 17. District */}
+                  <div className="filter-field">
+                    <label>17. District</label>
+                    <select
+                      value={browseDistrict}
+                      onChange={e => {
+                        setBrowseDistrict(e.target.value)
+                        setBrowseCity("All Cities")
+                      }}
+                    >
+                      {availableDistricts.map(d => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 18. City */}
+                  <div className="filter-field">
+                    <label>18. City / Town</label>
+                    <select
+                      value={browseCity}
+                      onChange={e => setBrowseCity(e.target.value)}
+                    >
+                      {availableCities.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 19. PIN Code */}
+                  <div className="filter-field">
+                    <label>19. PIN Code</label>
+                    <input
+                      type="text"
+                      maxLength={6}
+                      placeholder="e.g. 517247"
+                      value={browsePincode}
+                      onChange={e => setBrowsePincode(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </section>
+
+              {/* Result Count Bar & Clear Filters */}
+              <div className="marketplace-result-bar">
+                <div>
+                  <b>{filteredMarketplaceListings.length}</b> listing{filteredMarketplaceListings.length === 1 ? "" : "s"} found
+                  {hasActiveFilters && (
+                    <span className="active-filters-tag">Filters active</span>
+                  )}
+                </div>
+                {hasActiveFilters && (
+                  <button type="button" className="btn-clear-filters" onClick={clearFilters}>
+                    ✕ Clear Filters
+                  </button>
+                )}
+              </div>
+
+              {listingLoading ? (
+                <section className="panel no-demo"><p>Loading farmer listings…</p></section>
+              ) : listings.length === 0 ? (
+                <section className="panel no-demo">
+                  <h3>No farmer listings yet</h3>
+                  <p>Once a farmer adds a crop, it will appear here for customers.</p>
+                </section>
+              ) : filteredMarketplaceListings.length === 0 ? (
+                <section className="marketplace-empty-state">
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>🔍</div>
+                  <h3>No listings match your selected filters.</h3>
+                  <p>Try clearing some filters or widening your price/expiry parameters to find fresh farm produce.</p>
+                  <button type="button" className="btn-action-buy" onClick={clearFilters} style={{ margin: "14px auto 0" }}>
+                    Clear Filters
+                  </button>
+                </section>
+              ) : (
+                <section className="panel farmer-listings">
+                  {filteredMarketplaceListings.map(item => {
+                    const km = distanceKm(customerLocation?.lat, customerLocation?.lng, item.latitude || item.farmerLat, item.longitude || item.farmerLng)
                     const isOwner = item.farmerId === farmerId || (profile?.phone && item.farmerPhone && String(item.farmerPhone).replace(/\D/g, "") === String(profile.phone).replace(/\D/g, ""))
                     return (
                       <article className="listing-card" key={item.id}>
                         {item.image && (
                           <div className="listing-photo-thumb-container">
-                            <div className="listing-photo-thumb">
+                            <div
+                              className="listing-photo-thumb"
+                              onClick={() => { setBuyItem(item); setBuyQuantity("") }}
+                              style={{ cursor: "pointer" }}
+                              title={`Click to view/request ${item.crop}`}
+                            >
                               <img
                                 src={item.image}
                                 alt={item.crop}
@@ -1318,24 +2557,73 @@ function App() {
                             )}
                           </div>
                         )}
-                        <div>
+                        <div
+                          onClick={() => { setBuyItem(item); setBuyQuantity("") }}
+                          style={{ cursor: "pointer" }}
+                          title={`Click to view/request ${item.crop}`}
+                        >
                           <small>{t("crop")}</small>
                           <b>{item.crop}</b>
                           <span>{item.variety || "Variety not specified"}</span>
+                          {(item.category || getCategoryForCrop(item.crop)) && (
+                            <span style={{ fontSize: "0.82em", color: "#326c42", fontWeight: 600 }}>
+                              🏷️ {item.category || getCategoryForCrop(item.crop)}
+                            </span>
+                          )}
+                          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
+                            {item.grade && <span className="badge-grade">Grade: {item.grade}</span>}
+                            {item.organic && <span className="badge-organic">{item.organic}</span>}
+                            {item.productionMethod && <span className="badge-packaging">🌱 {item.productionMethod}</span>}
+                            {item.packaging && <span className="badge-packaging">📦 {item.packaging}</span>}
+                          </div>
                         </div>
                         <div>
                           <small>{t("available")}</small>
                           <b>{item.quantity} {item.unit}</b>
-                          <span>{item.date || "Ready date not specified"}</span>
+                          {item.minOrder && (
+                            <span style={{ fontSize: "0.8em", color: "#617163" }}>
+                              Min Order: {item.minOrder} {item.unit}
+                            </span>
+                          )}
+                          {item.harvestDate && (
+                            <span style={{ fontSize: "0.8em", color: "#556b5b" }}>
+                              Harvested: {item.harvestDate}
+                            </span>
+                          )}
+                          {item.availableFrom && (
+                            <span style={{ fontSize: "0.8em", color: "#556b5b" }}>
+                              Ready: {item.availableFrom}
+                            </span>
+                          )}
+                          <span style={{ fontSize: "0.82em", fontWeight: 500 }}>
+                            {item.expiryDate || item.date ? `Until: ${item.expiryDate || item.date}` : "Date not specified"}
+                          </span>
                         </div>
                         <div>
                           <small>{t("askingPrice")}</small>
                           <b>₹{item.price} / {item.unit}</b>
                           <span>Listed by {item.farmerName}</span>
+                          <div style={{ marginTop: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                            {item.deliveryAvailable && (
+                              <span className="badge-delivery">
+                                🚚 Delivery {item.deliveryRadius ? `(${item.deliveryRadius} km)` : "available"}
+                              </span>
+                            )}
+                            {item.pickupAvailable && (
+                              <span className="badge-delivery" style={{ background: "#e8f0fe", color: "#1967d2" }}>
+                                📍 Farm pickup
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div>
                           <small>{t("farmerPickup")}</small>
                           <b>{item.address}</b>
+                          {(item.village || item.city || item.district || item.state) && (
+                            <span style={{ display: "block", fontSize: "0.85em", color: "#556b5b", marginTop: 2 }}>
+                              {[item.village, item.city, item.district, item.state].filter(Boolean).join(", ")}
+                            </span>
+                          )}
                           <span>{contactPhone(item) ? "📞 " + contactPhone(item) : "Contact details unavailable"}</span>
                           {km !== null && <span>{formatDistance(km)}</span>}
                           <div className="listing-actions">
@@ -1374,25 +2662,33 @@ function App() {
                               <a href={routeUrl(item)} target="_blank" rel="noopener noreferrer" className="btn-action-link">🗺️ {t("bestRoute")} ↗</a>
                             )}
                             {(role === "Farmer" || isOwner) && (
-                              <button
-                                type="button"
-                                className="btn-action-delete"
-                                title="Delete this listing"
-                                onClick={() => deleteListing(item.id, item.crop)}
-                              >
-                                🗑️ {t("delete")}
-                              </button>
+                              <>
+                                <button
+                                  type="button"
+                                  className="btn-action-edit"
+                                  title="Edit this listing"
+                                  onClick={() => {
+                                    setPage("Sell")
+                                    startEditListing(item)
+                                  }}
+                                >
+                                  ✏️ {t("edit") || "Edit"}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn-action-delete"
+                                  title="Delete this listing"
+                                  onClick={() => deleteListing(item.id, item.crop)}
+                                >
+                                  🗑️ {t("delete")}
+                                </button>
+                              </>
                             )}
                           </div>
                         </div>
                       </article>
                     )
                   })}
-                </section>
-              ) : (
-                <section className="panel no-demo">
-                  <h3>No farmer listings yet</h3>
-                  <p>Once a farmer adds a crop, it will appear here for customers.</p>
                 </section>
               )}
               {buyItem && (
@@ -1624,107 +2920,695 @@ function App() {
 
               {!listed && (
                 <section className="panel form-panel">
-                  <h3>Add a crop for sale</h3>
-                  <p>Enter the details buyers need to understand what is available, and take a real photo using your camera.</p>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
+                    <div>
+                      <h3>{editingListingId ? "Edit crop listing" : "Add a crop for sale"}</h3>
+                      <p>
+                        {editingListingId
+                          ? "Update your produce details, quantity, price, or pickup location."
+                          : "Enter the details buyers need to understand what is available, and take a real photo using your camera."}
+                      </p>
+                    </div>
+                    {editingListingId && (
+                      <button
+                        type="button"
+                        className="btn-cancel-edit"
+                        onClick={cancelEditListing}
+                      >
+                        ✕ Cancel edit
+                      </button>
+                    )}
+                  </div>
+
                   <form
+                    key={editingListingId || "new"}
                     onSubmit={async e => {
                       e.preventDefault()
                       setListingError("")
+
+                      const finalCrop = formCrop.trim()
+                      if (!finalCrop) {
+                        setListingError("Please specify the crop / commodity name.")
+                        return
+                      }
+
+                      const numQuantity = Number(formQuantity)
+                      if (!Number.isFinite(numQuantity) || numQuantity <= 0) {
+                        setListingError("Available quantity must be a positive number greater than 0.")
+                        return
+                      }
+
+                      const numPrice = Number(formPrice)
+                      if (!Number.isFinite(numPrice) || numPrice <= 0) {
+                        setListingError("Asking price must be a positive number greater than 0.")
+                        return
+                      }
+
+                      if (formMinOrder !== "" && (Number(formMinOrder) < 0 || isNaN(Number(formMinOrder)))) {
+                        setListingError("Minimum order quantity must be a valid non-negative number.")
+                        return
+                      }
+
+                      // Date validations
+                      if (formHarvestDate && formExpiryDate && formExpiryDate < formHarvestDate) {
+                        setListingError("Expiry / available-until date cannot be earlier than the harvest date.")
+                        return
+                      }
+                      if (formAvailableFrom && formExpiryDate && formExpiryDate < formAvailableFrom) {
+                        setListingError("Expiry / available-until date cannot be earlier than the ready / available-from date.")
+                        return
+                      }
+
+                      const finalAddress = (formLocation.address || "").trim()
+                      if (!finalAddress) {
+                        setListingError("Please provide a pickup address for your listing.")
+                        return
+                      }
+
                       setListingLoading(true)
-                      const form = e.currentTarget
-                      const data = Object.fromEntries(new FormData(form))
-                      const saveListing = async coords => {
-                        const item = {
-                          ...data,
-                          image: cropImage || "",
-                          farmerId,
-                          farmerName: profile?.name || "Farmer",
-                          farmerPhone: profile?.phone || "",
-                          farmerLocation: profile?.location || "",
-                          farmerDistrict: profile?.district || "",
-                          farmerState: profile?.state || "",
-                          farmerLat: coords?.lat || "",
-                          farmerLng: coords?.lng || ""
-                        }
-                        try {
+
+                      const finalVariety = formVariety === "__custom__"
+                        ? formCustomVariety.trim()
+                        : (formVariety.trim() || formCustomVariety.trim() || "")
+
+                      const finalVillage = (formLocation.village || "").trim()
+                      const finalCity = (formLocation.city || "").trim()
+                      const finalDistrict = (formLocation.district || profile?.district || "").trim()
+                      const finalState = (formLocation.state || profile?.state || "").trim()
+                      const finalPincode = (formLocation.pincode || "").trim()
+                      const finalLat = String(formLocation.latitude || "").trim()
+                      const finalLng = String(formLocation.longitude || "").trim()
+
+                      const payload = {
+                        crop: finalCrop,
+                        category: formCategory.trim() || getCategoryForCrop(finalCrop),
+                        variety: finalVariety,
+                        grade: formGrade.trim(),
+                        organic: formOrganic.trim(),
+                        productionMethod: formProductionMethod.trim(),
+                        packaging: formPackaging.trim(),
+                        minOrder: formMinOrder.trim(),
+                        quantity: String(numQuantity),
+                        unit: formUnit.trim(),
+                        price: String(numPrice),
+                        priceUnit: formUnit.trim(),
+                        harvestDate: formHarvestDate.trim(),
+                        availableFrom: formAvailableFrom.trim(),
+                        expiryDate: formExpiryDate.trim(),
+                        date: formExpiryDate.trim() || formAvailableFrom.trim() || formHarvestDate.trim(),
+                        notes: formNotes.trim(),
+                        description: formNotes.trim(),
+                        pickupAvailable: formPickup,
+                        deliveryAvailable: formDelivery,
+                        deliveryRadius: formDelivery ? String(formDeliveryRadius).trim() : "",
+                        address: finalAddress,
+                        village: finalVillage,
+                        locality: finalVillage,
+                        city: finalCity,
+                        district: finalDistrict,
+                        state: finalState,
+                        pincode: finalPincode,
+                        latitude: finalLat,
+                        longitude: finalLng,
+                        farmerLat: finalLat,
+                        farmerLng: finalLng,
+                        farmerDistrict: finalDistrict,
+                        farmerState: finalState,
+                        farmerLocation: finalAddress,
+                        image: cropImage || (editingListingId ? (listings.find(l => l.id === editingListingId)?.image || "") : ""),
+                        farmerId,
+                        farmerName: profile?.name || "Farmer",
+                        farmerPhone: profile?.phone || ""
+                      }
+
+                      try {
+                        if (editingListingId) {
+                          const response = await fetch(`/api/listings/${editingListingId}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                          })
+                          const result = await response.json()
+                          if (!response.ok) throw new Error(result.error || "Could not update listing.")
+                          setListings(prev => prev.map(item => item.id === editingListingId ? result.listing : item))
+                          setListing(result.listing)
+                          setDeleteNotice(`Listing for "${result.listing.crop}" updated successfully.`)
+                          setTimeout(() => setDeleteNotice(""), 4500)
+                          setEditingListingId(null)
+                        } else {
                           const response = await fetch("/api/listings", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(item)
+                            body: JSON.stringify(payload)
                           })
                           const result = await response.json()
                           if (!response.ok) throw new Error(result.error || "Could not save listing.")
                           setListing(result.listing)
                           setListings(prev => [result.listing, ...prev])
                           setListed(true)
-                          setCropImage(null)
-                          form.reset()
-                        } catch (error) {
-                          setListingError(error.message)
-                        } finally {
-                          setListingLoading(false)
                         }
-                      }
-                      if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                          position => saveListing({ lat: position.coords.latitude, lng: position.coords.longitude }),
-                          () => saveListing(null)
-                        )
-                      } else {
-                        saveListing(null)
+                        cancelEditListing()
+                      } catch (error) {
+                        setListingError(error.message)
+                      } finally {
+                        setListingLoading(false)
                       }
                     }}
                   >
+                    {/* SECTION 1: PRODUCT IDENTITY */}
+                    <div className="form-section-banner">
+                      <b>🌾 1. Product Identity (AGMARKNET Official Catalogue)</b>
+                      <small>Select from 609 official Government commodities and their registered varieties</small>
+                    </div>
                     <div className="form-grid">
                       <label>
-                        Crop name
-                        <input name="crop" required placeholder="e.g. Ginger, Tomato" />
-                      </label>
-                      <label>
-                        Variety / grade
-                        <input name="variety" placeholder="e.g. Local · Grade A" />
-                      </label>
-                      <label>
-                        Available quantity
-                        <input name="quantity" type="number" min="1" required placeholder="250" />
-                      </label>
-                      <label>
-                        Unit
-                        <select name="unit">
-                          <option>kg</option>
-                          <option>quintal</option>
-                          <option>tonne</option>
-                          <option>crate</option>
+                        Category *
+                        <select
+                          value={formCategory}
+                          onChange={e => setFormCategory(e.target.value)}
+                        >
+                          {MARKETPLACE_CATEGORIES.filter(c => c !== "All Categories").map(cat => (
+                            <option key={cat} value={cat}>{cat}</option>
+                          ))}
                         </select>
                       </label>
+
                       <label>
-                        Your asking price (₹ / selected unit)
-                        <input name="price" min="1" step="0.01" required type="number" placeholder="32" />
-                      </label>
-                      <label>
-                        Harvest / ready date
-                        <input name="date" type="date" />
+                        Commodity / Crop *
+                        <input
+                          list="official-form-commodities-list"
+                          required
+                          value={formCrop}
+                          onChange={e => {
+                            const val = e.target.value
+                            setFormCrop(val)
+                            const match = allOfficialCommodities.find(c =>
+                              (c.name || "").toLowerCase() === val.trim().toLowerCase() ||
+                              (c.display_name && c.display_name.toLowerCase() === val.trim().toLowerCase()) ||
+                              (c.agmarknet_name && c.agmarknet_name.toLowerCase() === val.trim().toLowerCase())
+                            )
+                            if (match) {
+                              if (match.category || match.group_name) {
+                                setFormCategory(match.category || match.group_name)
+                              }
+                              setFormVariety("")
+                              setFormCustomVariety("")
+                              if (match.grades && match.grades.length > 0) {
+                                setFormGrade(match.grades[0])
+                              }
+                            }
+                          }}
+                          placeholder="Type or select commodity (e.g. Rice, Tomato, Cashewnuts)..."
+                        />
+                        <datalist id="official-form-commodities-list">
+                          {allOfficialCommodities
+                            .filter(c => !formCategory || formCategory === "All Categories" || (c.category || c.group_name || "").toLowerCase() === formCategory.toLowerCase())
+                            .map(c => (
+                              <option key={c.id || c.name} value={c.name}>
+                                {c.display_name && c.display_name !== c.name ? `${c.display_name} (${c.category || c.group_name})` : (c.category || c.group_name)}
+                              </option>
+                            ))}
+                        </datalist>
                       </label>
 
-                      {/* Camera Photo Component */}
-                      <CropCameraCapture
-                        image={cropImage}
-                        onCapture={dataUrl => setCropImage(dataUrl)}
-                        onClear={() => setCropImage(null)}
-                      />
+                      <label className="wide">
+                        Variety
+                        {registeredFormVarieties.length > 0 ? (
+                          <div className="variety-selection-group">
+                            <select
+                              value={formVariety}
+                              onChange={e => {
+                                setFormVariety(e.target.value)
+                                if (e.target.value !== "__custom__") {
+                                  setFormCustomVariety("")
+                                }
+                              }}
+                            >
+                              <option value="">-- Select official registered variety ({registeredFormVarieties.length} available) --</option>
+                              {registeredFormVarieties.map(v => (
+                                <option key={v} value={v}>{v}</option>
+                              ))}
+                              <option value="__custom__">➕ Other / Custom variety...</option>
+                            </select>
 
-                      <label className="wide">
-                        Pickup address
-                        <input name="address" required placeholder="Village, district, state" />
+                            {(formVariety === "__custom__" || (formVariety && !registeredFormVarieties.includes(formVariety))) && (
+                              <input
+                                type="text"
+                                placeholder="Enter custom variety name..."
+                                value={formCustomVariety || (formVariety !== "__custom__" ? formVariety : "")}
+                                onChange={e => setFormCustomVariety(e.target.value)}
+                                style={{ marginTop: 6 }}
+                              />
+                            )}
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            placeholder="e.g. Local, Hybrid, Desi..."
+                            value={formVariety}
+                            onChange={e => setFormVariety(e.target.value)}
+                          />
+                        )}
                       </label>
-                      <label className="wide">
-                        Notes for buyers
-                        <textarea name="notes" placeholder="Freshness, delivery, minimum order…" />
+
+                      <label>
+                        Quality / Grade
+                        <select
+                          value={formGrade}
+                          onChange={e => setFormGrade(e.target.value)}
+                        >
+                          <option value="FAQ">FAQ (Fair Average Quality)</option>
+                          <option value="Grade A">Grade A (Superior)</option>
+                          <option value="Grade B">Grade B (Standard)</option>
+                          <option value="Grade C">Grade C (Commercial)</option>
+                          <option value="Premium">Premium</option>
+                          <option value="Export Quality">Export Quality</option>
+                          <option value="Local">Local</option>
+                          {selectedFormCommodityObj?.grades &&
+                            selectedFormCommodityObj.grades
+                              .filter(g => !["FAQ", "Grade A", "Grade B", "Grade C", "Premium", "Export Quality", "Local"].includes(g))
+                              .map(g => (
+                                <option key={g} value={g}>{g}</option>
+                              ))}
+                        </select>
                       </label>
                     </div>
+
+                    {/* SECTION 2: QUANTITY & PRICING */}
+                    <div className="form-section-banner">
+                      <b>⚖️ 2. Quantity & Pricing</b>
+                      <small>Specify quantity, unit of measurement, and wholesale asking price</small>
+                    </div>
+                    <div className="form-grid">
+                      <label>
+                        Available Quantity *
+                        <input
+                          type="number"
+                          min="0.01"
+                          step="any"
+                          required
+                          value={formQuantity}
+                          onChange={e => setFormQuantity(e.target.value)}
+                          placeholder="e.g. 500"
+                        />
+                      </label>
+
+                      <label>
+                        Unit of Measurement *
+                        <select
+                          value={formUnit}
+                          onChange={e => setFormUnit(e.target.value)}
+                        >
+                          <option value="kg">kg (Kilogram)</option>
+                          <option value="quintal">quintal (100 kg)</option>
+                          <option value="tonne">tonne (1,000 kg)</option>
+                          <option value="crate">crate</option>
+                          <option value="bag">bag</option>
+                          <option value="box">box</option>
+                        </select>
+                      </label>
+
+                      <label>
+                        Asking Price (₹ / {formUnit}) *
+                        <input
+                          type="number"
+                          min="0.01"
+                          step="any"
+                          required
+                          value={formPrice}
+                          onChange={e => setFormPrice(e.target.value)}
+                          placeholder="e.g. 35"
+                        />
+                      </label>
+
+                      <label>
+                        Minimum Order Quantity (Optional)
+                        <input
+                          type="number"
+                          min="0"
+                          step="any"
+                          value={formMinOrder}
+                          onChange={e => setFormMinOrder(e.target.value)}
+                          placeholder={`e.g. 50 ${formUnit}`}
+                        />
+                      </label>
+                    </div>
+
+                    {/* SECTION 3: HARVEST & AVAILABILITY DATES */}
+                    <div className="form-section-banner">
+                      <b>📅 3. Harvest & Availability Dates</b>
+                      <small>Separate harvest date from shelf-life / expiry to help buyers gauge freshness</small>
+                    </div>
+                    <div className="form-grid">
+                      <label>
+                        Harvest Date (optional)
+                        <input
+                          type="date"
+                          value={formHarvestDate}
+                          onChange={e => setFormHarvestDate(e.target.value)}
+                        />
+                        <small style={{ color: "#667868", marginTop: 3 }}>When crop was harvested from field</small>
+                      </label>
+
+                      <label>
+                        Ready / Available-From Date (optional)
+                        <input
+                          type="date"
+                          value={formAvailableFrom}
+                          onChange={e => setFormAvailableFrom(e.target.value)}
+                        />
+                        <small style={{ color: "#667868", marginTop: 3 }}>Date produce is ready for pickup or dispatch</small>
+                      </label>
+
+                      <label>
+                        Expiry / Available-Until Date *
+                        <input
+                          type="date"
+                          required
+                          value={formExpiryDate}
+                          onChange={e => setFormExpiryDate(e.target.value)}
+                        />
+                        <small style={{ color: "#667868", marginTop: 3 }}>Shelf-life or last day available for sale</small>
+                      </label>
+                    </div>
+
+                    {/* SECTION 4: QUALITY, ORGANIC & PACKAGING DETAILS */}
+                    <div className="form-section-banner">
+                      <b>🌱 4. Quality, Organic & Packaging Details (Optional)</b>
+                      <small>Highlight your farming practices and packaging</small>
+                    </div>
+                    <div className="form-grid">
+                      <label>
+                        Organic Status
+                        <select
+                          value={formOrganic}
+                          onChange={e => setFormOrganic(e.target.value)}
+                        >
+                          <option value="Conventional">Conventional</option>
+                          <option value="Organic">Organic (No chemicals)</option>
+                          <option value="Certified Organic">Certified Organic</option>
+                          <option value="Natural / Desi">Natural / Desi / Jaivik</option>
+                        </select>
+                      </label>
+
+                      <label>
+                        Production Method
+                        <select
+                          value={formProductionMethod}
+                          onChange={e => setFormProductionMethod(e.target.value)}
+                        >
+                          <option value="Open Field">Open Field</option>
+                          <option value="Greenhouse / Polyhouse">Greenhouse / Polyhouse</option>
+                          <option value="Hydroponic">Hydroponic</option>
+                          <option value="Shade Net">Shade Net</option>
+                          <option value="Traditional / Natural">Traditional / Natural</option>
+                        </select>
+                      </label>
+
+                      <label>
+                        Packaging Type
+                        <select
+                          value={formPackaging}
+                          onChange={e => setFormPackaging(e.target.value)}
+                        >
+                          <option value="Plastic Crates">Plastic Crates</option>
+                          <option value="Gunny Bags">Gunny Bags / Jute</option>
+                          <option value="Boxes / Cartons">Boxes / Cartons</option>
+                          <option value="Mesh Bags">Mesh Bags</option>
+                          <option value="Loose / Bulk">Loose / Bulk</option>
+                          <option value="Vacuum Pack">Vacuum Pack</option>
+                        </select>
+                      </label>
+                    </div>
+
+                    {/* SECTION 5: DELIVERY & LOGISTICS */}
+                    <div className="form-section-banner">
+                      <b>🚚 5. Delivery & Logistics Options</b>
+                      <small>Indicate whether buyers can pick up or if you offer delivery</small>
+                    </div>
+                    <div className="delivery-options-card wide">
+                      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center" }}>
+                        <label className="checkbox-field">
+                          <input
+                            type="checkbox"
+                            checked={formPickup}
+                            onChange={e => setFormPickup(e.target.checked)}
+                          />
+                          <span>📍 Farm Pickup Available</span>
+                        </label>
+                        <label className="checkbox-field">
+                          <input
+                            type="checkbox"
+                            checked={formDelivery}
+                            onChange={e => setFormDelivery(e.target.checked)}
+                          />
+                          <span>🚚 Delivery to Buyer Available</span>
+                        </label>
+                      </div>
+                      {formDelivery && (
+                        <div style={{ marginTop: 12, maxWidth: 300 }}>
+                          <label>
+                            Delivery Radius (km)
+                            <input
+                              type="number"
+                              min="1"
+                              placeholder="e.g. 25"
+                              value={formDeliveryRadius}
+                              onChange={e => setFormDeliveryRadius(e.target.value)}
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* SECTION 6: PICKUP LOCATION & ADDRESS */}
+                    <div className="form-section-banner">
+                      <b>📍 6. Pickup Location & Address</b>
+                      <small>Auto-detect via GPS or select your town/district below to automatically fill all fields</small>
+                    </div>
+                    <div className="location-section wide">
+                      <div className="location-header">
+                        <div>
+                          <h4>📍 Farmer Pickup Address</h4>
+                          <p>Provide your pickup address so buyers know where to collect produce.</p>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-locate"
+                          disabled={locating}
+                          onClick={handleGetCurrentLocation}
+                        >
+                          {locating ? "⏳ Detecting location…" : "📍 Use My Current Location"}
+                        </button>
+                      </div>
+
+                      {locationStatus && (
+                        <div className={`location-status ${locationStatus.type}`}>
+                          {locationStatus.message}
+                        </div>
+                      )}
+
+                      {/* Quick address selection / search */}
+                      <div className="address-search-bar">
+                        <label style={{ fontSize: 10, color: "#637066", display: "grid", gap: 6, fontWeight: 400 }}>
+                          Or search & select town / district manually (if GPS is unavailable):
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <input
+                              type="text"
+                              value={addressSearchQuery}
+                              onChange={e => {
+                                const val = e.target.value
+                                setAddressSearchQuery(val)
+                                handleSearchAddress(val)
+                              }}
+                              placeholder="🔍 Type city, town, district, or PIN (e.g. Madanapalle, Chittoor, Karnal)..."
+                            />
+                            {addressSearchQuery && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setAddressSearchQuery("")
+                                  setAddressSearchResults([])
+                                }}
+                                style={{
+                                  border: "1px solid #dce4da",
+                                  background: "#fff",
+                                  borderRadius: 5,
+                                  padding: "0 10px",
+                                  fontSize: 11,
+                                  color: "#728075",
+                                  cursor: "pointer"
+                                }}
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        </label>
+
+                        {searchingAddress && (
+                          <small style={{ display: "block", color: "#687a6c", fontSize: 10, marginTop: 4 }}>
+                            Searching locations…
+                          </small>
+                        )}
+
+                        {addressSearchResults.length > 0 && (
+                          <div style={{
+                            position: "absolute",
+                            top: "100%",
+                            left: 0,
+                            right: 0,
+                            background: "white",
+                            border: "1px solid #d8e3d6",
+                            borderRadius: 6,
+                            boxShadow: "0 8px 22px rgba(36, 52, 43, 0.14)",
+                            zIndex: 30,
+                            maxHeight: 220,
+                            overflowY: "auto",
+                            marginTop: 4
+                          }}>
+                            {addressSearchResults.map((item, idx) => (
+                              <div
+                                key={idx}
+                                className="address-search-item"
+                                onClick={() => {
+                                  applySelectedAddress(item)
+                                  setAddressSearchQuery(`${item.city}, ${item.district}, ${item.state}`)
+                                  setAddressSearchResults([])
+                                }}
+                                style={{
+                                  padding: "9px 12px",
+                                  cursor: "pointer",
+                                  borderBottom: idx === addressSearchResults.length - 1 ? "none" : "1px solid #f0f4ee",
+                                  fontSize: 11,
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center"
+                                }}
+                              >
+                                <div>
+                                  <b style={{ color: "#2d6f43", fontSize: 11, fontWeight: 600 }}>{item.city}</b>
+                                  <span style={{ color: "#687a6c", fontSize: 10, marginLeft: 6 }}>
+                                    {item.district ? `${item.district}, ` : ""}{item.state} {item.pincode ? `(${item.pincode})` : ""}
+                                  </span>
+                                </div>
+                                <span style={{ fontSize: 10, color: "#2d6f43", fontWeight: 600 }}>Select ➔</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="location-grid">
+                        <label className="wide">
+                          Full Address *
+                          <input
+                            required
+                            value={formLocation.address}
+                            onChange={e => setFormLocation(prev => ({ ...prev, address: e.target.value }))}
+                            placeholder="Farm / Village name, Street / Landmark, District, State"
+                          />
+                        </label>
+
+                        <label>
+                          Village / Locality
+                          <input
+                            value={formLocation.village}
+                            onChange={e => setFormLocation(prev => ({ ...prev, village: e.target.value }))}
+                            placeholder="e.g. Venkatapuram"
+                          />
+                        </label>
+
+                        <label>
+                          City / Town
+                          <input
+                            value={formLocation.city}
+                            onChange={e => setFormLocation(prev => ({ ...prev, city: e.target.value }))}
+                            placeholder="e.g. Madanapalle"
+                          />
+                        </label>
+
+                        <label>
+                          District
+                          <input
+                            value={formLocation.district}
+                            onChange={e => setFormLocation(prev => ({ ...prev, district: e.target.value }))}
+                            placeholder="e.g. Chittoor"
+                          />
+                        </label>
+
+                        <label>
+                          State
+                          <input
+                            value={formLocation.state}
+                            onChange={e => setFormLocation(prev => ({ ...prev, state: e.target.value }))}
+                            placeholder="e.g. Andhra Pradesh"
+                          />
+                        </label>
+
+                        <label>
+                          PIN Code
+                          <input
+                            value={formLocation.pincode}
+                            onChange={e => setFormLocation(prev => ({ ...prev, pincode: e.target.value }))}
+                            placeholder="e.g. 517247"
+                          />
+                        </label>
+
+                        <label>
+                          Latitude
+                          <input
+                            value={formLocation.latitude}
+                            onChange={e => setFormLocation(prev => ({ ...prev, latitude: e.target.value }))}
+                            placeholder="e.g. 13.5560"
+                          />
+                        </label>
+
+                        <label>
+                          Longitude
+                          <input
+                            value={formLocation.longitude}
+                            onChange={e => setFormLocation(prev => ({ ...prev, longitude: e.target.value }))}
+                            placeholder="e.g. 78.5010"
+                          />
+                        </label>
+                      </div>
+
+                      {formLocation.latitude && formLocation.longitude && (
+                        <small style={{ display: "block", color: "#6e7e71", marginTop: 8, fontSize: 10 }}>
+                          📍 Coordinates recorded: {Number(formLocation.latitude).toFixed(4)}, {Number(formLocation.longitude).toFixed(4)}
+                        </small>
+                      )}
+                    </div>
+
+                    {/* SECTION 7: PHOTOS & BUYER NOTES */}
+                    <div className="form-section-banner">
+                      <b>📷 7. Harvest Photo & Buyer Notes</b>
+                      <small>Add real photo of harvest and extra notes for buyers</small>
+                    </div>
+                    <CropCameraCapture
+                      image={cropImage}
+                      onCapture={dataUrl => setCropImage(dataUrl)}
+                      onClear={() => setCropImage(null)}
+                    />
+
+                    <div className="buyer-notes-wrap">
+                      <label>
+                        Notes for buyers (Optional)
+                        <textarea
+                          value={formNotes}
+                          onChange={e => setFormNotes(e.target.value)}
+                          placeholder="Add extra details about crop quality, harvest freshness, packaging specifics, or pickup instructions..."
+                          rows={3}
+                        />
+                      </label>
+                    </div>
+
                     <div className="form-foot">
-                      <small>Listing with your photo will be saved to the Farmezy backend and visible to customers.</small>
-                      <button disabled={listingLoading}>{listingLoading ? "Saving…" : "Save crop listing →"}</button>
+                      <small>Listing with all attributes will be saved to Farmezy backend and immediately searchable by buyers.</small>
+                      <button disabled={listingLoading}>
+                        {listingLoading ? "Saving…" : (editingListingId ? "Update crop listing →" : "Save crop listing →")}
+                      </button>
                     </div>
                   </form>
                 </section>
@@ -1795,22 +3679,75 @@ function App() {
                           <small>CROP</small>
                           <b>{item.crop}</b>
                           <span>{item.variety || "Variety not specified"}</span>
+                          {(item.category || getCategoryForCrop(item.crop)) && (
+                            <span style={{ fontSize: "0.82em", color: "#326c42", fontWeight: 600 }}>
+                              🏷️ {item.category || getCategoryForCrop(item.crop)}
+                            </span>
+                          )}
+                          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 4 }}>
+                            {item.grade && <span className="badge-grade">Grade: {item.grade}</span>}
+                            {item.organic && <span className="badge-organic">{item.organic}</span>}
+                            {item.productionMethod && <span className="badge-packaging">🌱 {item.productionMethod}</span>}
+                            {item.packaging && <span className="badge-packaging">📦 {item.packaging}</span>}
+                          </div>
                         </div>
                         <div>
                           <small>AVAILABLE</small>
                           <b>{item.quantity} {item.unit}</b>
-                          <span>{item.date || "Ready date not specified"}</span>
+                          {item.minOrder && (
+                            <span style={{ fontSize: "0.8em", color: "#617163" }}>
+                              Min Order: {item.minOrder} {item.unit}
+                            </span>
+                          )}
+                          {item.harvestDate && (
+                            <span style={{ fontSize: "0.8em", color: "#556b5b" }}>
+                              Harvested: {item.harvestDate}
+                            </span>
+                          )}
+                          {item.availableFrom && (
+                            <span style={{ fontSize: "0.8em", color: "#556b5b" }}>
+                              Ready: {item.availableFrom}
+                            </span>
+                          )}
+                          <span style={{ fontSize: "0.82em", fontWeight: 500 }}>
+                            {item.expiryDate || item.date ? `Until: ${item.expiryDate || item.date}` : "Date not specified"}
+                            {isListingExpired(item.expiryDate || item.date) && <span className="expired-badge">Expired</span>}
+                          </span>
                         </div>
                         <div>
                           <small>ASKING PRICE</small>
                           <b>₹{item.price} / {item.unit}</b>
                           <span>{item.farmerName ? "Farmer: " + item.farmerName : "Farmer set price"}</span>
+                          <div style={{ marginTop: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
+                            {item.deliveryAvailable && (
+                              <span className="badge-delivery">
+                                🚚 Delivery {item.deliveryRadius ? `(${item.deliveryRadius} km)` : "available"}
+                              </span>
+                            )}
+                            {item.pickupAvailable && (
+                              <span className="badge-delivery" style={{ background: "#e8f0fe", color: "#1967d2" }}>
+                                📍 Farm pickup
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div>
                           <small>PICKUP</small>
                           <b>{item.address}</b>
+                          {(item.village || item.city || item.district || item.state) && (
+                            <span style={{ display: "block", fontSize: "0.85em", color: "#556b5b", marginTop: 2 }}>
+                              {[item.village, item.city, item.district, item.state].filter(Boolean).join(", ")}
+                            </span>
+                          )}
                           <span>{item.notes || "No additional notes"}</span>
                           <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
+                            <button
+                              type="button"
+                              className="btn-edit-listing"
+                              onClick={() => startEditListing(item)}
+                            >
+                              ✏️ Edit listing
+                            </button>
                             <button
                               type="button"
                               className="btn-delete"
@@ -2218,39 +4155,54 @@ function Title({ eyebrow, title, sub }) {
   )
 }
 
-const commodityAliases = [
-  { name: "Tomato", aliases: ["tomato", "tomatoes", "tamatar", "thakkali", "tamata"] },
-  { name: "Onion", aliases: ["onion", "onions", "pyaz", "vengayam", "ullipayalu", "eerulli"] },
-  { name: "Potato", aliases: ["potato", "potatoes", "aloo", "urulakizhangu", "aaloo", "batata"] },
-  { name: "Ginger", aliases: ["ginger", "adrak", "inji", "allam", "shunti"] },
-  { name: "Ladies Finger", aliases: ["ladies finger", "lady finger", "lady s finger", "bhindi", "okra", "bhendi", "vendakkai"] },
-  { name: "Garlic", aliases: ["garlic", "lehsun", "poondu", "vellulli", "bellulli"] },
-  { name: "Green Chilli", aliases: ["green chilli", "green chili", "chilli", "chili", "mirchi", "milagai", "pachi mirapa"] },
-  { name: "Drumstick", aliases: ["drumstick", "moringa", "sahjan", "murungakkai", "munakkaya"] },
-  { name: "Brinjal", aliases: ["brinjal", "eggplant", "baingan", "kathirikai", "vankaya", "badane"] },
-  { name: "Cabbage", aliases: ["cabbage", "patta gobhi", "gobhi", "muttaikose", "kose"] },
-  { name: "Cauliflower", aliases: ["cauliflower", "phool gobhi", "gobi", "knool"] },
-  { name: "Carrot", aliases: ["carrot", "gajar"] },
-  { name: "Cucumber", aliases: ["cucumber", "kheera", "kakdi"] },
-  { name: "Capsicum", aliases: ["capsicum", "shimla mirch", "bell pepper"] },
-  { name: "Spinach", aliases: ["spinach", "palak", "pasalai keerai"] },
-  { name: "Lemon", aliases: ["lemon", "lime", "nimbu", "elumichai", "nimmakaya"] },
-  { name: "Beetroot", aliases: ["beetroot", "chukandar"] },
-  { name: "Radish", aliases: ["radish", "mooli", "mullangi"] },
-  { name: "Coriander", aliases: ["coriander", "dhania", "kothamalli", "kothimeera"] },
-  { name: "Coconut", aliases: ["coconut", "nariyal", "thengai", "kobbari"] },
-  { name: "Apple", aliases: ["apple", "seb"] },
-  { name: "Banana", aliases: ["banana", "kela", "vazhaipazham", "arati pandu"] },
-  { name: "Mango", aliases: ["mango", "aam", "mambazham", "mamidi"] },
-  { name: "Wheat", aliases: ["wheat", "gehun", "godhumai", "godhumalu"] },
-  { name: "Rice", aliases: ["rice", "chawal", "arisi", "biyyam", "akki", "paddy"] },
-  { name: "Ridgeguard(Tori)", aliases: ["ridge gourd", "ridgeguard", "ridgegourd", "tori", "beerakaya", "hirekayi"] },
-  { name: "Knool Khol", aliases: ["knool khol", "kohlrabi", "nolkol", "navalkol"] },
-  { name: "Bengal Gram(Gram)(Whole)", aliases: ["bengal gram", "chana", "gram", "kadale"] },
-  { name: "Gur(Jaggery)", aliases: ["jaggery", "gur", "bella", "bellam"] },
-  { name: "Arecanut(Betelnut/Supari)", aliases: ["arecanut", "supari", "adike", "betelnut"] },
-  { name: "Elephant Yam (Suran)", aliases: ["elephant yam", "suran", "yam", "suvarna gedde", "kanda"] }
-]
+// Build comprehensive chatbot commodity matcher from the complete 609 AGMARKNET catalogue:
+// 1. All 609 official AGMARKNET catalogue commodities, display names and trade aliases
+// 2. Secondary layer: Multilingual & regional aliases from commodity-master.json
+const commodityAliases = (() => {
+  const map = new Map()
+
+  // First add all 609 AGMARKNET commodities and their official aliases
+  for (const item of agmarknetCatalogue?.commodities || []) {
+    const canonicalName = item.name
+    const key = canonicalName.toLowerCase()
+    const aliasSet = new Set([key])
+    if (item.agmarknet_name) aliasSet.add(item.agmarknet_name.toLowerCase())
+    if (item.display_name) aliasSet.add(item.display_name.toLowerCase())
+    if (Array.isArray(item.aliases)) {
+      for (const a of item.aliases) aliasSet.add(String(a).toLowerCase())
+    }
+    map.set(key, {
+      name: canonicalName,
+      aliases: Array.from(aliasSet)
+    })
+  }
+
+  // Secondary layer: augment with multilingual & trade aliases from commodity-master.json
+  for (const item of commodityMaster || []) {
+    const target = (agmarknetCatalogue?.commodities || []).find(
+      c => c.name.toLowerCase() === item.commodity.toLowerCase() ||
+           c.name.toLowerCase().replace(/[^a-z0-9]/g, "") === item.commodity.toLowerCase().replace(/[^a-z0-9]/g, "") ||
+           (item.agmarknet_name && c.name.toLowerCase() === item.agmarknet_name.toLowerCase())
+    )
+    const targetName = target ? target.name : item.commodity
+    const key = targetName.toLowerCase()
+    const existing = map.get(key) || { name: targetName, aliases: [key] }
+    const combinedAliases = new Set(existing.aliases)
+    combinedAliases.add(item.commodity.toLowerCase())
+    if (item.agmarknet_name) combinedAliases.add(item.agmarknet_name.toLowerCase())
+    if (Array.isArray(item.aliases)) {
+      for (const a of item.aliases) combinedAliases.add(String(a).toLowerCase())
+    }
+    existing.aliases = Array.from(combinedAliases)
+    map.set(key, existing)
+  }
+
+  return Array.from(map.values()).sort((a, b) => {
+    const maxA = Math.max(...a.aliases.map(x => x.length))
+    const maxB = Math.max(...b.aliases.map(x => x.length))
+    return maxB - maxA
+  })
+})()
 
 const stateAliases = [
   { name: "Andhra Pradesh", aliases: ["andhra pradesh", "andhrapradesh", "andhra", "ap"] },
@@ -2276,6 +4228,25 @@ function findCommodity(message) {
   for (const item of commodityAliases) {
     for (const alias of item.aliases) {
       if (clean.includes(" " + alias + " ")) return item.name
+    }
+  }
+  return null
+}
+
+function findVariety(message, commodityName) {
+  if (!commodityName) return null
+  const clean = " " + message.toLowerCase().replace(/[^a-z0-9]/g, " ") + " "
+  const cmdt = (agmarknetCatalogue?.commodities || []).find(
+    c => c.name.toLowerCase() === commodityName.toLowerCase() ||
+         (c.agmarknet_name && c.agmarknet_name.toLowerCase() === commodityName.toLowerCase())
+  )
+  if (!cmdt || !Array.isArray(cmdt.varieties)) return null
+  for (const v of cmdt.varieties) {
+    const vName = typeof v === "string" ? v : v.name
+    if (!vName || vName.length < 3 || /^(other|general|local|faq|standard|normal)$/i.test(vName)) continue
+    const vClean = vName.toLowerCase().replace(/[^a-z0-9]/g, " ")
+    if (clean.includes(" " + vClean + " ")) {
+      return vName
     }
   }
   return null
@@ -2323,14 +4294,17 @@ async function getOfficialPriceAnswer(question, profile) {
   }
 
   const commodity = findCommodity(question)
+  const variety = findVariety(question, commodity)
   const queryState = findState(question)
   const queryDistrict = findDistrict(question)
 
-  const state = queryState || profile?.state || "Karnataka"
+  const state = queryState || profile?.state || "All India"
   const district = queryDistrict || (queryState ? "" : (profile?.district || ""))
 
-  const params = new URLSearchParams({ limit: "50", state })
+  const params = new URLSearchParams({ limit: "50" })
+  if (state && state !== "All India") params.set("state", state)
   if (commodity) params.set("commodity", commodity)
+  if (variety) params.set("variety", variety)
   if (district) params.set("district", district)
 
   try {
@@ -2339,10 +4313,10 @@ async function getOfficialPriceAnswer(question, profile) {
     if (!response.ok) throw new Error(data.error || "Official prices service is unavailable.")
     const rows = Array.isArray(data.records) ? data.records : []
     if (!rows.length) {
-      return `AGMARKNET has no reported ${commodity || "vegetable"} records for ${district ? district + ", " : ""}${state} today. Try checking another state or district.`
+      return `No current AGMARKNET price available for ${variety ? variety + " " : ""}${commodity || "this commodity"}${district ? " in " + district : ""}${state && state !== "All India" ? ", " + state : ""}. This crop/variety is officially recognized in the Government AGMARKNET catalogue, but no APMC market reported active trading arrivals today.`
     }
     const record = rows[0]
-    return `Latest reported ${record.commodity} wholesale price: ₹${Number(record.modal_price).toLocaleString("en-IN")} per quintal (₹${(Number(record.modal_price) / 100).toFixed(1)}/kg) at ${record.market} APMC, ${record.district}, ${record.state} (Arrival date: ${record.arrival_date || "today"}).`
+    return `Latest reported ${record.commodity}${record.variety ? " (" + record.variety + ")" : ""} wholesale price: ₹${Number(record.modal_price).toLocaleString("en-IN")} per quintal (₹${(Number(record.modal_price) / 100).toFixed(1)}/kg) at ${record.market} APMC, ${record.district}, ${record.state} (Arrival date: ${record.arrival_date || "today"}).`
   } catch (error) {
     return "I couldn't retrieve the official price right now. " + error.message
   }

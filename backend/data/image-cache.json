@@ -498,7 +498,7 @@
       "photographer": "Secretlondon (Wikimedia Commons)",
       "link": "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg"
     },
-    "savedAt": 1793608419621
+    "savedAt": 1793634409273
   },
   "knool khol": {
     "data": {
@@ -543,7 +543,7 @@
       "photographer": "jetsun (Wikimedia Commons)",
       "link": "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg"
     },
-    "savedAt": 1793608419618
+    "savedAt": 1793634409269
   },
   "raddish": {
     "data": {
@@ -627,5 +627,14 @@
       "source": "unsplash"
     },
     "savedAt": 1793608128525
+  },
+  "ginger": {
+    "data": {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg",
+      "alt": "Fresh ginger rhizome (Zingiber officinale)",
+      "photographer": "Sanjay Acharya (Wikimedia Commons)",
+      "link": "https://commons.wikimedia.org/wiki/File:Fresh_ginger_rhizome_01.jpg"
+    },
+    "savedAt": 1793634409275
   }
 }

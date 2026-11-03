@@ -3,10 +3,10 @@
   "version": "2.0.0",
   "private": true,
   "type": "module",
+  "main": "server.js",
   "scripts": {
     "build": "npm --prefix frontend install && npm --prefix frontend run build",
-    "start": "node backend/server.js",
+    "start": "node server.js",
     "dev": "npm --prefix frontend run dev"
   }
 }
-

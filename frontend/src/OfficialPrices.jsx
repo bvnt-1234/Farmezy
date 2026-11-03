@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import agmarknetCatalogue from "../../backend/data/agmarknet-catalogue.json"
 
 const states = [
   "Andaman and Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh",
@@ -8,18 +9,31 @@ const states = [
   "Uttar Pradesh","Uttarakhand","West Bengal"
 ]
 
+const fallbackCategories = [
+  "Vegetables", "Fruits", "Flowers", "Others", "Forest Products",
+  "Drug and Narcotics", "Pulses", "Cereals", "Spices",
+  "Medicinal and Aromatic Plants", "Oil Seeds", "Live Stock,Poultry,Fisheries",
+  "Dry Fruits", "Oils and Fats", "Fibre Crops", "Beverages"
+]
+
 export default function OfficialPrices({ location, preview = false, onViewAll }) {
-  const defaultState = location?.state || "Karnataka"
-  const defaultDistrict = location?.district || ""
+  const defaultState = "All India"
+  const defaultDistrict = ""
 
   const [filters, setFilters] = useState(() => ({
     commodity: "",
+    variety: "",
+    query: "",
+    category: "",
     state: defaultState,
     district: defaultDistrict,
     market: ""
   }))
   const [applied, setApplied] = useState(() => ({
     commodity: "",
+    variety: "",
+    query: "",
+    category: "",
     state: defaultState,
     district: defaultDistrict,
     market: ""
@@ -35,6 +49,20 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   const [sessionDate, setSessionDate] = useState("")
   const [isLive, setIsLive] = useState(true)
   const [sourceInfo, setSourceInfo] = useState("")
+  const [dataSource, setDataSource] = useState(null)
+  const [commodityOptions, setCommodityOptions] = useState(() => {
+    if (Array.isArray(agmarknetCatalogue?.commodities)) {
+      return agmarknetCatalogue.commodities.map(c => ({
+        name: c.name,
+        category: c.category || c.group_name || "Others",
+        group_name: c.group_name || c.category || "Others",
+        id: c.id
+      }))
+    }
+    return []
+  })
+  const [categories, setCategories] = useState(fallbackCategories)
+  const [varieties, setVarieties] = useState([])
   const [cropImages, setCropImages] = useState({})
 
   // Update filters if location changes on profile
@@ -43,7 +71,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
       setFilters(prev => ({ ...prev, state: location.state, district: location.district || prev.district }))
       setApplied(prev => ({ ...prev, state: location.state, district: location.district || prev.district }))
     }
-  }, [location?.state, location?.district])
+  }, [location?.state, location?.district, applied.state])
 
   const fetchPage = useCallback(async (nextOffset, append) => {
     setLoading(true)
@@ -54,9 +82,12 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
     }
     try {
       const params = new URLSearchParams({ limit: "150", offset: String(nextOffset) })
-      if (applied.state) params.set("state", applied.state.trim())
+      if (applied.state && applied.state !== "All India") params.set("state", applied.state.trim())
       if (applied.district) params.set("district", applied.district.trim())
       if (applied.commodity) params.set("commodity", applied.commodity.trim())
+      if (applied.variety) params.set("variety", applied.variety.trim())
+      if (applied.query) params.set("q", applied.query.trim())
+      if (applied.category) params.set("category", applied.category)
       if (applied.market) params.set("market", applied.market.trim())
 
       let response = await fetch("/api/mandi-prices?" + params.toString())
@@ -72,13 +103,22 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
       }
       setIsLive(payload.live !== false)
       setSourceInfo(payload.source || "")
-
       if (!response.ok) {
         throw new Error(payload.error || "The Government market-price service is unavailable.")
       }
 
       setRecords(current => append ? [...current, ...rows] : rows)
       setTotal(Number(payload.total ?? payload.total_count ?? rows.length))
+      setDataSource({ live: payload.live !== false, source: payload.source || "AGMARKNET · Government of India" })
+      if (Array.isArray(payload.commodity_options) && payload.commodity_options.length > 0) {
+        setCommodityOptions(payload.commodity_options)
+      }
+      if (Array.isArray(payload.categories) && payload.categories.length > 0) {
+        setCategories(payload.categories)
+      }
+      // CRITICAL: We NEVER overwrite `varieties` with today's observed mandi rows here!
+      // The complete Government Variety Master for the selected commodity is managed exclusively
+      // by the commodity selection effect to guarantee all registered varieties remain visible.
       setOffset(nextOffset + rows.length)
     } catch (err) {
       setError(err.message || "Could not load official mandi prices.")
@@ -89,14 +129,55 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   }, [applied])
 
   useEffect(() => {
-    if (!applied.state) {
-      setRecords([])
-      setTotal(null)
-      setError("")
+    fetchPage(0, false)
+  }, [fetchPage])
+
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (applied.state && applied.state !== "All India") params.set("state", applied.state)
+    if (applied.district) params.set("district", applied.district)
+    if (applied.market) params.set("market", applied.market)
+    if (applied.category) params.set("category", applied.category)
+    const controller = new AbortController()
+    fetch("/api/commodities?" + params, { signal: controller.signal })
+      .then(response => response.ok ? response.json() : null)
+      .then(payload => {
+        if (!payload || controller.signal.aborted) return
+        if (Array.isArray(payload.commodities) && payload.commodities.length > 0) {
+          setCommodityOptions(payload.commodities)
+        }
+        if (Array.isArray(payload.categories) && payload.categories.length > 0) {
+          setCategories(payload.categories)
+        }
+      })
+      .catch(error => { if (error.name !== "AbortError") {} })
+    return () => controller.abort()
+  }, [applied.state, applied.district, applied.market, applied.category])
+
+  useEffect(() => {
+    const comm = (filters.commodity || "").trim()
+    if (preview || comm.length < 2) {
+      setVarieties([])
       return
     }
-    fetchPage(0, false)
-  }, [fetchPage, applied.commodity, applied.state, applied.district, applied.market])
+    const controller = new AbortController()
+    const timer = setTimeout(async () => {
+      const params = new URLSearchParams({ commodity: comm })
+      try {
+        const response = await fetch("/api/varieties?" + params, { signal: controller.signal })
+        const payload = response.ok ? await response.json() : null
+        if (payload && !controller.signal.aborted) {
+          const names = Array.isArray(payload.varieties)
+            ? payload.varieties.map(item => typeof item === "string" ? item : item.name)
+            : (Array.isArray(payload.variety_names) ? payload.variety_names : [])
+          setVarieties(names)
+        }
+      } catch (error) {
+        if (error.name !== "AbortError") setVarieties([])
+      }
+    }, 100)
+    return () => { clearTimeout(timer); controller.abort() }
+  }, [preview, filters.commodity])
 
   // Distinct crop cards to showcase vegetables with photos & modal rates
   const cropCards = [...new Map(records.filter(r => r.commodity).map(r => [r.commodity, r])).values()].slice(0, 8)
@@ -121,16 +202,21 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   }
 
   function filterByCrop(cropName) {
-    setFilters(prev => ({ ...prev, commodity: cropName }))
-    setApplied(prev => ({ ...prev, commodity: cropName }))
+    setFilters(prev => ({ ...prev, commodity: cropName, variety: "" }))
+    setApplied(prev => ({ ...prev, commodity: cropName, variety: "" }))
     setOffset(0)
   }
 
   function clearCropFilter() {
-    setFilters(prev => ({ ...prev, commodity: "" }))
-    setApplied(prev => ({ ...prev, commodity: "" }))
+    setFilters(prev => ({ ...prev, commodity: "", variety: "" }))
+    setApplied(prev => ({ ...prev, commodity: "", variety: "" }))
     setOffset(0)
   }
+
+  const filteredCommodities = commodityOptions.filter(item => {
+    if (!filters.category) return true
+    return item.category === filters.category || item.group_name === filters.category
+  })
 
   return (
     <div className="official-prices">
@@ -152,17 +238,72 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
       {!preview && (
         <form className="official-filters" onSubmit={submit}>
           <label>
-            Crop / vegetable (optional)
-            <input
+            Category
+            <select
+              value={filters.category}
+              onChange={e => {
+                const newCat = e.target.value
+                setFilters(prev => ({ ...prev, category: newCat, commodity: "", variety: "" }))
+              }}
+            >
+              <option value="">All categories (16 groups)</option>
+              {categories.map(name => <option key={name} value={name}>{name}</option>)}
+            </select>
+          </label>
+          <label>
+            Commodity {filteredCommodities.length > 0 ? `(${filteredCommodities.length}${filters.category ? ` in ${filters.category}` : ""})` : ""}
+            <select
               value={filters.commodity}
-              onChange={e => setFilters({ ...filters, commodity: e.target.value })}
-              placeholder="All vegetables (e.g. Ginger, Tomato)"
+              onChange={e => {
+                const newComm = e.target.value
+                setFilters(prev => ({ ...prev, commodity: newComm, variety: "" }))
+              }}
+            >
+              <option value="">
+                {filters.category
+                  ? `All ${filters.category} (${filteredCommodities.length})`
+                  : `All commodities (609 official)`}
+              </option>
+              {filteredCommodities.map(item => (
+                <option key={item.name} value={item.name}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Variety {varieties.length > 0 ? `(${varieties.length} registered)` : ""}
+            <select
+              value={filters.variety}
+              onChange={e => setFilters(prev => ({ ...prev, variety: e.target.value }))}
+              disabled={!filters.commodity}
+            >
+              <option value="">
+                {!filters.commodity
+                  ? "Select a commodity first"
+                  : varieties.length > 0
+                    ? `All varieties (${varieties.length} Government registered)`
+                    : "All varieties (none registered)"}
+              </option>
+              {varieties.map(name => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Free-text search
+            <input
+              value={filters.query}
+              onChange={e => setFilters({ ...filters, query: e.target.value })}
+              placeholder="Commodity, variety, market..."
             />
           </label>
           <label>
             State / UT
             <select value={filters.state} onChange={e => setFilters({ ...filters, state: e.target.value })}>
-              <option value="">All India</option>
+            <option value="All India">All India</option>
               {states.map(s => <option key={s}>{s}</option>)}
             </select>
           </label>
@@ -186,18 +327,11 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
         </form>
       )}
 
-      {!applied.state ? (
-        <div className="official-empty">
-          <b>Choose a state to load official prices.</b>
-          <p>Farmezy loads daily mandi reports directly from the Government of India feed.</p>
-        </div>
-      ) : null}
-
       <div className="official-result-bar">
         <div>
           <b>
             {preview
-              ? "Latest reported vegetable prices"
+              ? "Latest reported commodity prices"
               : (total === null ? "" : total.toLocaleString("en-IN") + " reported records")}
           </b>
           <span>
@@ -213,12 +347,17 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                   onClick={clearCropFilter}
                   style={{ border: 0, background: "none", color: "#377b4a", cursor: "pointer", textDecoration: "underline", fontSize: 10, padding: 0 }}
                 >
-                  (show all vegetables)
+                  (show all commodities)
                 </button>
               </>
-            ) : " · All vegetables & crops"}
+            ) : " · All commodities"}
           </span>
         </div>
+        {dataSource && (
+          <span className={dataSource.live ? "live" : "sample"} title={dataSource.source}>
+            {dataSource.live ? `LIVE · ${dataSource.source}` : dataSource.source}
+          </span>
+        )}
         {!preview && (
           <button onClick={() => fetchPage(0, false)} disabled={loading}>
             ↻ Refresh
@@ -226,7 +365,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
         )}
       </div>
 
-      {stateFallback && (
+      {false && (
         <p className="official-fallback">
           ⓘ Showing official prices from across {applied.state}. (No specific records reported today for {applied.district} mandi).
         </p>
@@ -257,9 +396,15 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
               <article
                 className="crop-price-card"
                 key={r.commodity}
-                onClick={() => !preview && filterByCrop(r.commodity)}
-                style={{ cursor: preview ? "default" : "pointer" }}
-                title={preview ? "" : "Click to view all records for " + r.commodity}
+                onClick={() => {
+                  if (preview) {
+                    if (onViewAll) onViewAll(r.commodity)
+                  } else {
+                    filterByCrop(r.commodity)
+                  }
+                }}
+                style={{ cursor: "pointer" }}
+                title={preview ? `View official prices for ${r.commodity}` : `Click to view all records for ${r.commodity}`}
               >
                 <div className="crop-photo">
                   <img
@@ -290,7 +435,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
           })}
           {preview && onViewAll && (
             <button className="crop-card-more" onClick={onViewAll}>
-              View all vegetable prices →
+              View all commodity prices →
             </button>
           )}
         </section>
@@ -298,17 +443,19 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
 
       {!preview && !error && (
         <div className="official-table-wrap">
-          <table className="official-table">
+          <table className="official-table" style={{ minWidth: 1180 }}>
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Commodity / Vegetable</th>
+                <th>Commodity</th>
+                <th>Variety</th>
+                <th>Grade</th>
                 <th>State</th>
                 <th>District</th>
-                <th>Mandi</th>
+                <th>Market / APMC</th>
                 <th>Min ₹/quintal</th>
-                <th>Modal ₹/quintal</th>
                 <th>Max ₹/quintal</th>
+                <th>Modal ₹/quintal</th>
               </tr>
             </thead>
             <tbody>
@@ -320,20 +467,23 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                       <span>{cropSymbol(r.commodity)}</span>
                       <b>{r.commodity || "—"}</b>
                     </span>
-                    <small>{r.variety || r.grade || ""}</small>
                   </td>
+                  <td>{r.variety || "—"}</td>
+                  <td>{r.grade || "—"}</td>
                   <td>{r.state || "—"}</td>
                   <td>{r.district || "—"}</td>
                   <td>{r.market || "—"}</td>
                   <td>{money(r.min_price)}</td>
-                  <td className="modal-price">{money(r.modal_price)}</td>
                   <td>{money(r.max_price)}</td>
+                  <td className="modal-price">{money(r.modal_price)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
           {!records.length && !loading && !error && (
-            <div className="official-empty">No reported mandi records match these filters.</div>
+            <div className="official-empty">
+              No current AGMARKNET price available.
+            </div>
           )}
         </div>
       )}
@@ -447,8 +597,9 @@ function cropPhoto(name) {
 }
 
 function money(value) {
-  const amount = Number(String(value ?? "").replace(/,/g, ""))
-  return Number.isFinite(amount) && amount > 0 ? "₹" + amount.toLocaleString("en-IN") : "—"
+  if (value == null || String(value).trim() === "") return "—"
+  const amount = Number(String(value).replace(/,/g, ""))
+  return Number.isFinite(amount) ? "₹" + amount.toLocaleString("en-IN") : String(value)
 }
 
 async function readPriceResponse(response) {
