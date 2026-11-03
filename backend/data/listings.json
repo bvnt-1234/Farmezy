@@ -21,6 +21,27 @@
     "createdAt": "2026-10-31T03:23:15.236Z"
   },
   {
+    "id": "1793369656587",
+    "crop": "Mango",
+    "variety": "a",
+    "quantity": "200",
+    "unit": "kg",
+    "price": "100",
+    "date": "2026-10-30",
+    "address": "Chittoor",
+    "notes": "",
+    "farmerId": "farmer-1793369424218",
+    "farmerName": "Chitra T",
+    "farmerPhone": "9663429751",
+    "farmerLocation": "ambedkar nagar whitefield bangalore",
+    "farmerDistrict": "Bengaluru Rural",
+    "farmerState": "Karnataka",
+    "farmerLat": "",
+    "farmerLng": "",
+    "image": "",
+    "createdAt": "2026-10-30T14:14:16.587Z"
+  },
+  {
     "id": "1793282763758",
     "crop": "tomato",
     "variety": "a",
@@ -38,8 +59,9 @@
     "farmerState": "Karnataka",
     "farmerLat": "",
     "farmerLng": "",
-    "image": "",
-    "createdAt": "2026-10-29T14:06:03.758Z"
+    "image": "https://images.unsplash.com/photo-1518977822534-7049a61ee0c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8M3x8ZnJlc2glMjByZWQlMjB0b21hdG9lcyUyMHZpbmUlMjBoYXJ2ZXN0JTIwYWdyaWN1bHR1cmFsJTIwcHJvZHVjZXxlbnwxfDB8fHwxNzkzNTM4NzU0fDA&ixlib=rb-4.1.0&q=80&w=400",
+    "createdAt": "2026-10-29T14:06:03.758Z",
+    "imageSource": "auto-unsplash"
   },
   {
     "id": "1793262856882",
@@ -59,8 +81,9 @@
     "farmerState": "Karnataka",
     "farmerLat": "",
     "farmerLng": "",
-    "image": "",
-    "createdAt": "2026-10-29T08:34:16.882Z"
+    "image": "https://images.unsplash.com/photo-1518977822534-7049a61ee0c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8M3x8ZnJlc2glMjByZWQlMjB0b21hdG9lcyUyMHZpbmUlMjBoYXJ2ZXN0JTIwYWdyaWN1bHR1cmFsJTIwcHJvZHVjZXxlbnwxfDB8fHwxNzkzNTM4NzU0fDA&ixlib=rb-4.1.0&q=80&w=400",
+    "createdAt": "2026-10-29T08:34:16.882Z",
+    "imageSource": "auto-unsplash"
   },
   {
     "id": "1793262586978",
@@ -80,8 +103,9 @@
     "farmerState": "Karnataka",
     "farmerLat": "",
     "farmerLng": "",
-    "image": "",
-    "createdAt": "2026-10-29T08:29:46.978Z"
+    "image": "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg",
+    "createdAt": "2026-10-29T08:29:46.978Z",
+    "imageSource": "auto-fallback"
   },
   {
     "id": "1793207826323",
@@ -101,8 +125,9 @@
     "farmerState": "Karnataka",
     "farmerLat": "12.9845285",
     "farmerLng": "77.782574",
-    "image": "",
-    "createdAt": "2026-10-28T17:17:06.323Z"
+    "image": "https://images.unsplash.com/photo-1683355739329-cea18ba93f02?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8M3x8cmVkJTIwb25pb24lMjBidWxiJTIwZnJlc2glMjBmYXJtJTIwaGFydmVzdCUyMHJhd3xlbnwxfDB8fHwxNzkzNTM4NzU1fDA&ixlib=rb-4.1.0&q=80&w=400",
+    "createdAt": "2026-10-28T17:17:06.323Z",
+    "imageSource": "auto-unsplash"
   },
   {
     "id": "1793207722430",
@@ -122,7 +147,8 @@
     "farmerState": "Karnataka",
     "farmerLat": "12.9845285",
     "farmerLng": "77.782574",
-    "image": "",
-    "createdAt": "2026-10-28T17:15:22.431Z"
+    "image": "https://images.unsplash.com/photo-1518977822534-7049a61ee0c2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8M3x8ZnJlc2glMjByZWQlMjB0b21hdG9lcyUyMHZpbmUlMjBoYXJ2ZXN0JTIwYWdyaWN1bHR1cmFsJTIwcHJvZHVjZXxlbnwxfDB8fHwxNzkzNTM4NzU0fDA&ixlib=rb-4.1.0&q=80&w=400",
+    "createdAt": "2026-10-28T17:15:22.431Z",
+    "imageSource": "auto-unsplash"
   }
 ]
