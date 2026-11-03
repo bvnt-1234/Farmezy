@@ -730,16 +730,13 @@
 }
 
 
-/* Zoom animation for product images */
-@keyframes zoom {
-  from { transform: scale(1); }
-  to .crop-photo img { transform: scale(1.05); }
-}
 .crop-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 @media (prefers-reduced-motion: reduce) {
-  .crop-photo i.crop-photo imgmg {
-    animation: none;
+  .crop-photo img,
+  .crop-price-card:hover .crop-photo img {
+    transform: none;
+    transition: none;
   }
 }
 
