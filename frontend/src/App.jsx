@@ -725,6 +725,10 @@ function App() {
   const [buyQuantity, setBuyQuantity] = useState("")
   const [orderLoading, setOrderLoading] = useState(false)
   const [editingListingId, setEditingListingId] = useState(null)
+  const [viewingListingId, setViewingListingId] = useState(null)
+  const [viewingListing, setViewingListing] = useState(null)
+  const [viewingLoading, setViewingLoading] = useState(false)
+  const [viewingError, setViewingError] = useState("")
   const [locating, setLocating] = useState(false)
   const [locationStatus, setLocationStatus] = useState(null)
 
@@ -910,6 +914,9 @@ function App() {
     await supabase.auth.signOut()
     setRole(null)
     setProfile(null)
+    setEditingListingId(null)
+    setViewingListingId(null)
+    setViewingListing(null)
     setPage("Home")
     setCustomerNotifications([])
     orderStatusesRef.current = new Map()
@@ -932,6 +939,47 @@ function App() {
   
     const farmerId = profile?.farmerId || profile?.phone?.replace(/\D/g, "") || profile?.name || "farmer"
   const customerId = profile?.customerId || profile?.phone?.replace(/\D/g, "") || profile?.name || "customer"
+
+  const isOwnerOfListing = item => {
+    if (!item || !profile) return false
+    // 1. Strict primary check: If listing has ownerUserId, it MUST match profile.id
+    if (item.ownerUserId && profile.id) {
+      return String(item.ownerUserId).trim() === String(profile.id).trim()
+    }
+    // 2. Legacy listing check: Only if listing does not have ownerUserId
+    // Verify against registered farmerId and/or phone number
+    if (item.farmerId && farmerId && String(item.farmerId).trim() === String(farmerId).trim()) {
+      if (item.farmerPhone && profile.phone) {
+        const lp = String(item.farmerPhone).replace(/\D/g, "")
+        const pp = String(profile.phone).replace(/\D/g, "")
+        if (lp && pp && lp !== pp) return false
+      }
+      return true
+    }
+    if (item.farmerPhone && profile.phone) {
+      const lp = String(item.farmerPhone).replace(/\D/g, "")
+      const pp = String(profile.phone).replace(/\D/g, "")
+      if (lp && pp && lp === pp) return true
+    }
+    return false
+  }
+
+  const getAuthHeaders = async (includeContentType = true) => {
+    const headers = includeContentType ? { "Content-Type": "application/json" } : {}
+    if (profile?.id) headers["X-User-Id"] = String(profile.id)
+    if (profile?.role) headers["X-User-Role"] = String(profile.role)
+    if (farmerId) headers["X-Farmer-Id"] = String(farmerId)
+    if (profile?.phone) headers["X-User-Phone"] = String(profile.phone)
+    if (profile?.name) headers["X-User-Name"] = String(profile.name)
+    if (profile?.email) headers["X-User-Email"] = String(profile.email)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`
+      }
+    } catch {}
+    return headers
+  }
 
   const loadOrders = async () => {
     try {
@@ -1373,13 +1421,22 @@ function App() {
   }, [role, customerId])
 
   const deleteListing = async (id, cropName) => {
+    const target = listings.find(item => String(item.id) === String(id))
+    if (target && !isOwnerOfListing(target)) {
+      setListingError("Access denied: You cannot delete another farmer's crop listing.")
+      return
+    }
     if (!window.confirm(`Are you sure you want to delete the listing for "${cropName}"? This action cannot be undone.`)) {
       return
     }
     setListingLoading(true)
     setListingError("")
     try {
-      const response = await fetch("/api/listings/" + id, { method: "DELETE" })
+      const authHeaders = await getAuthHeaders()
+      const response = await fetch("/api/listings/" + id, {
+        method: "DELETE",
+        headers: authHeaders
+      })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Could not delete listing.")
       setListings(prev => prev.filter(item => String(item.id) !== String(id)))
@@ -1573,6 +1630,10 @@ function App() {
   }
 
   const startEditListing = item => {
+    if (!isOwnerOfListing(item)) {
+      setListingError("Access denied: You can only edit crop listings you personally created.")
+      return
+    }
     setEditingListingId(item.id)
     setCropImage(item.image || null)
     setFormCategory(item.category || getCategoryForCrop(item.crop) || "Vegetables")
@@ -1615,6 +1676,35 @@ function App() {
     setListed(false)
     const formEl = document.querySelector(".form-panel")
     if (formEl) formEl.scrollIntoView({ behavior: "smooth" })
+  }
+
+  const openListingDetails = async itemOrId => {
+    const id = typeof itemOrId === "object" ? itemOrId.id : itemOrId
+    setViewingListingId(id)
+    setViewingLoading(true)
+    setViewingError("")
+    if (typeof itemOrId === "object") {
+      setViewingListing(itemOrId)
+    }
+    try {
+      const response = await fetch(`/api/listings/${id}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.listing) {
+          setViewingListing(data.listing)
+        }
+      }
+    } catch (err) {
+      console.warn("Could not fetch listing details:", err.message)
+    } finally {
+      setViewingLoading(false)
+    }
+  }
+
+  const closeListingDetails = () => {
+    setViewingListingId(null)
+    setViewingListing(null)
+    setViewingError("")
   }
 
   const cancelEditListing = () => {
@@ -2091,11 +2181,7 @@ function App() {
     )
   }
 
-  const myListings = listings.filter(item =>
-    item.farmerId === farmerId ||
-    (profile?.phone && item.farmerPhone && String(item.farmerPhone).replace(/\D/g, "") === String(profile.phone).replace(/\D/g, "")) ||
-    (profile?.name && item.farmerName && item.farmerName.trim().toLowerCase() === profile.name.trim().toLowerCase())
-  )
+  const myListings = listings.filter(isOwnerOfListing)
 
   const displayedFarmerListings = listingScope === "all" ? listings : myListings
 
@@ -2192,20 +2278,28 @@ function App() {
         </a>
 
         <div className="side-label">{t("yourWorkspace")}</div>
-        <div className="role-switch">
+        <div className="role-switch" role="tablist" aria-label="Workspace selection">
           <button
-            className={role === "Farmer" ? "active" : ""}
+            type="button"
+            className={`workspace-card ${role === "Farmer" ? "active" : ""}`}
             onClick={handleFarmerRoleClick}
+            role="tab"
+            aria-selected={role === "Farmer"}
             title={role === "Farmer" ? "Currently in Farmer workspace" : "Switch to Farmer workspace (requires authorization)"}
           >
-            🌾 <span className="role-text">{t("farmer")}</span>
+            <span className="workspace-icon" aria-hidden="true">🌾</span>
+            <span className="role-text">{t("farmer")}</span>
           </button>
           <button
-            className={role === "Customer" ? "active" : ""}
+            type="button"
+            className={`workspace-card ${role === "Customer" ? "active" : ""}`}
             onClick={() => { setRole("Customer"); setPage("Home") }}
+            role="tab"
+            aria-selected={role === "Customer"}
             title="Switch to Customer workspace"
           >
-            🧺 <span className="role-text">{t("customer")}</span>
+            <span className="workspace-icon" aria-hidden="true">🧺</span>
+            <span className="role-text">{t("customer")}</span>
           </button>
         </div>
 
@@ -3100,16 +3194,16 @@ function App() {
                 <section className="panel farmer-listings">
                   {filteredMarketplaceListings.map(item => {
                     const km = distanceKm(customerLocation?.lat, customerLocation?.lng, item.latitude || item.farmerLat, item.longitude || item.farmerLng)
-                    const isOwner = item.farmerId === farmerId || (profile?.phone && item.farmerPhone && String(item.farmerPhone).replace(/\D/g, "") === String(profile.phone).replace(/\D/g, ""))
+                    const isOwner = isOwnerOfListing(item)
                     return (
                       <article className="listing-card" key={item.id}>
                         {item.image && (
                           <div className="listing-photo-thumb-container">
                             <div
                               className="listing-photo-thumb"
-                              onClick={() => { setBuyItem(item); setBuyQuantity("") }}
+                              onClick={() => openListingDetails(item)}
                               style={{ cursor: "pointer" }}
-                              title={`Click to view/request ${item.crop}`}
+                              title={`Click to view full details of ${item.crop}`}
                             >
                               <img
                                 src={item.image}
@@ -3140,9 +3234,9 @@ function App() {
                           </div>
                         )}
                         <div
-                          onClick={() => { setBuyItem(item); setBuyQuantity("") }}
+                          onClick={() => openListingDetails(item)}
                           style={{ cursor: "pointer" }}
-                          title={`Click to view/request ${item.crop}`}
+                          title={`Click to view full details of ${item.crop}`}
                         >
                           <small>{t("crop")}</small>
                           <b>{item.crop}</b>
@@ -3229,6 +3323,14 @@ function App() {
                           <div className="listing-actions">
                             <button
                               type="button"
+                              className="btn-action-details"
+                              onClick={() => openListingDetails(item)}
+                              title="View full crop details"
+                            >
+                              🔍 Details
+                            </button>
+                            <button
+                              type="button"
                               className="btn-action-buy"
                               onClick={() => {
                                 setBuyItem(item)
@@ -3261,7 +3363,7 @@ function App() {
                             {routeUrl(item) && (
                               <a href={routeUrl(item)} target="_blank" rel="noopener noreferrer" className="btn-action-link">🗺️ {t("bestRoute")} ↗</a>
                             )}
-                            {(role === "Farmer" || isOwner) && (
+                            {role === "Farmer" && isOwner && (
                               <>
                                 <button
                                   type="button"
@@ -3775,10 +3877,17 @@ function App() {
                       }
 
                       try {
+                        const authHeaders = await getAuthHeaders()
                         if (editingListingId) {
+                          const currentListing = listings.find(l => String(l.id) === String(editingListingId))
+                          if (currentListing && !isOwnerOfListing(currentListing)) {
+                            setListingError("Access denied: You cannot edit another farmer's crop listing.")
+                            setListingLoading(false)
+                            return
+                          }
                           const response = await fetch(`/api/listings/${editingListingId}`, {
                             method: "PUT",
-                            headers: { "Content-Type": "application/json" },
+                            headers: authHeaders,
                             body: JSON.stringify(payload)
                           })
                           const result = await response.json()
@@ -3791,7 +3900,7 @@ function App() {
                         } else {
                           const response = await fetch("/api/listings", {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" },
+                            headers: authHeaders,
                             body: JSON.stringify(payload)
                           })
                           const result = await response.json()
@@ -4514,22 +4623,40 @@ function App() {
                             </span>
                           )}
                           <span>{item.notes || "No additional notes"}</span>
-                          <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
+                          <div style={{ marginTop: 8, display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                             <button
                               type="button"
-                              className="btn-edit-listing"
-                              onClick={() => startEditListing(item)}
+                              className="btn-action-details"
+                              onClick={() => openListingDetails(item)}
+                              title="View full crop details"
                             >
-                              ✏️ Edit listing
-                            </button>
-                            <button
-                              type="button"
-                              className="btn-delete"
-                              onClick={() => deleteListing(item.id, item.crop)}
-                            >
-                              🗑️ Delete listing
+                              🔍 Details
                             </button>
                           </div>
+                          {isOwnerOfListing(item) ? (
+                            <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
+                              <button
+                                type="button"
+                                className="btn-edit-listing"
+                                onClick={() => startEditListing(item)}
+                              >
+                                ✏️ Edit listing
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-delete"
+                                onClick={() => deleteListing(item.id, item.crop)}
+                              >
+                                🗑️ Delete listing
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
+                              <span style={{ fontSize: "0.85em", color: "#5f6368", fontStyle: "italic" }}>
+                                🔒 Listed by {item.farmerName || "another farmer"} (View only)
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </article>
                     ))
@@ -4722,7 +4849,7 @@ function App() {
         </div>
       )}
 
-      {/* 1. PROFESSIONAL INVOICE MODAL */}
+{/* 1. PROFESSIONAL INVOICE MODAL */}
       {showInvoiceModal && selectedInvoiceOrder && (
         <div className="invoice-modal-overlay" onClick={() => setShowInvoiceModal(false)}>
           <div className="invoice-modal-card" onClick={e => e.stopPropagation()}>
@@ -5059,6 +5186,337 @@ function App() {
           </div>
         </div>
       )}
+
+
+{/* =========================================================================
+          DYNAMIC CROP DETAILS MODAL (FOR ALL COMMODITIES & FARMERS)
+         ========================================================================= */}
+      {viewingListing && (
+        <div className="crop-details-overlay" onClick={closeListingDetails}>
+          <div className="crop-details-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="crop-modal-heading">
+            <div className="crop-details-topbar">
+              <button
+                type="button"
+                className="btn-back-details"
+                onClick={closeListingDetails}
+                title="Back to crop listings"
+              >
+                ← {t("back") || "Back to Listings"}
+              </button>
+              <span className="details-modal-title" id="crop-modal-heading">
+                🌾 Produce Details · {viewingListing.crop}
+              </span>
+              <button
+                type="button"
+                className="btn-close-details"
+                onClick={closeListingDetails}
+                aria-label="Close details"
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="crop-details-content">
+              {/* Left Column: Media, Pricing Card & Primary Actions */}
+              <div className="crop-details-media-col">
+                <div className="crop-details-image-container">
+                  {viewingListing.image ? (
+                    <img
+                      src={viewingListing.image}
+                      alt={viewingListing.crop}
+                      className="crop-details-image"
+                      onError={e => {
+                        if (e.currentTarget.src !== "/placeholder.png") {
+                          e.currentTarget.onerror = null
+                          e.currentTarget.src = "/placeholder.png"
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="crop-details-image-placeholder">
+                      <span style={{ fontSize: 54 }}>🌾</span>
+                      <span>No crop photo available</span>
+                    </div>
+                  )}
+                  {viewingListing.imageSource === "farmer" && (
+                    <span className="crop-details-photo-badge" title="Verified harvest photo uploaded by farmer">
+                      📸 Verified Farmer Harvest Photo
+                    </span>
+                  )}
+                </div>
+                {viewingListing.imagePhotographer && viewingListing.imageLink && (
+                  <a
+                    href={viewingListing.imageLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="crop-details-photo-credit"
+                  >
+                    Photo by {viewingListing.imagePhotographer.replace(/\s*\(Unsplash\)/i, "")} on Unsplash ↗
+                  </a>
+                )}
+
+                {/* Pricing & Stock Card */}
+                <div className="crop-details-price-card">
+                  <div className="price-tag-row">
+                    <span className="price-amount">₹{viewingListing.price}</span>
+                    <span className="price-basis">per {viewingListing.priceUnit || viewingListing.unit || "kg"}</span>
+                  </div>
+                  <div className="price-sub-info">
+                    <span><b>Available:</b> {viewingListing.quantity} {viewingListing.unit}</span>
+                    <span><b>Min Order:</b> {viewingListing.minOrder ? `${viewingListing.minOrder} ${viewingListing.unit}` : "None"}</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="crop-details-action-buttons">
+                  <button
+                    type="button"
+                    className="btn-details-buy"
+                    onClick={() => {
+                      const target = viewingListing
+                      closeListingDetails()
+                      setBuyItem(target)
+                      setBuyQuantity("")
+                      setTimeout(() => {
+                        document.getElementById("produce-request-panel")?.scrollIntoView({ behavior: "smooth" })
+                      }, 100)
+                    }}
+                  >
+                    🧺 {t("buyRequest") || "Buy / Request Produce"}
+                  </button>
+
+                  {contactPhone(viewingListing) && phoneUrl(contactPhone(viewingListing)) && (
+                    <a href={phoneUrl(contactPhone(viewingListing))} className="btn-details-call">
+                      📞 {t("call") || "Call"} {contactPhone(viewingListing)}
+                    </a>
+                  )}
+
+                  {contactPhone(viewingListing) && whatsappUrl(contactPhone(viewingListing)) && (
+                    <button
+                      type="button"
+                      className="btn-details-whatsapp"
+                      onClick={() => {
+                        const target = viewingListing
+                        closeListingDetails()
+                        setBuyItem(target)
+                        setBuyQuantity("")
+                        setTimeout(() => {
+                          document.getElementById("produce-request-panel")?.scrollIntoView({ behavior: "smooth" })
+                        }, 100)
+                      }}
+                    >
+                      💬 {t("whatsapp") || "WhatsApp Inquiry"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Full Dynamic Specifications */}
+              <div className="crop-details-info-col">
+                {/* Header Title & Badges */}
+                <div className="crop-details-heading">
+                  <div className="crop-title-row">
+                    <h2>{viewingListing.crop}</h2>
+                    <span className="crop-category-badge">
+                      🏷️ {viewingListing.category || getCategoryForCrop(viewingListing.crop) || "Produce"}
+                    </span>
+                  </div>
+                  <div className="crop-badges-row">
+                    {viewingListing.variety && (
+                      <span className="badge-variety">Variety: <b>{viewingListing.variety}</b></span>
+                    )}
+                    {viewingListing.grade && (
+                      <span className="badge-grade">Grade: <b>{viewingListing.grade}</b></span>
+                    )}
+                    {viewingListing.organic && (
+                      <span className="badge-organic">{viewingListing.organic}</span>
+                    )}
+                    {viewingListing.productionMethod && (
+                      <span className="badge-packaging">🌱 {viewingListing.productionMethod}</span>
+                    )}
+                    {viewingListing.packaging && (
+                      <span className="badge-packaging">📦 {viewingListing.packaging}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* 1. Produce Details & Specifications */}
+                <section className="crop-details-section">
+                  <h4>🌾 Crop & Produce Details</h4>
+                  <div className="details-grid-spec">
+                    <div className="spec-item">
+                      <span className="spec-label">Crop / Commodity:</span>
+                      <span className="spec-value"><b>{viewingListing.crop}</b></span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Registered Variety:</span>
+                      <span className="spec-value">{viewingListing.variety || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Category:</span>
+                      <span className="spec-value">{viewingListing.category || getCategoryForCrop(viewingListing.crop) || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Grade / Quality:</span>
+                      <span className="spec-value">{viewingListing.grade || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Organic / Conventional:</span>
+                      <span className="spec-value">{viewingListing.organic || "Conventional"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Production Method:</span>
+                      <span className="spec-value">{viewingListing.productionMethod || "Open Field"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Packaging Type:</span>
+                      <span className="spec-value">{viewingListing.packaging || "Not provided"}</span>
+                    </div>
+                  </div>
+                  {(viewingListing.description || viewingListing.notes) && (
+                    <div className="spec-description">
+                      <b>Product Description / Notes:</b>
+                      <p>{viewingListing.description || viewingListing.notes}</p>
+                    </div>
+                  )}
+                </section>
+
+                {/* 2. Harvest & Availability Schedule (Separate harvest and expiry dates) */}
+                <section className="crop-details-section">
+                  <h4>📅 Harvest & Availability Schedule</h4>
+                  <div className="details-grid-spec">
+                    <div className="spec-item">
+                      <span className="spec-label">Harvest Date:</span>
+                      <span className="spec-value">{viewingListing.harvestDate || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Available From:</span>
+                      <span className="spec-value">{viewingListing.availableFrom || "Available immediately"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Available Until / Expiry:</span>
+                      <span className="spec-value"><b>{viewingListing.expiryDate || viewingListing.date || "Not provided"}</b></span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 3. Quantity, Pricing & Order Terms */}
+                <section className="crop-details-section">
+                  <h4>💰 Quantity & Pricing</h4>
+                  <div className="details-grid-spec">
+                    <div className="spec-item">
+                      <span className="spec-label">Available Quantity:</span>
+                      <span className="spec-value"><b>{viewingListing.quantity} {viewingListing.unit}</b></span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Farmer Asking Price:</span>
+                      <span className="spec-value"><b>₹{viewingListing.price}</b> per {viewingListing.priceUnit || viewingListing.unit}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Price Basis:</span>
+                      <span className="spec-value">Per {viewingListing.priceUnit || viewingListing.unit || "kg"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Minimum Order Quantity:</span>
+                      <span className="spec-value">{viewingListing.minOrder ? `${viewingListing.minOrder} ${viewingListing.unit}` : "Not provided (No minimum)"}</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 4. Logistics, Pickup & Delivery */}
+                <section className="crop-details-section">
+                  <h4>🚚 Logistics & Dispatch</h4>
+                  <div className="details-grid-spec">
+                    <div className="spec-item">
+                      <span className="spec-label">Farm Pickup:</span>
+                      <span className="spec-value">{viewingListing.pickupAvailable !== false ? "✓ Available at farm location" : "Not available"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Direct Delivery:</span>
+                      <span className="spec-value">
+                        {viewingListing.deliveryAvailable
+                          ? `✓ Available ${viewingListing.deliveryRadius ? `(up to ${viewingListing.deliveryRadius} km)` : ""}`
+                          : "Not offered by farmer"}
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 5. Verified Farmer & Pickup Location (Private GPS coordinates strictly omitted) */}
+                <section className="crop-details-section farmer-origin-section">
+                  <h4>🧑‍🌾 Farmer & Location Details</h4>
+                  <div className="details-grid-spec">
+                    <div className="spec-item">
+                      <span className="spec-label">Farmer Name:</span>
+                      <span className="spec-value"><b>{viewingListing.farmerName || "Registered Farmer"}</b></span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Full Address:</span>
+                      <span className="spec-value">{viewingListing.address || viewingListing.farmerLocation || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Village / Locality:</span>
+                      <span className="spec-value">{viewingListing.village || viewingListing.locality || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">City / Town:</span>
+                      <span className="spec-value">{viewingListing.city || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">District:</span>
+                      <span className="spec-value">{viewingListing.district || viewingListing.farmerDistrict || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">State:</span>
+                      <span className="spec-value">{viewingListing.state || viewingListing.farmerState || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">PIN Code:</span>
+                      <span className="spec-value">{viewingListing.pincode || "Not provided"}</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Owner controls if logged in farmer owns this listing */}
+                {role === "Farmer" && isOwnerOfListing(viewingListing) && (
+                  <div className="details-owner-bar">
+                    <span style={{ fontSize: "0.85em", color: "#1967d2" }}>
+                      🔒 You are the verified owner of this crop listing.
+                    </span>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        type="button"
+                        className="btn-action-edit"
+                        onClick={() => {
+                          const item = viewingListing
+                          closeListingDetails()
+                          setPage("Sell")
+                          startEditListing(item)
+                        }}
+                      >
+                        ✏️ {t("edit") || "Edit Listing"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-action-delete"
+                        onClick={() => {
+                          const item = viewingListing
+                          closeListingDetails()
+                          deleteListing(item.id, item.crop)
+                        }}
+                      >
+                        🗑️ {t("delete") || "Delete Listing"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
 
     </div>
   )

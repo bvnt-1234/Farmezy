@@ -2547,6 +2547,63 @@ async function handleRequest(req, res) {
     return
   }
 
+  // GET /api/listings/:id - Fetch single crop listing details dynamically
+  if (requestUrl.pathname.startsWith("/api/listings/") && req.method === "GET") {
+    const id = requestUrl.pathname.replace(/^\/api\/listings\/?/, "").trim()
+    if (!id) {
+      res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Missing listing ID." }))
+      return
+    }
+    listings = loadListings()
+    const item = listings.find(l => String(l.id) === id)
+    if (!item) {
+      res.writeHead(404, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Listing not found." }))
+      return
+    }
+
+    let farmerPhone = item.farmerPhone
+    if (!farmerPhone) {
+      const existingContactPhone = item.contact?.phone || item.contact?.whatsapp || ""
+      const contactDigits = String(existingContactPhone).replace(/\D/g, "")
+      if (contactDigits.length === 10) farmerPhone = contactDigits
+      else {
+        const digits = String(item.farmerId || "").replace(/\D/g, "")
+        if (digits.length === 10) farmerPhone = digits
+      }
+    }
+
+    let image = item.image
+    let imagePhotographer = item.imagePhotographer
+    let imageLink = item.imageLink
+
+    if (image && item.imageSource !== "farmer") {
+      const cached = imageCache.get(String(item.crop || "").toLowerCase().trim())
+      if (cached?.data?.url && cached.data.url !== "/placeholder.png" && !cached.data.url.startsWith("/")) {
+        image = cached.data.url
+      }
+      if (cached?.data?.photographer) {
+        imagePhotographer = cached.data.photographer
+        imageLink = cached.data.link
+      }
+    }
+
+    const safeItem = {
+      ...item,
+      farmerPhone,
+      image,
+      imagePhotographer,
+      imageLink
+    }
+    // Do not expose raw private GPS coordinates in public detail response
+    delete safeItem.latitude
+    delete safeItem.longitude
+    delete safeItem.farmerLat
+    delete safeItem.farmerLng
+
+    res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ listing: safeItem }))
+    return
+  }
+
   if (requestUrl.pathname === "/api/orders" && req.method === "GET") {
     const farmerId = requestUrl.searchParams.get("farmerId")
     const customerId = requestUrl.searchParams.get("customerId")
@@ -2704,28 +2761,114 @@ async function handleRequest(req, res) {
     return
   }
 
+  // --- FARMER LISTING OWNERSHIP & ACCESS CONTROL HELPERS ---
+  function getAuthUser(req) {
+    const authHeader = req.headers["authorization"] || req.headers["Authorization"] || ""
+    let tokenUser = null
+    if (authHeader.startsWith("Bearer ") || authHeader.startsWith("bearer ")) {
+      const token = authHeader.slice(7).trim()
+      const parts = token.split(".")
+      if (parts.length === 3) {
+        try {
+          const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"))
+          if (payload && (payload.sub || payload.id)) {
+            tokenUser = {
+              userId: String(payload.sub || payload.id).trim(),
+              email: String(payload.email || "").trim(),
+              role: String(payload.user_metadata?.role || "Farmer").trim(),
+              farmerId: String(payload.user_metadata?.farmerId || "").trim(),
+              phone: String(payload.user_metadata?.phone || "").trim(),
+              name: String(payload.user_metadata?.name || "").trim()
+            }
+          }
+        } catch {}
+      }
+    }
+
+    const headerUserId = req.headers["x-user-id"] ? String(req.headers["x-user-id"]).trim() : ""
+    const headerUserRole = req.headers["x-user-role"] ? String(req.headers["x-user-role"]).trim() : ""
+    const headerFarmerId = req.headers["x-farmer-id"] ? String(req.headers["x-farmer-id"]).trim() : ""
+    const headerUserPhone = req.headers["x-user-phone"] ? String(req.headers["x-user-phone"]).trim() : ""
+    const headerUserName = req.headers["x-user-name"] ? String(req.headers["x-user-name"]).trim() : ""
+    const headerUserEmail = req.headers["x-user-email"] ? String(req.headers["x-user-email"]).trim() : ""
+
+    const userId = tokenUser?.userId || headerUserId
+    if (!userId) {
+      return null
+    }
+
+    return {
+      userId,
+      role: tokenUser?.role || headerUserRole || "Farmer",
+      farmerId: tokenUser?.farmerId || headerFarmerId || "",
+      phone: tokenUser?.phone || headerUserPhone || "",
+      name: tokenUser?.name || headerUserName || "",
+      email: tokenUser?.email || headerUserEmail || ""
+    }
+  }
+
+  function verifyListingOwnership(listing, authUser) {
+    if (!listing || !authUser) return false
+    const authUserId = String(authUser.userId || "").trim()
+    if (!authUserId) return false
+
+    // 1. Strict primary check: If listing has ownerUserId, it MUST match authUser.userId
+    if (listing.ownerUserId) {
+      return String(listing.ownerUserId).trim() === authUserId
+    }
+
+    // 2. Legacy listing check: Only if listing does not have ownerUserId
+    // Verify against registered farmerId and/or phone number
+    if (listing.farmerId && authUser.farmerId && String(listing.farmerId).trim() === String(authUser.farmerId).trim()) {
+      if (listing.farmerPhone && authUser.phone) {
+        const lPhone = String(listing.farmerPhone).replace(/\D/g, "")
+        const uPhone = String(authUser.phone).replace(/\D/g, "")
+        if (lPhone && uPhone && lPhone !== uPhone) return false
+      }
+      return true
+    }
+
+    if (listing.farmerPhone && authUser.phone) {
+      const lPhone = String(listing.farmerPhone).replace(/\D/g, "")
+      const uPhone = String(authUser.phone).replace(/\D/g, "")
+      if (lPhone && uPhone && lPhone === uPhone) {
+        return true
+      }
+    }
+
+    return false
+  }
+
   if (requestUrl.pathname === "/api/listings" && req.method === "POST") {
     try {
+      const authUser = getAuthUser(req)
+      if (!authUser || !authUser.userId) {
+        res.writeHead(401, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Unauthorized: You must be logged in as a farmer to create a listing."
+        }))
+        return
+      }
+
       let body = ""
       for await (const chunk of req) body += chunk
       const data = JSON.parse(body || "{}")
 
-      const required = ["crop", "quantity", "unit", "price", "address", "farmerId", "farmerName"]
+      const required = ["crop", "quantity", "unit", "price", "address"]
       const missing = required.filter(field => !String(data[field] ?? "").trim())
       if (missing.length) {
-        res.writeHead(400).end(JSON.stringify({ error: "Missing required fields: " + missing.join(", ") }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Missing required fields: " + missing.join(", ") }))
         return
       }
 
       const numQuantity = Number(data.quantity)
       if (!Number.isFinite(numQuantity) || numQuantity < 0) {
-        res.writeHead(400).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
         return
       }
 
       const numPrice = Number(data.price)
       if (!Number.isFinite(numPrice) || numPrice < 0) {
-        res.writeHead(400).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
         return
       }
 
@@ -2734,11 +2877,11 @@ async function handleRequest(req, res) {
       const expiryDate = String(data.expiryDate || "").trim()
 
       if (harvestDate && expiryDate && expiryDate < harvestDate) {
-        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
         return
       }
       if (availableFrom && expiryDate && expiryDate < availableFrom) {
-        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
         return
       }
 
@@ -2760,8 +2903,16 @@ async function handleRequest(req, res) {
           console.warn("Auto image lookup error on create listing:", err.message)
         }
       }
+
+      // STRICT OWNERSHIP: Bind to authenticated user ID (never trust client owner ID)
+      const ownerUserId = authUser.userId
+      const finalFarmerId = authUser.farmerId || (data.farmerId && !data.farmerId.includes("undefined") ? String(data.farmerId).trim() : ("farmer-" + ownerUserId.slice(0, 8)))
+      const finalFarmerName = authUser.name || String(data.farmerName || "Farmer").trim()
+      const finalFarmerPhone = authUser.phone || String(data.farmerPhone || "").trim()
+
       const item = {
         id: Date.now().toString(),
+        ownerUserId, // IMMUTABLE AUTHENTICATED USER ID
         crop,
         category,
         variety: String(data.variety || "").trim(),
@@ -2792,9 +2943,9 @@ async function handleRequest(req, res) {
         deliveryRadius: String(data.deliveryRadius || "").trim(),
         notes: String(data.notes || data.description || "").trim(),
         description: String(data.description || data.notes || "").trim(),
-        farmerId: String(data.farmerId).trim(),
-        farmerName: String(data.farmerName).trim(),
-        farmerPhone: String(data.farmerPhone || "").trim(),
+        farmerId: finalFarmerId,
+        farmerName: finalFarmerName,
+        farmerPhone: finalFarmerPhone,
         farmerLocation: String(data.address || data.farmerLocation || "").trim(),
         farmerDistrict: String(data.district || data.farmerDistrict || "").trim(),
         farmerState: String(data.state || data.farmerState || "").trim(),
@@ -2815,15 +2966,23 @@ async function handleRequest(req, res) {
 
       listings = [item, ...listings]
       saveListings(listings)
-      res.writeHead(201).end(JSON.stringify({ listing: item }))
+      res.writeHead(201, { "Content-Type": "application/json" }).end(JSON.stringify({ listing: item }))
     } catch {
-      res.writeHead(400).end(JSON.stringify({ error: "Invalid listing data." }))
+      res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Invalid listing data." }))
     }
     return
   }
 
   if ((requestUrl.pathname.startsWith("/api/listings/") || requestUrl.pathname === "/api/listings") && (req.method === "PUT" || req.method === "PATCH")) {
     try {
+      const authUser = getAuthUser(req)
+      if (!authUser || !authUser.userId) {
+        res.writeHead(401, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Unauthorized: You must be logged in to update a listing."
+        }))
+        return
+      }
+
       const pathId = requestUrl.pathname.replace(/^\/api\/listings\/?/, "")
       let body = ""
       for await (const chunk of req) body += chunk
@@ -2831,22 +2990,30 @@ async function handleRequest(req, res) {
       const targetId = String(pathId || data.id || requestUrl.searchParams.get("id"))
       const index = listings.findIndex(item => String(item.id) === targetId)
       if (index === -1) {
-        res.writeHead(404).end(JSON.stringify({ error: "Listing not found." }))
+        res.writeHead(404, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Listing not found." }))
         return
       }
       const existing = listings[index]
 
+      // STRICT OWNERSHIP AUTHORIZATION CHECK:
+      if (!verifyListingOwnership(existing, authUser)) {
+        res.writeHead(403, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Forbidden: You do not have permission to edit another farmer's listing."
+        }))
+        return
+      }
+
       if (data.quantity !== undefined) {
         const numQty = Number(data.quantity)
         if (!Number.isFinite(numQty) || numQty < 0) {
-          res.writeHead(400).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
+          res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
           return
         }
       }
       if (data.price !== undefined) {
         const numP = Number(data.price)
         if (!Number.isFinite(numP) || numP < 0) {
-          res.writeHead(400).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
+          res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
           return
         }
       }
@@ -2856,19 +3023,23 @@ async function handleRequest(req, res) {
       const expiryDate = data.expiryDate !== undefined ? String(data.expiryDate).trim() : (existing.expiryDate || existing.date || "")
 
       if (harvestDate && expiryDate && expiryDate < harvestDate) {
-        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
         return
       }
       if (availableFrom && expiryDate && expiryDate < availableFrom) {
-        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
         return
       }
 
       const crop = String(data.crop || existing.crop).trim()
       const category = String(data.category || existing.category || categoryForCommodity(crop)).trim()
 
+      // Bind ownerUserId permanently upon verified update
+      const ownerUserId = existing.ownerUserId || authUser.userId
+
       const updated = {
         ...existing,
+        ownerUserId,
         crop,
         category,
         variety: String(data.variety !== undefined ? data.variety : (existing.variety || "")).trim(),
@@ -2907,33 +3078,54 @@ async function handleRequest(req, res) {
         image: String(data.image !== undefined ? data.image : existing.image).trim(),
         updatedAt: new Date().toISOString()
       }
+
+      // Immutability: ownerUserId remains the verified owner
+      updated.ownerUserId = ownerUserId
       listings[index] = updated
       saveListings(listings)
-      res.writeHead(200).end(JSON.stringify({ listing: updated }))
+      res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ listing: updated }))
     } catch {
-      res.writeHead(400).end(JSON.stringify({ error: "Could not update listing." }))
+      res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Could not update listing." }))
     }
     return
   }
 
   if ((requestUrl.pathname.startsWith("/api/listings/") || requestUrl.pathname === "/api/listings") && req.method === "DELETE") {
     try {
+      const authUser = getAuthUser(req)
+      if (!authUser || !authUser.userId) {
+        res.writeHead(401, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Unauthorized: You must be logged in to delete a listing."
+        }))
+        return
+      }
+
       const pathId = requestUrl.pathname.replace(/^\/api\/listings\/?/, "")
       const id = pathId || requestUrl.searchParams.get("id")
       if (!id) {
-        res.writeHead(400).end(JSON.stringify({ error: "Missing listing id." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Missing listing id." }))
         return
       }
       const index = listings.findIndex(item => String(item.id) === String(id))
       if (index === -1) {
-        res.writeHead(404).end(JSON.stringify({ error: "Listing not found." }))
+        res.writeHead(404, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Listing not found." }))
         return
       }
+      const existing = listings[index]
+
+      // STRICT OWNERSHIP AUTHORIZATION CHECK:
+      if (!verifyListingOwnership(existing, authUser)) {
+        res.writeHead(403, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Forbidden: You do not have permission to delete another farmer's listing."
+        }))
+        return
+      }
+
       const [deleted] = listings.splice(index, 1)
       saveListings(listings)
-      res.writeHead(200).end(JSON.stringify({ success: true, listing: deleted }))
+      res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ success: true, listing: deleted }))
     } catch {
-      res.writeHead(500).end(JSON.stringify({ error: "Could not delete listing." }))
+      res.writeHead(500, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Could not delete listing." }))
     }
     return
   }
