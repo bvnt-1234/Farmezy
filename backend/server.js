@@ -21,6 +21,8 @@ const port = Number(process.env.PORT || process.env.WEBSITES_PORT || process.env
 const resourceId = "9ef84268-d588-465a-a308-a864a43d0070"
 const dataGovCache = new Map()
 const dataGovCacheTtlMs = 15 * 60 * 1000 // 15 minutes cache
+const weatherCache = new Map()
+const weatherCacheTtlMs = 15 * 60 * 1000 // 15 minutes cache
 
 const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
 const dataDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "data")
@@ -1906,6 +1908,117 @@ export async function handleRequest(req, res) {
       res.writeHead(503).end(JSON.stringify({
         error: error?.message || "Forecasting is not ready yet. Historical mandi data is still being collected."
       }))
+    }
+    return
+  }
+
+  // 7-Day Live Weather Forecast for any Indian location or coordinates
+  if (requestUrl.pathname === "/api/weather" && req.method === "GET") {
+    try {
+      let lat = Number(requestUrl.searchParams.get("lat"))
+      let lng = Number(requestUrl.searchParams.get("lng") || requestUrl.searchParams.get("lon"))
+      const placeQuery = (requestUrl.searchParams.get("place") || requestUrl.searchParams.get("q") || "").trim()
+
+      const cacheKey = `${lat}_${lng}_${placeQuery.toLowerCase()}`
+      const cached = weatherCache.get(cacheKey)
+      if (cached && Date.now() - cached.timestamp < weatherCacheTtlMs) {
+        res.writeHead(200).end(JSON.stringify(cached.data))
+        return
+      }
+
+      let resolvedPlace = placeQuery || "Your Location"
+
+      // If lat/lng not valid, geocode using Open-Meteo Geocoding
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        const queryName = placeQuery || "Bengaluru"
+        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(queryName)}&count=1&country_code=IN`
+        const geoRes = await fetch(geoUrl, {
+          headers: { "Accept": "application/json", "User-Agent": "Farmezy/2.0" },
+          signal: AbortSignal.timeout(4000)
+        })
+        if (geoRes.ok) {
+          const geoData = await geoRes.json()
+          const hit = geoData.results?.[0]
+          if (hit) {
+            lat = hit.latitude
+            lng = hit.longitude
+            resolvedPlace = `${hit.name}${hit.admin1 ? ", " + hit.admin1 : ""}`
+          } else {
+            lat = 12.9719
+            lng = 77.5937
+            resolvedPlace = queryName
+          }
+        } else {
+          lat = 12.9719
+          lng = 77.5937
+        }
+      }
+
+      // Fetch 7-day forecast from Open-Meteo
+      const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max,windspeed_10m_max&timezone=Asia%2FKolkata`
+      const wRes = await fetch(weatherUrl, {
+        headers: { "Accept": "application/json", "User-Agent": "Farmezy/2.0" },
+        signal: AbortSignal.timeout(4500)
+      })
+
+      if (!wRes.ok) {
+        throw new Error("Weather service returned status " + wRes.status)
+      }
+
+      const wData = await wRes.json()
+      const WMO_MAP = {
+        0: { label: "Clear Sky", icon: "☀️" },
+        1: { label: "Mainly Clear", icon: "🌤️" },
+        2: { label: "Partly Cloudy", icon: "⛅" },
+        3: { label: "Overcast", icon: "☁️" },
+        45: { label: "Foggy", icon: "🌫️" },
+        48: { label: "Depositing Rime Fog", icon: "🌫️" },
+        51: { label: "Light Drizzle", icon: "🌦️" },
+        53: { label: "Moderate Drizzle", icon: "🌧️" },
+        55: { label: "Dense Drizzle", icon: "🌧️" },
+        61: { label: "Slight Rain", icon: "🌦️" },
+        63: { label: "Moderate Rain", icon: "🌧️" },
+        65: { label: "Heavy Rain", icon: "⛈️" },
+        80: { label: "Rain Showers", icon: "🌦️" },
+        81: { label: "Moderate Showers", icon: "🌧️" },
+        82: { label: "Violent Showers", icon: "⛈️" },
+        95: { label: "Thunderstorm", icon: "⚡" }
+      }
+
+      const daily = []
+      const times = wData.daily?.time || []
+      for (let i = 0; i < times.length; i++) {
+        const code = wData.daily.weathercode?.[i] ?? 1
+        const info = WMO_MAP[code] || { label: "Partly Cloudy", icon: "⛅" }
+        const dObj = new Date(times[i])
+        const dayName = dObj.toLocaleDateString("en-IN", { weekday: "short" })
+        const dateStr = dObj.toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+
+        daily.push({
+          date: times[i],
+          dayName,
+          dateStr,
+          maxTemp: Math.round((wData.daily.temperature_2m_max?.[i] ?? 28) * 10) / 10,
+          minTemp: Math.round((wData.daily.temperature_2m_min?.[i] ?? 18) * 10) / 10,
+          rainProb: Math.round(wData.daily.precipitation_probability_max?.[i] ?? 0),
+          windSpeed: Math.round((wData.daily.windspeed_10m_max?.[i] ?? 10) * 10) / 10,
+          condition: info.label,
+          icon: info.icon
+        })
+      }
+
+      const payload = {
+        place: resolvedPlace,
+        latitude: lat,
+        longitude: lng,
+        daily,
+        source: "Open-Meteo Meteorological Service (Asia/Kolkata)"
+      }
+
+      weatherCache.set(cacheKey, { timestamp: Date.now(), data: payload })
+      res.writeHead(200).end(JSON.stringify(payload))
+    } catch (err) {
+      res.writeHead(500).end(JSON.stringify({ error: err.message || "Failed to fetch weather data." }))
     }
     return
   }
