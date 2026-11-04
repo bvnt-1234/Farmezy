@@ -1,0 +1,96 @@
+{
+  "source_name": "Mizoram Agricultural Marketing Board (MAMB) — Mizo Thlai Thar",
+  "source_portal_url": "https://mizothlaithar.mizoram.gov.in/",
+  "department_portal_url": "https://agriculturemizoram.nic.in/",
+  "price_type": "Local Mandi Price / Government Floor Price",
+  "state": "Mizoram",
+  "data_date": "03/11/2026",
+  "records_count": 6,
+  "records": [
+    {
+      "state": "Mizoram",
+      "district": "Aizawl",
+      "market": "Aizawl Collection Centre (SCC)",
+      "commodity": "Ginger(Green)",
+      "variety": "Local Fresh",
+      "grade": "FAQ",
+      "arrival_date": "03/11/2026",
+      "min_price": 5000,
+      "modal_price": 6750,
+      "max_price": 7500,
+      "price_type": "Local Mandi Price",
+      "source_name": "MAMB — Mizo Thlai Thar Portal"
+    },
+    {
+      "state": "Mizoram",
+      "district": "Kolasib",
+      "market": "Kolasib Collection Centre (SCC)",
+      "commodity": "Ginger(Green)",
+      "variety": "Floor Price (Bana Kaih Scheme)",
+      "grade": "FAQ",
+      "arrival_date": "03/11/2026",
+      "min_price": 5000,
+      "modal_price": 5000,
+      "max_price": 5000,
+      "price_type": "Government Procurement Price",
+      "source_name": "MAMB Floor Price Notification"
+    },
+    {
+      "state": "Mizoram",
+      "district": "Champhai",
+      "market": "Champhai Collection Centre (SCC)",
+      "commodity": "Turmeric",
+      "variety": "Raw / Local",
+      "grade": "FAQ",
+      "arrival_date": "03/11/2026",
+      "min_price": 3500,
+      "modal_price": 4200,
+      "max_price": 4800,
+      "price_type": "Local Mandi Price",
+      "source_name": "MAMB — Mizo Thlai Thar Portal"
+    },
+    {
+      "state": "Mizoram",
+      "district": "Lunglei",
+      "market": "Lunglei Collection Centre (SCC)",
+      "commodity": "Chilli Red",
+      "variety": "Bird's Eye / Mizo Chilly",
+      "grade": "Local",
+      "arrival_date": "03/11/2026",
+      "min_price": 18000,
+      "modal_price": 22000,
+      "max_price": 25000,
+      "price_type": "Local Mandi Price",
+      "source_name": "MAMB — Mizo Thlai Thar Portal"
+    },
+    {
+      "state": "Mizoram",
+      "district": "Serchhip",
+      "market": "Serchhip Collection Centre (SCC)",
+      "commodity": "Maize",
+      "variety": "Yellow",
+      "grade": "FAQ",
+      "arrival_date": "03/11/2026",
+      "min_price": 2100,
+      "modal_price": 2300,
+      "max_price": 2500,
+      "price_type": "Local Mandi Price",
+      "source_name": "MAMB — Mizo Thlai Thar Portal"
+    },
+    {
+      "state": "Mizoram",
+      "district": "Aizawl",
+      "market": "Aizawl Collection Centre (SCC)",
+      "commodity": "Squash(Chayote)",
+      "variety": "Green",
+      "grade": "Local",
+      "arrival_date": "03/11/2026",
+      "min_price": 1200,
+      "modal_price": 1500,
+      "max_price": 1800,
+      "price_type": "Local Mandi Price",
+      "source_name": "MAMB — Mizo Thlai Thar Portal"
+    }
+  ]
+}
+

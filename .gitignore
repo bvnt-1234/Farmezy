@@ -5,3 +5,9 @@ backend/data/mandi-history.json
 frontend/dist/
 *.log
 .vercel
+*.bak
+*.bak_*
+backend/data/gov-raw/
+backend/data/image-audit-report.json
+backend/data/partial-mandi-sync.json
+backend/data/current-mandi-prices-backup.json

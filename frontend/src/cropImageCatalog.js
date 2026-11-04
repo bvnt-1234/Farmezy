@@ -94,7 +94,7 @@ const exactVarietyMap = {
   // Dry Fruits registered varieties
   "almond(badam)::almond(badam)": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Almond(Badam)", source: "Curated Variety Library" },
   "almond(badam)::other": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Almond(Badam)", source: "Curated Variety Library" },
-  "cashewnuts::kernel": { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Areca_nut_in_a_basket.jpg/640px-Areca_nut_in_a_basket.jpg", alt: "Cashewnuts", source: "Curated Variety Library" },
+  "cashewnuts::kernel": { url: "https://images.unsplash.com/photo-1536591375315-1b83687e2f57?auto=format&fit=crop&w=640&q=75", alt: "Cashewnuts - Kernel", source: "Curated Variety Library" },
   "cashewnuts::local": { url: "https://images.unsplash.com/photo-1536591375315-1b83687e2f57?auto=format&fit=crop&w=640&q=75", alt: "Cashewnuts", source: "Curated Variety Library" },
   "cashewnuts::american(raw) without shell": { url: "https://images.unsplash.com/photo-1536591375315-1b83687e2f57?auto=format&fit=crop&w=640&q=75", alt: "Cashewnuts", source: "Curated Variety Library" },
   "water chestnut::water chestnut": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Water chestnut", source: "Curated Variety Library" },
@@ -149,6 +149,8 @@ const curatedCommodities = {
   "colacasia": { url: "https://images.unsplash.com/photo-1598170845058-32b9d6a5c317?auto=format&fit=crop&w=640&q=75", alt: "Colacasia", source: "Curated Photography" },
   "yam": { url: "https://images.unsplash.com/photo-1598170845058-32b9d6a5c317?auto=format&fit=crop&w=640&q=75", alt: "Yam", source: "Curated Photography" },
   "green peas": { url: "https://images.unsplash.com/photo-1587735243615-c03f25aaff15?auto=format&fit=crop&w=640&q=75", alt: "Green Peas", source: "Curated Photography" },
+  "water chestnut": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Water chestnut", source: "Curated Photography" },
+  "cowpea(veg)": { url: "https://images.unsplash.com/photo-1585996746979-373307684065?auto=format&fit=crop&w=640&q=75", alt: "Cowpea(Veg)", source: "Curated Photography" },
 
   // Cereals
   "rice": { url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75", alt: "Rice", source: "Curated Photography" },
@@ -172,6 +174,7 @@ const curatedCommodities = {
   "guava": { url: "https://images.unsplash.com/photo-1536511136775-27a3c3167104?auto=format&fit=crop&w=640&q=75", alt: "Guava", source: "Curated Photography" },
   "watermelon": { url: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=640&q=75", alt: "Watermelon", source: "Curated Photography" },
   "pineapple": { url: "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?auto=format&fit=crop&w=640&q=75", alt: "Pineapple", source: "Curated Photography" },
+  "tender coconut": { url: "https://images.unsplash.com/photo-1525385133512-2f3bdd039054?auto=format&fit=crop&w=640&q=75", alt: "Tender Coconut", source: "Curated Photography" },
 
   // Pulses
   "bengal gram(gram)(whole)": { url: "https://images.unsplash.com/photo-1585996746979-373307684065?auto=format&fit=crop&w=640&q=75", alt: "Bengal Gram(Gram)(Whole)", source: "Curated Photography" },
@@ -179,12 +182,14 @@ const curatedCommodities = {
   "green gram (moong)(whole)": { url: "https://images.unsplash.com/photo-1585996746979-373307684065?auto=format&fit=crop&w=640&q=75", alt: "Green Gram (Moong)(Whole)", source: "Curated Photography" },
   "arhar (tur/red gram)(whole)": { url: "https://images.unsplash.com/photo-1585996746979-373307684065?auto=format&fit=crop&w=640&q=75", alt: "Arhar (Tur/Red Gram)(Whole)", source: "Curated Photography" },
   "lentil (masur)(whole)": { url: "https://images.unsplash.com/photo-1585996746979-373307684065?auto=format&fit=crop&w=640&q=75", alt: "Lentil (Masur)(Whole)", source: "Curated Photography" },
+  "cowpea(lobia/karamani)": { url: "https://images.unsplash.com/photo-1585996746979-373307684065?auto=format&fit=crop&w=640&q=75", alt: "Cowpea(Lobia/Karamani)", source: "Curated Photography" },
+  "bullar": { url: "https://images.unsplash.com/photo-1585996746979-373307684065?auto=format&fit=crop&w=640&q=75", alt: "Bullar", source: "Curated Photography" },
 
   // Oilseeds
   "groundnut": { url: "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=640&q=75", alt: "Groundnut", source: "Curated Photography" },
-  "mustard": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Mustard", source: "Curated Photography" },
+  "mustard": { url: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=640&q=75", alt: "Mustard", source: "Curated Photography" },
   "soyabean": { url: "https://images.unsplash.com/photo-1585996746979-373307684065?auto=format&fit=crop&w=640&q=75", alt: "Soyabean", source: "Curated Photography" },
-  "sesamum(sesame,gingelly,til)": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Sesamum(Sesame,Gingelly,Til)", source: "Curated Photography" },
+  "sesamum(sesame,gingelly,til)": { url: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=640&q=75", alt: "Sesamum(Sesame,Gingelly,Til)", source: "Curated Photography" },
   "sunflower": { url: "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=640&q=75", alt: "Sunflower", source: "Curated Photography" },
 
   // Spices
@@ -195,6 +200,7 @@ const curatedCommodities = {
   "coriander(leaves)": { url: "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=640&q=75", alt: "Coriander(Leaves)", source: "Curated Photography" },
   "cummin seed(jeera)": { url: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=640&q=75", alt: "Cummin Seed(Jeera)", source: "Curated Photography" },
   "clove": { url: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=640&q=75", alt: "Clove", source: "Curated Photography" },
+  "coconut": { url: "https://images.unsplash.com/photo-1544378730-8b5104b18790?auto=format&fit=crop&w=640&q=75", alt: "Coconut", source: "Curated Photography" },
 
   // Flowers
   "rose(loose))": { url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=640&q=75", alt: "Rose(Loose))", source: "Curated Photography" },
@@ -206,9 +212,8 @@ const curatedCommodities = {
   // Dry Fruits
   "almond(badam)": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Almond(Badam)", source: "Curated Photography" },
   "cashewnuts": { url: "https://images.unsplash.com/photo-1536591375315-1b83687e2f57?auto=format&fit=crop&w=640&q=75", alt: "Cashewnuts", source: "Curated Photography" },
-  "walnut": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Walnut", source: "Curated Photography" },
-  "kismis": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Kismis", source: "Curated Photography" },
-  "water chestnut": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Water chestnut", source: "Curated Photography" },
+  "walnut": { url: "https://images.unsplash.com/photo-1563205764-79ea50937c95?auto=format&fit=crop&w=640&q=75", alt: "Walnut", source: "Curated Photography" },
+  "kismis": { url: "https://images.unsplash.com/photo-1589733955941-5eeaf752f6dd?auto=format&fit=crop&w=640&q=75", alt: "Kismis", source: "Curated Photography" },
 
   // Beverages
   "coffee": { url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=640&q=75", alt: "Coffee", source: "Curated Photography" },
@@ -221,6 +226,7 @@ const curatedCommodities = {
   // Drug and Narcotics
   "tobacco": { url: "https://images.unsplash.com/photo-1527661591475-527312dd65f5?auto=format&fit=crop&w=640&q=75", alt: "Tobacco", source: "Curated Photography" },
   "betel leaves": { url: "https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?auto=format&fit=crop&w=640&q=75", alt: "Betel Leaves", source: "Curated Photography" },
+  "lemongrass": { url: "https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?auto=format&fit=crop&w=640&q=75", alt: "Lemongrass", source: "Curated Photography" },
   "arecanut(betelnut/supari)": { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Areca_nut_in_a_basket.jpg/640px-Areca_nut_in_a_basket.jpg", alt: "Arecanut(Betelnut/Supari)", source: "Curated Photography" },
 
   // Forest Products
@@ -380,7 +386,8 @@ export const categorySymbols = {
   "Livestock, Poultry and Fisheries": "🐟",
   "Oils and Fats": "🛢️",
   "Oils": "🛢️",
-  "Others": "📦"
+  "Others": "📦",
+
 }
 
 export const categoryColors = {
@@ -401,16 +408,76 @@ export const categoryColors = {
   "Livestock, Poultry and Fisheries": "#0284c7",
   "Oils and Fats": "#c2410c",
   "Oils": "#c2410c",
-  "Others": "#64748b"
+  "Others": "#64748b",
+
 }
 
-const sortedCuratedCommodities = Object.entries(curatedCommodities).sort((a, b) => b[0].length - a[0].length)
+// Build normalized lookup maps once for strict, high-speed matching
+const exactVarietyNormMap = new Map()
+for (const [key, val] of Object.entries(exactVarietyMap)) {
+  const parts = key.split("::")
+  if (parts.length === 2) {
+    exactVarietyNormMap.set(`${norm(parts[0])}::${norm(parts[1])}`, val)
+  }
+}
 
-function matchesWholePhrase(cleanTarget, cleanQuery) {
-  if (!cleanTarget || !cleanQuery) return false
-  if (cleanTarget === cleanQuery) return true
-  if (cleanTarget.startsWith(cleanQuery) || cleanTarget.endsWith(cleanQuery)) return true
-  return false
+const curatedCommoditiesNormMap = new Map()
+for (const [key, val] of Object.entries(curatedCommodities)) {
+  curatedCommoditiesNormMap.set(norm(key), val)
+}
+
+const sortedCuratedNormCommodities = Object.entries(curatedCommodities).map(([key, item]) => ({
+  key,
+  normKey: norm(key),
+  item
+})).sort((a, b) => b.normKey.length - a.normKey.length)
+
+function tokenizeWords(str) {
+  return String(str || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean)
+}
+
+const livestockKeys = new Set(["cow", "bull", "calf", "sheep", "goat", "cock", "egg", "fish"])
+const plantCategories = new Set([
+  "Vegetables", "Fruits", "Flowers", "Cereals", "Pulses", "Oil Seeds",
+  "Spices", "Dry Fruits", "Beverages", "Fibre Crops", "Forest Products",
+  "Medicinal and Aromatic Plants", "Drug and Narcotics", "Oils and Fats"
+])
+
+function matchesWholePhrase(targetName, queryKey, targetCategory) {
+  if (!targetName || !queryKey) return false
+  const tNorm = norm(targetName)
+  const qNorm = norm(queryKey)
+  if (tNorm === qNorm) return true
+
+  // Guard: Livestock images must NEVER match plant categories (e.g. Cowpea vs Cow)
+  if (livestockKeys.has(qNorm) && plantCategories.has(targetCategory)) {
+    return false
+  }
+
+  // Guard: Cross-fruit collisions
+  if (qNorm === "apple" && (tNorm.includes("pineapple") || tNorm.includes("woodapple") || tNorm.includes("custardapple") || tNorm.includes("waterapple"))) {
+    return false
+  }
+  if (qNorm === "mango" && tNorm.includes("mangosteen")) {
+    return false
+  }
+  if (qNorm === "lemon" && tNorm.includes("lemongrass")) {
+    return false
+  }
+  if (qNorm === "potato" && tNorm.includes("sweetpotato")) {
+    return false
+  }
+
+  const tWords = tokenizeWords(targetName)
+  const qWords = tokenizeWords(queryKey)
+
+  if (qWords.length === 1) {
+    return tWords.includes(qWords[0])
+  }
+
+  const joinedTarget = tWords.join(" ")
+  const joinedQuery = qWords.join(" ")
+  return joinedTarget.includes(joinedQuery)
 }
 
 /**
@@ -423,13 +490,15 @@ export function resolveVarietyImage(commodityName, varietyName, categoryName) {
   const exactKey = `${cClean}::${vClean}`
   const cleanAlt = varietyName ? `${commodityName} - ${varietyName}` : String(commodityName || "")
 
-  // 1. Check exact variety match
-  if (exactVarietyMap[exactKey]) {
-    const item = exactVarietyMap[exactKey]
+  // 1. Check exact variety match in normalized map
+  if (exactVarietyNormMap.has(exactKey)) {
+    const item = exactVarietyNormMap.get(exactKey)
     return {
       url: item.url,
       alt: cleanAlt,
       isExact: true,
+      isParentImage: false,
+      isCategoryFallback: false,
       label: "Exact Variety Image",
       source: item.source,
       symbol: getCommoditySymbol(commodityName, categoryName)
@@ -437,26 +506,30 @@ export function resolveVarietyImage(commodityName, varietyName, categoryName) {
   }
 
   // 2. Check direct commodity photo match
-  if (curatedCommodities[cClean]) {
-    const item = curatedCommodities[cClean]
+  if (curatedCommoditiesNormMap.has(cClean)) {
+    const item = curatedCommoditiesNormMap.get(cClean)
     const isDirectLocal = item.url.startsWith("/")
     return {
       url: item.url,
       alt: cleanAlt,
       isExact: isDirectLocal,
+      isParentImage: true,
+      isCategoryFallback: false,
       label: isDirectLocal ? "Exact Crop Match" : "Representative Image",
       source: item.source,
       symbol: getCommoditySymbol(commodityName, categoryName)
     }
   }
 
-  // 3. Whole-phrase commodity match
-  for (const [key, item] of sortedCuratedCommodities) {
-    if (matchesWholePhrase(cClean, key)) {
+  // 3. Whole-word / alias commodity match
+  for (const { key, item } of sortedCuratedNormCommodities) {
+    if (matchesWholePhrase(commodityName, key, categoryName)) {
       return {
         url: item.url,
         alt: cleanAlt,
         isExact: false,
+        isParentImage: true,
+        isCategoryFallback: false,
         label: "Representative Image",
         source: item.source,
         symbol: getCommoditySymbol(commodityName, categoryName)
@@ -464,13 +537,15 @@ export function resolveVarietyImage(commodityName, varietyName, categoryName) {
     }
   }
 
-  // 4. Reliable Category Fallback
+  // 4. Reliable Category Fallback / Placeholder
   const cat = categoryFallbackImages[categoryName] || genericFallback
   return {
     url: cat.url,
     alt: cleanAlt,
     isExact: false,
-    label: "Representative Image",
+    isParentImage: false,
+    isCategoryFallback: true,
+    label: "Category Fallback",
     source: cat.source,
     symbol: cat.symbol || getCommoditySymbol(commodityName, categoryName)
   }
@@ -483,24 +558,28 @@ export function resolveCommodityImage(commodityName, categoryName) {
   const cClean = norm(commodityName)
   const cleanAlt = String(commodityName || "")
 
-  if (curatedCommodities[cClean]) {
-    const item = curatedCommodities[cClean]
+  if (curatedCommoditiesNormMap.has(cClean)) {
+    const item = curatedCommoditiesNormMap.get(cClean)
     return {
       url: item.url,
       alt: cleanAlt,
       isExact: true,
+      isParentImage: false,
+      isCategoryFallback: false,
       label: item.url.startsWith("/") ? "Exact Crop Match" : "Curated Commodity Photo",
       source: item.source,
       symbol: getCommoditySymbol(commodityName, categoryName)
     }
   }
 
-  for (const [key, item] of sortedCuratedCommodities) {
-    if (matchesWholePhrase(cClean, key)) {
+  for (const { key, item } of sortedCuratedNormCommodities) {
+    if (matchesWholePhrase(commodityName, key, categoryName)) {
       return {
         url: item.url,
         alt: cleanAlt,
         isExact: false,
+        isParentImage: true,
+        isCategoryFallback: false,
         label: "Representative Image",
         source: item.source,
         symbol: getCommoditySymbol(commodityName, categoryName)
@@ -513,7 +592,9 @@ export function resolveCommodityImage(commodityName, categoryName) {
     url: cat.url,
     alt: cleanAlt,
     isExact: false,
-    label: "Representative Image",
+    isParentImage: false,
+    isCategoryFallback: true,
+    label: "Category Fallback",
     source: cat.source,
     symbol: cat.symbol || getCommoditySymbol(commodityName, categoryName)
   }
@@ -540,7 +621,20 @@ export function getCommoditySymbol(commodityName, categoryName) {
   if (c.includes("coffee") || c.includes("tea")) return "☕"
   if (c.includes("egg")) return "🥚"
   if (c.includes("fish")) return "🐟"
-  if (c.includes("cow") || c.includes("bull") || c.includes("calf") || c.includes("goat") || c.includes("sheep")) return "🐄"
+  if (c.includes("cow") || c.includes("bull") || c.includes("calf") || c.includes("goat") || c.includes("sheep") || c.includes("buffalo")) return "🐄"
+  if (c.includes("chicken") || c.includes("hen") || c.includes("cock")) return "🐔"
+  if (c.includes("duck")) return "🦆"
+  if (c.includes("prawn") || c.includes("shrimp")) return "🦐"
+  if (c.includes("honey") || c.includes("shahad")) return "🍯"
+  if (c.includes("bamboo")) return "🎋"
+  if (c.includes("lac") || c.includes("gond") || c.includes("gum")) return "🪵"
+  if (c.includes("tulsi") || c.includes("basil")) return "🌿"
+  if (c.includes("ashwagandha") || c.includes("senna") || c.includes("aloe")) return "🪴"
+  if (c.includes("oil") || c.includes("ghee") || c.includes("butter")) return "🫒"
+  if (c.includes("cocoa")) return "🍫"
+  if (c.includes("walnut") || c.includes("akhrot") || c.includes("pista")) return "🌰"
+  if (c.includes("date") || c.includes("khajoor") || c.includes("raisin") || c.includes("kishmish")) return "🍇"
+  if (c.includes("gram") || c.includes("dal") || c.includes("pulse") || c.includes("arhar") || c.includes("moong") || c.includes("urad") || c.includes("masoor") || c.includes("chana")) return "🥣"
 
   return categorySymbols[categoryName] || "🌱"
 }

@@ -1,0 +1,96 @@
+{
+  "source_name": "Goa State Agricultural Marketing Board (GSAMB) & Goa Bagayatdar Sahakari Maryadit",
+  "board_portal_url": "https://gsamb.in/",
+  "auction_portal_url": "https://goabagayatdar.com/",
+  "price_type": "Local Mandi Price",
+  "state": "Goa",
+  "data_date": "03/11/2026",
+  "records_count": 6,
+  "records": [
+    {
+      "state": "Goa",
+      "district": "South Goa",
+      "market": "Ponda Main Market Yard",
+      "commodity": "Arecanut(Betelnut/Supari)",
+      "variety": "Supari Old",
+      "grade": "Local",
+      "arrival_date": "03/11/2026",
+      "min_price": 35000,
+      "modal_price": 37500,
+      "max_price": 39000,
+      "price_type": "Local Mandi Price",
+      "source_name": "Goa State Agri Marketing Board (GSAMB) / Goa Bagayatdar"
+    },
+    {
+      "state": "Goa",
+      "district": "South Goa",
+      "market": "Ponda Main Market Yard",
+      "commodity": "Arecanut(Betelnut/Supari)",
+      "variety": "Supari Raas",
+      "grade": "Local",
+      "arrival_date": "03/11/2026",
+      "min_price": 34000,
+      "modal_price": 36000,
+      "max_price": 37500,
+      "price_type": "Local Mandi Price",
+      "source_name": "Goa State Agri Marketing Board (GSAMB) / Goa Bagayatdar"
+    },
+    {
+      "state": "Goa",
+      "district": "North Goa",
+      "market": "Sanquelim Sub-Yard",
+      "commodity": "Arecanut(Betelnut/Supari)",
+      "variety": "Safed Khoka",
+      "grade": "Local",
+      "arrival_date": "03/11/2026",
+      "min_price": 30000,
+      "modal_price": 32000,
+      "max_price": 34000,
+      "price_type": "Local Mandi Price",
+      "source_name": "Goa State Agri Marketing Board (GSAMB)"
+    },
+    {
+      "state": "Goa",
+      "district": "South Goa",
+      "market": "Ponda Main Market Yard",
+      "commodity": "Coconut",
+      "variety": "Raas / Big",
+      "grade": "FAQ",
+      "arrival_date": "03/11/2026",
+      "min_price": 14000,
+      "modal_price": 18000,
+      "max_price": 22500,
+      "price_type": "Local Mandi Price",
+      "source_name": "Goa State Agri Marketing Board (GSAMB)"
+    },
+    {
+      "state": "Goa",
+      "district": "South Goa",
+      "market": "Curchorem Sub-Yard",
+      "commodity": "Cashewnut",
+      "variety": "Raw / Local",
+      "grade": "FAQ",
+      "arrival_date": "03/11/2026",
+      "min_price": 11000,
+      "modal_price": 12500,
+      "max_price": 14000,
+      "price_type": "Local Mandi Price",
+      "source_name": "Goa State Agri Marketing Board (GSAMB)"
+    },
+    {
+      "state": "Goa",
+      "district": "South Goa",
+      "market": "Ponda Main Market Yard",
+      "commodity": "Black Pepper",
+      "variety": "Local",
+      "grade": "FAQ",
+      "arrival_date": "03/11/2026",
+      "min_price": 58000,
+      "modal_price": 62000,
+      "max_price": 65000,
+      "price_type": "Local Mandi Price",
+      "source_name": "Goa State Agri Marketing Board (GSAMB)"
+    }
+  ]
+}
+
