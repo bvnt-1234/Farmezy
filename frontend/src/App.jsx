@@ -2750,11 +2750,11 @@ function App() {
               )}
 
               {/* Show prices for all vegetables of user's district and state */}
-              <OfficialPrices location={profile} preview onViewAll={() => setPage("Prices")} />
+              <OfficialPrices location={profile} preview onViewAll={() => setPage("Prices")} farmerListings={listings} onSelectListing={openListingDetails} />
             </>
           )}
 
-          {page === "Prices" && <OfficialPrices location={profile} />}
+          {page === "Prices" && <OfficialPrices location={profile} farmerListings={listings} onSelectListing={openListingDetails} />}
 
           {page === "Browse" && (
             <>
