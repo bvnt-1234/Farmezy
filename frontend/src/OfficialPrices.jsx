@@ -877,13 +877,8 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                             e.currentTarget.src = getCategorySvgDataUri(categoryName, `${r.commodity} (${r.variety})`)
                           }}
                         />
-                        <span className="listing-photo-badge" style={{ background: badge.bg, color: badge.color, fontWeight: "700" }}>
-                          {badge.label}
-                        </span>
+                        
                       </div>
-                      <span style={{ fontSize: "8px", color: "#64748b", display: "block", marginTop: "3px", textAlign: "center" }}>
-                        {imgInfo.isExact ? "Exact Match" : (imgInfo.isCategoryFallback ? "Category SVG" : "Representative")}
-                      </span>
                     </div>
 
                     {/* Column 2: Commodity, Variety, Category, Grade, Date */}
@@ -1022,9 +1017,6 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                         }}
                       />
                       <span className="crop-symbol">{imgInfo.symbol}</span>
-                      <span className={imgInfo.isExact ? "crop-img-tag exact-tag" : (imgInfo.isCategoryFallback ? "crop-img-tag cat-tag" : "crop-img-tag rep-tag")}>
-                        {imgInfo.isExact ? "Exact Match" : (imgInfo.isCategoryFallback ? "Category SVG" : "Representative")}
-                      </span>
                     </div>
                     <div className="crop-card-copy">
                       <small className="crop-category-tag">{categoryName || "AGMARKNET"} · {(r.arrival_date && r.arrival_date !== "Date unavailable") ? r.arrival_date : "Date unavailable"}</small>
@@ -1153,9 +1145,6 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                       }}
                     />
                     <span className="crop-symbol">{imgInfo.symbol}</span>
-                    <span className={imgInfo.isExact ? "crop-img-tag exact-tag" : "crop-img-tag rep-tag"}>
-                      {imgInfo.isExact ? "Exact Match" : "Representative"}
-                    </span>
                   </div>
                   <div className="crop-card-copy">
                     <small className="crop-category-tag">{item.category} · AGMARKNET</small>
