@@ -31,6 +31,8 @@ const writableDataDir = isVercel
   : dataDir
 const listingsFile = path.join(writableDataDir, "listings.json")
 const ordersFile = path.join(writableDataDir, "orders.json")
+const notificationsFile = path.join(writableDataDir, "notifications.json")
+const reviewsFile = path.join(writableDataDir, "reviews.json")
 const imageCacheFile = path.join(writableDataDir, "image-cache.json")
 const catalogueFile = path.join(dataDir, "agmarknet-catalogue.json")
 const masterFile = path.join(dataDir, "commodity-master.json")
@@ -479,6 +481,194 @@ function saveOrders(newOrders) {
 }
 
 let orders = loadOrders()
+
+function loadNotifications() {
+  try {
+    if (!existsSync(notificationsFile)) {
+      const defaultFile = path.join(dataDir, "notifications.json")
+      if (existsSync(defaultFile)) {
+        const data = JSON.parse(readFileSync(defaultFile, "utf8"))
+        return Array.isArray(data) ? data : []
+      }
+      return []
+    }
+    const data = JSON.parse(readFileSync(notificationsFile, "utf8"))
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+function saveNotifications(newNotifications) {
+  try {
+    mkdirSync(writableDataDir, { recursive: true })
+    writeFileSync(notificationsFile, JSON.stringify(newNotifications, null, 2))
+  } catch (err) {
+    console.warn("Warning: Could not persist notifications to disk:", err.message)
+  }
+}
+
+let notifications = loadNotifications()
+
+function loadReviews() {
+  try {
+    if (!existsSync(reviewsFile)) {
+      const defaultFile = path.join(dataDir, "reviews.json")
+      if (existsSync(defaultFile)) {
+        const data = JSON.parse(readFileSync(defaultFile, "utf8"))
+        return Array.isArray(data) ? data : []
+      }
+      return []
+    }
+    const data = JSON.parse(readFileSync(reviewsFile, "utf8"))
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+function saveReviews(newReviews) {
+  try {
+    mkdirSync(writableDataDir, { recursive: true })
+    writeFileSync(reviewsFile, JSON.stringify(newReviews, null, 2))
+  } catch (err) {
+    console.warn("Warning: Could not persist reviews to disk:", err.message)
+  }
+}
+
+let reviews = loadReviews()
+
+function calculateReviewStats(targetReviews) {
+  if (!Array.isArray(targetReviews) || targetReviews.length === 0) {
+    return {
+      averageRating: 0,
+      totalReviews: 0,
+      averageFarmerRating: 0,
+      breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    }
+  }
+  let sumRating = 0
+  let sumFarmer = 0
+  const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+  targetReviews.forEach(r => {
+    const star = Math.min(5, Math.max(1, Math.round(Number(r.rating || 5))))
+    breakdown[star] = (breakdown[star] || 0) + 1
+    sumRating += Number(r.rating || 5)
+    sumFarmer += Number(r.farmerRating || r.rating || 5)
+  })
+  return {
+    averageRating: Number((sumRating / targetReviews.length).toFixed(1)),
+    averageFarmerRating: Number((sumFarmer / targetReviews.length).toFixed(1)),
+    totalReviews: targetReviews.length,
+    breakdown
+  }
+}
+
+
+// Active SSE client connections: clientId -> { res, userId, phone, role }
+const sseClients = new Map()
+
+function cleanId(id) {
+  return String(id || "").trim().toLowerCase()
+}
+
+function cleanDigits(val) {
+  return String(val || "").replace(/\D/g, "")
+}
+
+function matchesUser(notification, userId, phone) {
+  if (!notification) return false
+  const nUserId = cleanId(notification.userId)
+  const qUserId = cleanId(userId)
+  if (qUserId && nUserId && (nUserId === qUserId || nUserId.includes(qUserId) || qUserId.includes(nUserId))) {
+    return true
+  }
+  const qPhoneDigits = cleanDigits(phone || userId)
+  const nPhoneDigits = cleanDigits(notification.userPhone || notification.userId)
+  if (qPhoneDigits.length >= 10 && nPhoneDigits.length >= 10) {
+    if (nPhoneDigits.slice(-10) === qPhoneDigits.slice(-10)) return true
+  }
+  return false
+}
+
+function createAndDispatchNotification({
+  userId,
+  userPhone,
+  role,
+  orderId,
+  type,
+  title,
+  message,
+  customerName,
+  farmerName,
+  crop,
+  quantity,
+  unit,
+  price,
+  status
+}) {
+  const recentDuplicate = notifications.find(n => 
+    n.orderId === String(orderId) && 
+    (n.type === type || n.status === status) && 
+    (Date.now() - new Date(n.createdAt).getTime()) < 4000
+  )
+  if (recentDuplicate) return recentDuplicate
+
+  const notif = {
+    id: "notif_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+    userId: String(userId || ""),
+    userPhone: String(userPhone || ""),
+    role: String(role || ""),
+    orderId: String(orderId || ""),
+    type: String(type || "GENERAL"),
+    title: String(title || "🔔 Notification"),
+    message: String(message || ""),
+    customerName: String(customerName || ""),
+    farmerName: String(farmerName || ""),
+    crop: String(crop || ""),
+    quantity: String(quantity || ""),
+    unit: String(unit || "kg"),
+    price: String(price || ""),
+    status: String(status || ""),
+    read: false,
+    createdAt: new Date().toISOString()
+  }
+
+  notifications = [notif, ...notifications]
+  if (notifications.length > 500) {
+    notifications = notifications.slice(0, 500)
+  }
+  saveNotifications(notifications)
+
+  // Real-time dispatch via SSE
+  const payload = "data: " + JSON.stringify({ type: "notification", notification: notif }) + "\n\n"
+  for (const [clientId, client] of sseClients.entries()) {
+    if (matchesUser(notif, client.userId, client.phone)) {
+      try {
+        client.res.write(payload)
+      } catch (err) {
+        console.warn("Failed writing to SSE client " + clientId + ":", err.message)
+        sseClients.delete(clientId)
+      }
+    }
+  }
+
+  return notif
+}
+
+// Heartbeat ping every 25 seconds to keep SSE connections open through load balancers
+setInterval(() => {
+  if (sseClients.size === 0) return
+  const pingPayload = ": ping\n\n"
+  for (const [clientId, client] of sseClients.entries()) {
+    try {
+      client.res.write(pingPayload)
+    } catch {
+      sseClients.delete(clientId)
+    }
+  }
+}, 25000)
+
 
 function startHistoricalCollector() {
   if (isVercel || !(process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY)) return
@@ -3010,6 +3200,367 @@ async function handleRequest(req, res) {
     return
   }
 
+  
+  if (requestUrl.pathname === "/api/notifications/stream" && req.method === "GET") {
+    const userId = requestUrl.searchParams.get("userId") || ""
+    const phone = requestUrl.searchParams.get("phone") || ""
+    const role = requestUrl.searchParams.get("role") || ""
+
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      "Connection": "keep-alive",
+      "Access-Control-Allow-Origin": "*",
+      "X-Accel-Buffering": "no"
+    })
+
+    const clientId = "sse_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7)
+    sseClients.set(clientId, { res, userId, phone, role })
+
+    res.write(": connection established\n\n")
+
+    notifications = loadNotifications()
+    const userNotifs = notifications.filter(n => matchesUser(n, userId, phone))
+    const unreadCount = userNotifs.filter(n => !n.read).length
+    res.write("data: " + JSON.stringify({ type: "init", unreadCount }) + "\n\n")
+
+    req.on("close", () => {
+      sseClients.delete(clientId)
+    })
+    return
+  }
+
+  if (requestUrl.pathname === "/api/notifications" && req.method === "GET") {
+    notifications = loadNotifications()
+    const userId = requestUrl.searchParams.get("userId")
+    const phone = requestUrl.searchParams.get("phone")
+    const role = requestUrl.searchParams.get("role")
+
+    let result = notifications
+    if (userId || phone) {
+      result = result.filter(n => matchesUser(n, userId, phone))
+    }
+    if (role) {
+      result = result.filter(n => !n.role || n.role === role)
+    }
+
+    const unreadCount = result.filter(n => !n.read).length
+    res.writeHead(200).end(JSON.stringify({ notifications: result, unreadCount }))
+    return
+  }
+
+  if (requestUrl.pathname.startsWith("/api/notifications/") && requestUrl.pathname.endsWith("/read") && req.method === "PATCH") {
+    const parts = requestUrl.pathname.split("/")
+    const notifId = parts[3]
+    notifications = loadNotifications()
+    const notif = notifications.find(n => n.id === notifId)
+    if (!notif) {
+      res.writeHead(404).end(JSON.stringify({ error: "Notification not found" }))
+      return
+    }
+    notif.read = true
+    notif.readAt = new Date().toISOString()
+    saveNotifications(notifications)
+    res.writeHead(200).end(JSON.stringify({ success: true, notification: notif }))
+    return
+  }
+
+  if (requestUrl.pathname === "/api/notifications/read-all" && req.method === "POST") {
+    try {
+      let body = ""
+      for await (const chunk of req) body += chunk
+      const data = JSON.parse(body || "{}")
+      const { userId, phone, role } = data
+
+      notifications = loadNotifications()
+      let updatedCount = 0
+      notifications.forEach(n => {
+        if (matchesUser(n, userId, phone)) {
+          if (!role || n.role === role) {
+            if (!n.read) {
+              n.read = true
+              n.readAt = new Date().toISOString()
+              updatedCount++
+            }
+          }
+        }
+      })
+
+      if (updatedCount > 0) {
+        saveNotifications(notifications)
+      }
+
+      res.writeHead(200).end(JSON.stringify({ success: true, updatedCount }))
+    } catch (err) {
+      res.writeHead(400).end(JSON.stringify({ error: "Failed to mark all as read: " + err.message }))
+    }
+    return
+  }
+
+  
+  // --- REVIEWS & RATINGS APIS ---
+  if (requestUrl.pathname === "/api/reviews" && req.method === "GET") {
+    reviews = loadReviews()
+    const crop = requestUrl.searchParams.get("crop")?.trim()?.toLowerCase()
+    const farmerId = requestUrl.searchParams.get("farmerId")?.trim()
+    const customerId = requestUrl.searchParams.get("customerId")?.trim()
+    const orderId = requestUrl.searchParams.get("orderId")?.trim()
+    const listingId = requestUrl.searchParams.get("listingId")?.trim()
+
+    let filtered = reviews
+    if (crop) {
+      filtered = filtered.filter(r => String(r.crop || "").toLowerCase() === crop || String(r.crop || "").toLowerCase().includes(crop))
+    }
+    if (farmerId) {
+      filtered = filtered.filter(r => String(r.farmerId) === farmerId)
+    }
+    if (customerId) {
+      filtered = filtered.filter(r => String(r.customerId) === customerId)
+    }
+    if (orderId) {
+      filtered = filtered.filter(r => String(r.orderId) === orderId)
+    }
+    if (listingId) {
+      filtered = filtered.filter(r => String(r.listingId) === listingId)
+    }
+
+    // Build crop breakdown stats
+    const allCropStats = {}
+    reviews.forEach(r => {
+      const c = String(r.crop || "").toLowerCase()
+      if (!allCropStats[c]) allCropStats[c] = []
+      allCropStats[c].push(r)
+    })
+    const cropStatsMap = {}
+    for (const [k, list] of Object.entries(allCropStats)) {
+      cropStatsMap[k] = calculateReviewStats(list)
+    }
+
+    // Build farmer breakdown stats
+    const allFarmerStats = {}
+    reviews.forEach(r => {
+      const f = String(r.farmerId || "")
+      if (!allFarmerStats[f]) allFarmerStats[f] = []
+      allFarmerStats[f].push(r)
+    })
+    const farmerStatsMap = {}
+    for (const [k, list] of Object.entries(allFarmerStats)) {
+      farmerStatsMap[k] = calculateReviewStats(list)
+    }
+
+    res.writeHead(200).end(JSON.stringify({
+      reviews: filtered,
+      stats: calculateReviewStats(filtered),
+      cropStats: cropStatsMap,
+      farmerStats: farmerStatsMap
+    }))
+    return
+  }
+
+  if (requestUrl.pathname === "/api/reviews" && req.method === "POST") {
+    try {
+      const data = await parseBody(req)
+      const required = ["orderId", "crop", "rating", "reviewText", "customerId"]
+      const missing = required.filter(f => !String(data[f] ?? "").trim())
+      if (missing.length) {
+        res.writeHead(400).end(JSON.stringify({ error: "Missing required fields: " + missing.join(", ") }))
+        return
+      }
+
+      reviews = loadReviews()
+
+      // Prevent duplicate review for the same order
+      const existing = reviews.find(r => String(r.orderId) === String(data.orderId))
+      if (existing) {
+        res.writeHead(400).end(JSON.stringify({ error: "You have already reviewed this purchase." }))
+        return
+      }
+
+      // Verify that order actually exists in orders.json
+      orders = loadOrders()
+      const verifiedOrder = orders.find(o => String(o.id) === String(data.orderId))
+
+      const ratingNum = Math.min(5, Math.max(1, Number(data.rating) || 5))
+      const farmerRatingNum = Math.min(5, Math.max(1, Number(data.farmerRating || data.rating) || 5))
+
+      const newReview = {
+        id: "rev_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+        orderId: String(data.orderId),
+        listingId: String(data.listingId || verifiedOrder?.listingId || ""),
+        crop: String(data.crop || verifiedOrder?.crop || ""),
+        farmerId: String(data.farmerId || verifiedOrder?.farmerId || ""),
+        farmerName: String(data.farmerName || verifiedOrder?.farmerName || "Farmer"),
+        customerId: String(data.customerId),
+        customerName: String(data.customerName || verifiedOrder?.customerName || "Customer"),
+        rating: ratingNum,
+        farmerRating: farmerRatingNum,
+        reviewText: String(data.reviewText || "").trim(),
+        verifiedPurchase: Boolean(verifiedOrder),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+
+      reviews = [newReview, ...reviews]
+      saveReviews(reviews)
+
+      res.writeHead(201).end(JSON.stringify({ success: true, review: newReview }))
+    } catch (err) {
+      res.writeHead(400).end(JSON.stringify({ error: "Invalid review submission: " + err.message }))
+    }
+    return
+  }
+
+  if (requestUrl.pathname.startsWith("/api/reviews/") && req.method === "PUT") {
+    try {
+      const id = requestUrl.pathname.split("/").pop()
+      const data = await parseBody(req)
+      reviews = loadReviews()
+      const review = reviews.find(r => r.id === id)
+      if (!review) {
+        res.writeHead(404).end(JSON.stringify({ error: "Review not found." }))
+        return
+      }
+
+      if (data.rating !== undefined) {
+        review.rating = Math.min(5, Math.max(1, Number(data.rating) || 5))
+      }
+      if (data.farmerRating !== undefined) {
+        review.farmerRating = Math.min(5, Math.max(1, Number(data.farmerRating) || 5))
+      }
+      if (data.reviewText !== undefined) {
+        review.reviewText = String(data.reviewText).trim()
+      }
+      review.updatedAt = new Date().toISOString()
+      saveReviews(reviews)
+
+      res.writeHead(200).end(JSON.stringify({ success: true, review }))
+    } catch (err) {
+      res.writeHead(400).end(JSON.stringify({ error: "Invalid review update: " + err.message }))
+    }
+    return
+  }
+
+  if (requestUrl.pathname.startsWith("/api/reviews/") && req.method === "DELETE") {
+    try {
+      const id = requestUrl.pathname.split("/").pop()
+      reviews = loadReviews()
+      const beforeCount = reviews.length
+      reviews = reviews.filter(r => r.id !== id)
+      if (reviews.length === beforeCount) {
+        res.writeHead(404).end(JSON.stringify({ error: "Review not found." }))
+        return
+      }
+      saveReviews(reviews)
+      res.writeHead(200).end(JSON.stringify({ success: true }))
+    } catch (err) {
+      res.writeHead(400).end(JSON.stringify({ error: "Could not delete review: " + err.message }))
+    }
+    return
+  }
+
+  // --- INVOICE DETAILS API ---
+  if (requestUrl.pathname.startsWith("/api/invoices/") && req.method === "GET") {
+    const orderId = requestUrl.pathname.split("/").pop()
+    orders = loadOrders()
+    const order = orders.find(o => String(o.id) === String(orderId))
+    if (!order) {
+      res.writeHead(404).end(JSON.stringify({ error: "Order not found for invoice." }))
+      return
+    }
+
+    const qty = Number(order.quantity) || 1
+    const price = Number(order.price) || 0
+    const subtotal = qty * price
+    const delivery = 0
+    const discount = 0
+    const grandTotal = subtotal + delivery - discount
+
+    const invoice = {
+      invoiceNumber: order.invoiceNumber || ("INV-" + String(order.id).slice(-6).toUpperCase()),
+      orderId: order.id,
+      date: order.createdAt,
+      crop: order.crop,
+      quantity: order.quantity,
+      unit: order.unit || "kg",
+      price: order.price,
+      subtotal,
+      delivery,
+      discount,
+      grandTotal,
+      farmerId: order.farmerId,
+      farmerName: order.farmerName,
+      farmerPhone: order.farmerPhone || "",
+      farmerAddress: order.farmerAddress || order.address || "Farmgate, India",
+      customerId: order.customerId,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone || "",
+      customerLocation: order.customerLocation || "Direct Farmgate Pickup",
+      paymentMethod: order.paymentMethod || "Direct Farmgate Pay on Delivery / UPI",
+      paymentStatus: order.status === "Completed" ? "Paid" : "Pending on Delivery",
+      status: order.status
+    }
+
+    res.writeHead(200).end(JSON.stringify({ invoice }))
+    return
+  }
+
+  // GET /api/listings/:id - Fetch single crop listing details dynamically
+  if (requestUrl.pathname.startsWith("/api/listings/") && req.method === "GET") {
+    const id = requestUrl.pathname.replace(/^\/api\/listings\/?/, "").trim()
+    if (!id) {
+      res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Missing listing ID." }))
+      return
+    }
+    listings = loadListings()
+    const item = listings.find(l => String(l.id) === id)
+    if (!item) {
+      res.writeHead(404, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Listing not found." }))
+      return
+    }
+
+    let farmerPhone = item.farmerPhone
+    if (!farmerPhone) {
+      const existingContactPhone = item.contact?.phone || item.contact?.whatsapp || ""
+      const contactDigits = String(existingContactPhone).replace(/\D/g, "")
+      if (contactDigits.length === 10) farmerPhone = contactDigits
+      else {
+        const digits = String(item.farmerId || "").replace(/\D/g, "")
+        if (digits.length === 10) farmerPhone = digits
+      }
+    }
+
+    let image = item.image
+    let imagePhotographer = item.imagePhotographer
+    let imageLink = item.imageLink
+
+    if (image && item.imageSource !== "farmer") {
+      const cached = imageCache.get(String(item.crop || "").toLowerCase().trim())
+      if (cached?.data?.url && cached.data.url !== "/placeholder.png" && !cached.data.url.startsWith("/")) {
+        image = cached.data.url
+      }
+      if (cached?.data?.photographer) {
+        imagePhotographer = cached.data.photographer
+        imageLink = cached.data.link
+      }
+    }
+
+    const safeItem = {
+      ...item,
+      farmerPhone,
+      image,
+      imagePhotographer,
+      imageLink
+    }
+    // Do not expose raw private GPS coordinates in public detail response
+    delete safeItem.latitude
+    delete safeItem.longitude
+    delete safeItem.farmerLat
+    delete safeItem.farmerLng
+
+    res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ listing: safeItem }))
+    return
+  }
+
   if (requestUrl.pathname === "/api/orders" && req.method === "GET") {
     const farmerId = requestUrl.searchParams.get("farmerId")
     const customerId = requestUrl.searchParams.get("customerId")
@@ -3057,6 +3608,28 @@ async function handleRequest(req, res) {
 
       orders = [order, ...orders]
       saveOrders(orders)
+
+      // Notify Farmer in real-time
+      try {
+        createAndDispatchNotification({
+          userId: order.farmerId,
+          userPhone: order.farmerPhone,
+          role: "Farmer",
+          orderId: order.id,
+          type: "ORDER_RECEIVED",
+          title: "🔔 New Order Received!",
+          message: "Customer " + (order.customerName || "Customer") + " has placed an order for " + order.quantity + " " + (order.unit || "kg") + " of " + order.crop + ".",
+          customerName: order.customerName,
+          farmerName: order.farmerName,
+          crop: order.crop,
+          quantity: order.quantity,
+          unit: order.unit || "kg",
+          price: order.price,
+          status: order.status
+        })
+      } catch (notifErr) {
+        console.warn("Failed to create farmer order notification:", notifErr.message)
+      }
       res.writeHead(201).end(JSON.stringify({ order }))
     } catch {
       res.writeHead(400).end(JSON.stringify({ error: "Invalid order data." }))
@@ -3075,13 +3648,69 @@ async function handleRequest(req, res) {
         res.writeHead(404).end(JSON.stringify({ error: "Order not found." }))
         return
       }
-      if (!["Accepted", "Rejected", "Ready", "Completed"].includes(data.status)) {
-        res.writeHead(400).end(JSON.stringify({ error: "Invalid order status." }))
+      const allowedStatuses = ["Accepted", "Preparing", "Ready", "Dispatched", "Completed", "Cancelled", "Rejected"]
+      if (!allowedStatuses.includes(data.status)) {
+        res.writeHead(400).end(JSON.stringify({ error: "Invalid order status. Allowed: " + allowedStatuses.join(", ") }))
         return
       }
-      order.status = data.status
+      const prevStatus = order.status
+      const nextStatus = data.status
+      order.status = nextStatus
       order.updatedAt = new Date().toISOString()
       saveOrders(orders)
+
+      if (prevStatus !== nextStatus) {
+        try {
+          let notifType = "ORDER_STATUS_CHANGED"
+          let title = "🔔 Order " + nextStatus + "!"
+          let message = "Your order for " + order.quantity + " " + (order.unit || "kg") + " of " + order.crop + " has been updated to " + nextStatus + "."
+
+          if (nextStatus === "Accepted") {
+            notifType = "ORDER_ACCEPTED"
+            title = "🔔 Order Accepted!"
+            message = "Great news! Your order for " + order.quantity + " " + (order.unit || "kg") + " of " + order.crop + " has been accepted by the farmer."
+          } else if (nextStatus === "Preparing") {
+            notifType = "ORDER_PREPARING"
+            title = "🔔 Order Preparation Started!"
+            message = "Your order is now being prepared by the farmer."
+          } else if (nextStatus === "Ready") {
+            notifType = "ORDER_READY"
+            title = "🔔 Order Ready!"
+            message = "Your order is ready! You can proceed with the next step."
+          } else if (nextStatus === "Dispatched") {
+            notifType = "ORDER_DISPATCHED"
+            title = "🔔 Order Dispatched!"
+            message = "Your order has been dispatched and is on its way."
+          } else if (nextStatus === "Completed") {
+            notifType = "ORDER_COMPLETED"
+            title = "🔔 Order Completed!"
+            message = "Your order has been successfully completed. Thank you for shopping with FarmZey!"
+          } else if (nextStatus === "Cancelled" || nextStatus === "Rejected") {
+            notifType = "ORDER_CANCELLED"
+            title = "🔔 Order Cancelled!"
+            message = "Your order has been cancelled. Please check the order details for more information."
+          }
+
+          createAndDispatchNotification({
+            userId: order.customerId,
+            userPhone: order.customerPhone,
+            role: "Customer",
+            orderId: order.id,
+            type: notifType,
+            title,
+            message,
+            customerName: order.customerName,
+            farmerName: order.farmerName,
+            crop: order.crop,
+            quantity: order.quantity,
+            unit: order.unit || "kg",
+            price: order.price,
+            status: nextStatus
+          })
+        } catch (notifErr) {
+          console.warn("Failed to create customer status notification:", notifErr.message)
+        }
+      }
       res.writeHead(200).end(JSON.stringify({ order }))
     } catch {
       res.writeHead(400).end(JSON.stringify({ error: "Invalid order update." }))
@@ -3089,28 +3718,114 @@ async function handleRequest(req, res) {
     return
   }
 
+  // --- FARMER LISTING OWNERSHIP & ACCESS CONTROL HELPERS ---
+  function getAuthUser(req) {
+    const authHeader = req.headers["authorization"] || req.headers["Authorization"] || ""
+    let tokenUser = null
+    if (authHeader.startsWith("Bearer ") || authHeader.startsWith("bearer ")) {
+      const token = authHeader.slice(7).trim()
+      const parts = token.split(".")
+      if (parts.length === 3) {
+        try {
+          const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"))
+          if (payload && (payload.sub || payload.id)) {
+            tokenUser = {
+              userId: String(payload.sub || payload.id).trim(),
+              email: String(payload.email || "").trim(),
+              role: String(payload.user_metadata?.role || "Farmer").trim(),
+              farmerId: String(payload.user_metadata?.farmerId || "").trim(),
+              phone: String(payload.user_metadata?.phone || "").trim(),
+              name: String(payload.user_metadata?.name || "").trim()
+            }
+          }
+        } catch {}
+      }
+    }
+
+    const headerUserId = req.headers["x-user-id"] ? String(req.headers["x-user-id"]).trim() : ""
+    const headerUserRole = req.headers["x-user-role"] ? String(req.headers["x-user-role"]).trim() : ""
+    const headerFarmerId = req.headers["x-farmer-id"] ? String(req.headers["x-farmer-id"]).trim() : ""
+    const headerUserPhone = req.headers["x-user-phone"] ? String(req.headers["x-user-phone"]).trim() : ""
+    const headerUserName = req.headers["x-user-name"] ? String(req.headers["x-user-name"]).trim() : ""
+    const headerUserEmail = req.headers["x-user-email"] ? String(req.headers["x-user-email"]).trim() : ""
+
+    const userId = tokenUser?.userId || headerUserId
+    if (!userId) {
+      return null
+    }
+
+    return {
+      userId,
+      role: tokenUser?.role || headerUserRole || "Farmer",
+      farmerId: tokenUser?.farmerId || headerFarmerId || "",
+      phone: tokenUser?.phone || headerUserPhone || "",
+      name: tokenUser?.name || headerUserName || "",
+      email: tokenUser?.email || headerUserEmail || ""
+    }
+  }
+
+  function verifyListingOwnership(listing, authUser) {
+    if (!listing || !authUser) return false
+    const authUserId = String(authUser.userId || "").trim()
+    if (!authUserId) return false
+
+    // 1. Strict primary check: If listing has ownerUserId, it MUST match authUser.userId
+    if (listing.ownerUserId) {
+      return String(listing.ownerUserId).trim() === authUserId
+    }
+
+    // 2. Legacy listing check: Only if listing does not have ownerUserId
+    // Verify against registered farmerId and/or phone number
+    if (listing.farmerId && authUser.farmerId && String(listing.farmerId).trim() === String(authUser.farmerId).trim()) {
+      if (listing.farmerPhone && authUser.phone) {
+        const lPhone = String(listing.farmerPhone).replace(/\D/g, "")
+        const uPhone = String(authUser.phone).replace(/\D/g, "")
+        if (lPhone && uPhone && lPhone !== uPhone) return false
+      }
+      return true
+    }
+
+    if (listing.farmerPhone && authUser.phone) {
+      const lPhone = String(listing.farmerPhone).replace(/\D/g, "")
+      const uPhone = String(authUser.phone).replace(/\D/g, "")
+      if (lPhone && uPhone && lPhone === uPhone) {
+        return true
+      }
+    }
+
+    return false
+  }
+
   if (requestUrl.pathname === "/api/listings" && req.method === "POST") {
     try {
+      const authUser = getAuthUser(req)
+      if (!authUser || !authUser.userId) {
+        res.writeHead(401, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Unauthorized: You must be logged in as a farmer to create a listing."
+        }))
+        return
+      }
+
       let body = ""
       for await (const chunk of req) body += chunk
       const data = JSON.parse(body || "{}")
 
-      const required = ["crop", "quantity", "unit", "price", "address", "farmerId", "farmerName"]
+      const required = ["crop", "quantity", "unit", "price", "address"]
       const missing = required.filter(field => !String(data[field] ?? "").trim())
       if (missing.length) {
-        res.writeHead(400).end(JSON.stringify({ error: "Missing required fields: " + missing.join(", ") }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Missing required fields: " + missing.join(", ") }))
         return
       }
 
       const numQuantity = Number(data.quantity)
       if (!Number.isFinite(numQuantity) || numQuantity < 0) {
-        res.writeHead(400).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
         return
       }
 
       const numPrice = Number(data.price)
       if (!Number.isFinite(numPrice) || numPrice < 0) {
-        res.writeHead(400).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
         return
       }
 
@@ -3119,11 +3834,11 @@ async function handleRequest(req, res) {
       const expiryDate = String(data.expiryDate || "").trim()
 
       if (harvestDate && expiryDate && expiryDate < harvestDate) {
-        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
         return
       }
       if (availableFrom && expiryDate && expiryDate < availableFrom) {
-        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
         return
       }
 
@@ -3145,8 +3860,16 @@ async function handleRequest(req, res) {
           console.warn("Auto image lookup error on create listing:", err.message)
         }
       }
+
+      // STRICT OWNERSHIP: Bind to authenticated user ID (never trust client owner ID)
+      const ownerUserId = authUser.userId
+      const finalFarmerId = authUser.farmerId || (data.farmerId && !data.farmerId.includes("undefined") ? String(data.farmerId).trim() : ("farmer-" + ownerUserId.slice(0, 8)))
+      const finalFarmerName = authUser.name || String(data.farmerName || "Farmer").trim()
+      const finalFarmerPhone = authUser.phone || String(data.farmerPhone || "").trim()
+
       const item = {
         id: Date.now().toString(),
+        ownerUserId, // IMMUTABLE AUTHENTICATED USER ID
         crop,
         category,
         variety: String(data.variety || "").trim(),
@@ -3177,9 +3900,9 @@ async function handleRequest(req, res) {
         deliveryRadius: String(data.deliveryRadius || "").trim(),
         notes: String(data.notes || data.description || "").trim(),
         description: String(data.description || data.notes || "").trim(),
-        farmerId: String(data.farmerId).trim(),
-        farmerName: String(data.farmerName).trim(),
-        farmerPhone: String(data.farmerPhone || "").trim(),
+        farmerId: finalFarmerId,
+        farmerName: finalFarmerName,
+        farmerPhone: finalFarmerPhone,
         farmerLocation: String(data.address || data.farmerLocation || "").trim(),
         farmerDistrict: String(data.district || data.farmerDistrict || "").trim(),
         farmerState: String(data.state || data.farmerState || "").trim(),
@@ -3200,15 +3923,23 @@ async function handleRequest(req, res) {
 
       listings = [item, ...listings]
       saveListings(listings)
-      res.writeHead(201).end(JSON.stringify({ listing: item }))
+      res.writeHead(201, { "Content-Type": "application/json" }).end(JSON.stringify({ listing: item }))
     } catch {
-      res.writeHead(400).end(JSON.stringify({ error: "Invalid listing data." }))
+      res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Invalid listing data." }))
     }
     return
   }
 
   if ((requestUrl.pathname.startsWith("/api/listings/") || requestUrl.pathname === "/api/listings") && (req.method === "PUT" || req.method === "PATCH")) {
     try {
+      const authUser = getAuthUser(req)
+      if (!authUser || !authUser.userId) {
+        res.writeHead(401, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Unauthorized: You must be logged in to update a listing."
+        }))
+        return
+      }
+
       const pathId = requestUrl.pathname.replace(/^\/api\/listings\/?/, "")
       let body = ""
       for await (const chunk of req) body += chunk
@@ -3216,22 +3947,30 @@ async function handleRequest(req, res) {
       const targetId = String(pathId || data.id || requestUrl.searchParams.get("id"))
       const index = listings.findIndex(item => String(item.id) === targetId)
       if (index === -1) {
-        res.writeHead(404).end(JSON.stringify({ error: "Listing not found." }))
+        res.writeHead(404, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Listing not found." }))
         return
       }
       const existing = listings[index]
 
+      // STRICT OWNERSHIP AUTHORIZATION CHECK:
+      if (!verifyListingOwnership(existing, authUser)) {
+        res.writeHead(403, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Forbidden: You do not have permission to edit another farmer's listing."
+        }))
+        return
+      }
+
       if (data.quantity !== undefined) {
         const numQty = Number(data.quantity)
         if (!Number.isFinite(numQty) || numQty < 0) {
-          res.writeHead(400).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
+          res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
           return
         }
       }
       if (data.price !== undefined) {
         const numP = Number(data.price)
         if (!Number.isFinite(numP) || numP < 0) {
-          res.writeHead(400).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
+          res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
           return
         }
       }
@@ -3241,19 +3980,23 @@ async function handleRequest(req, res) {
       const expiryDate = data.expiryDate !== undefined ? String(data.expiryDate).trim() : (existing.expiryDate || existing.date || "")
 
       if (harvestDate && expiryDate && expiryDate < harvestDate) {
-        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
         return
       }
       if (availableFrom && expiryDate && expiryDate < availableFrom) {
-        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
         return
       }
 
       const crop = String(data.crop || existing.crop).trim()
       const category = String(data.category || existing.category || categoryForCommodity(crop)).trim()
 
+      // Bind ownerUserId permanently upon verified update
+      const ownerUserId = existing.ownerUserId || authUser.userId
+
       const updated = {
         ...existing,
+        ownerUserId,
         crop,
         category,
         variety: String(data.variety !== undefined ? data.variety : (existing.variety || "")).trim(),
@@ -3292,33 +4035,54 @@ async function handleRequest(req, res) {
         image: String(data.image !== undefined ? data.image : existing.image).trim(),
         updatedAt: new Date().toISOString()
       }
+
+      // Immutability: ownerUserId remains the verified owner
+      updated.ownerUserId = ownerUserId
       listings[index] = updated
       saveListings(listings)
-      res.writeHead(200).end(JSON.stringify({ listing: updated }))
+      res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ listing: updated }))
     } catch {
-      res.writeHead(400).end(JSON.stringify({ error: "Could not update listing." }))
+      res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Could not update listing." }))
     }
     return
   }
 
   if ((requestUrl.pathname.startsWith("/api/listings/") || requestUrl.pathname === "/api/listings") && req.method === "DELETE") {
     try {
+      const authUser = getAuthUser(req)
+      if (!authUser || !authUser.userId) {
+        res.writeHead(401, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Unauthorized: You must be logged in to delete a listing."
+        }))
+        return
+      }
+
       const pathId = requestUrl.pathname.replace(/^\/api\/listings\/?/, "")
       const id = pathId || requestUrl.searchParams.get("id")
       if (!id) {
-        res.writeHead(400).end(JSON.stringify({ error: "Missing listing id." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Missing listing id." }))
         return
       }
       const index = listings.findIndex(item => String(item.id) === String(id))
       if (index === -1) {
-        res.writeHead(404).end(JSON.stringify({ error: "Listing not found." }))
+        res.writeHead(404, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Listing not found." }))
         return
       }
+      const existing = listings[index]
+
+      // STRICT OWNERSHIP AUTHORIZATION CHECK:
+      if (!verifyListingOwnership(existing, authUser)) {
+        res.writeHead(403, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Forbidden: You do not have permission to delete another farmer's listing."
+        }))
+        return
+      }
+
       const [deleted] = listings.splice(index, 1)
       saveListings(listings)
-      res.writeHead(200).end(JSON.stringify({ success: true, listing: deleted }))
+      res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ success: true, listing: deleted }))
     } catch {
-      res.writeHead(500).end(JSON.stringify({ error: "Could not delete listing." }))
+      res.writeHead(500, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Could not delete listing." }))
     }
     return
   }
