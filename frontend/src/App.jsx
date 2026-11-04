@@ -4029,6 +4029,7 @@ function App() {
 
           {/* Quick Action Suggestion Chips */}
           <div className="chat-actions" style={{ display: "flex", gap: "6px", flexWrap: "wrap", overflowX: "auto", padding: "6px 10px 4px", background: "#f8faf7", borderTop: "1px solid #edf2eb" }}>
+            <button type="button" onClick={() => askPrice("What is today's ginger price in my area?")}>🫚 Ginger in my area</button>
             <button type="button" onClick={() => askPrice("What is today's tomato price in my area?")}>🍅 Tomato in my area</button>
             <button type="button" onClick={() => askPrice("What is today's onion price in my area?")}>🧅 Onion in my area</button>
             <button type="button" onClick={() => askPrice("What is the 7-day weather forecast?")}>⛅ 7-Day Weather</button>
@@ -4732,6 +4733,100 @@ function findDistrict(message) {
     }
   }
   return null;
+}
+
+function formatBotMessage(text) {
+  if (!text) return null;
+  const lines = text.split("\n");
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          return <div key={idx} style={{ height: "4px" }} />;
+        }
+
+        // Parse bold **text**
+        const parts = [];
+        let lastIdx = 0;
+        const boldRegex = /\*\*(.*?)\*\*/g;
+        let match;
+        while ((match = boldRegex.exec(line)) !== null) {
+          if (match.index > lastIdx) {
+            parts.push(line.substring(lastIdx, match.index));
+          }
+          parts.push(<strong key={match.index} style={{ color: "#1b3821", fontWeight: 700 }}>{match[1]}</strong>);
+          lastIdx = match.index + match[0].length;
+        }
+        if (lastIdx < line.length) {
+          parts.push(line.substring(lastIdx));
+        }
+
+        const isBullet = trimmed.startsWith("•") || trimmed.startsWith("-");
+        return (
+          <div
+            key={idx}
+            style={{
+              paddingLeft: isBullet ? "12px" : "0",
+              textIndent: isBullet ? "-12px" : "0",
+              lineHeight: "1.45"
+            }}
+          >
+            {parts}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function renderWeatherPreview(daily) {
+  if (!daily || !daily.length) return null;
+  return (
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(68px, 1fr))",
+      gap: "6px",
+      marginTop: "8px",
+      background: "#f4f7f3",
+      padding: "8px",
+      borderRadius: "10px",
+      border: "1px solid #e2ebd0"
+    }}>
+      {daily.slice(0, 7).map((d, i) => (
+        <div key={i} style={{
+          background: "#ffffff",
+          borderRadius: "8px",
+          padding: "6px 4px",
+          textAlign: "center",
+          border: "1px solid #e5ebe2",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "2px"
+        }}>
+          <span style={{ fontSize: "10px", fontWeight: "700", color: "#4b5563" }}>{d.dayName}</span>
+          <span style={{ fontSize: "8.5px", color: "#9ca3af" }}>{d.dateStr}</span>
+          <span style={{ fontSize: "15px", margin: "2px 0" }}>{d.icon}</span>
+          <span style={{ fontSize: "10px", fontWeight: "700", color: "#1f2937" }}>{d.maxTemp}°</span>
+          <span style={{ fontSize: "9px", color: "#6b7280" }}>{d.minTemp}°</span>
+          {d.rainProb > 0 && (
+            <span style={{
+              fontSize: "8px",
+              fontWeight: "600",
+              background: d.rainProb >= 50 ? "#dbeafe" : "#f1f5f9",
+              color: d.rainProb >= 50 ? "#1d4ed8" : "#475569",
+              padding: "1px 4px",
+              borderRadius: "4px",
+              marginTop: "2px"
+            }}>
+              🌧️{d.rainProb}%
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 }
 
 // =========================================================================
