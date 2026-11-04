@@ -4826,6 +4826,8 @@ function App() {
 
           {/* Quick Action Suggestion Chips */}
           <div className="chat-actions" style={{ display: "flex", gap: "6px", flexWrap: "wrap", overflowX: "auto", padding: "6px 10px 4px", background: "#f8faf7", borderTop: "1px solid #edf2eb" }}>
+            <button type="button" onClick={() => askPrice("Who are you?")}>🤖 Who are you?</button>
+            <button type="button" onClick={() => askPrice("How can you help me?")}>❓ How can you help?</button>
             <button type="button" onClick={() => askPrice("What is today's ginger price in my area?")}>🫚 Ginger in my area</button>
             <button type="button" onClick={() => askPrice("What is today's tomato price in my area?")}>🍅 Tomato in my area</button>
             <button type="button" onClick={() => askPrice("What is today's onion price in my area?")}>🧅 Onion in my area</button>
@@ -6202,44 +6204,159 @@ function findDistrict(message) {
   return null;
 }
 
+function renderInlineTokens(line) {
+  if (!line) return null;
+  const boldRegex = /\*\*(.*?)\*\*/g;
+  const tokens = [];
+  let lastIdx = 0;
+  let match;
+
+  while ((match = boldRegex.exec(line)) !== null) {
+    if (match.index > lastIdx) {
+      tokens.push({ type: "text", content: line.substring(lastIdx, match.index) });
+    }
+    tokens.push({ type: "bold", content: match[1] });
+    lastIdx = match.index + match[0].length;
+  }
+  if (lastIdx < line.length) {
+    tokens.push({ type: "text", content: line.substring(lastIdx) });
+  }
+
+  const result = [];
+  tokens.forEach((token, tIdx) => {
+    if (token.type === "bold") {
+      result.push(
+        <strong key={'b_' + tIdx} style={{ color: "#14532d", fontWeight: 700 }}>
+          {token.content}
+        </strong>
+      );
+    } else {
+      const italicRegex = /\*(.*?)\*/g;
+      let iLast = 0;
+      let iMatch;
+      let count = 0;
+      while ((iMatch = italicRegex.exec(token.content)) !== null) {
+        if (iMatch.index > iLast) {
+          result.push(token.content.substring(iLast, iMatch.index));
+        }
+        result.push(
+          <em key={'i_' + tIdx + '_' + (count++)} style={{ color: "#2d5a36", fontStyle: "italic", background: "#f0fdf4", padding: "1px 4px", borderRadius: "4px" }}>
+            {iMatch[1]}
+          </em>
+        );
+        iLast = iMatch.index + iMatch[0].length;
+      }
+      if (iLast < token.content.length) {
+        result.push(token.content.substring(iLast));
+      }
+    }
+  });
+
+  return result;
+}
+
 function formatBotMessage(text) {
   if (!text) return null;
   const lines = text.split("\n");
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
       {lines.map((line, idx) => {
         const trimmed = line.trim();
         if (!trimmed) {
           return <div key={idx} style={{ height: "4px" }} />;
         }
 
-        // Parse bold **text**
-        const parts = [];
-        let lastIdx = 0;
-        const boldRegex = /\*\*(.*?)\*\*/g;
-        let match;
-        while ((match = boldRegex.exec(line)) !== null) {
-          if (match.index > lastIdx) {
-            parts.push(line.substring(lastIdx, match.index));
-          }
-          parts.push(<strong key={match.index} style={{ color: "#1b3821", fontWeight: 700 }}>{match[1]}</strong>);
-          lastIdx = match.index + match[0].length;
-        }
-        if (lastIdx < line.length) {
-          parts.push(line.substring(lastIdx));
+        const isTip = trimmed.startsWith("💡");
+        const isWarning = trimmed.startsWith("⚠️");
+        const isHeader = (trimmed.startsWith("📍") || trimmed.startsWith("🌱") || trimmed.startsWith("⛅") || trimmed.startsWith("🌾") || trimmed.startsWith("👋") || trimmed.startsWith("🤝") || trimmed.startsWith("📊") || trimmed.startsWith("🏛️") || trimmed.startsWith("📦") || trimmed.startsWith("✨") || trimmed.startsWith("⭐") || trimmed.startsWith("🧾")) && (idx === 0 || trimmed.includes("**"));
+        const isBullet = trimmed.startsWith("•") || trimmed.startsWith("-");
+        const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+
+        if (isTip || isWarning) {
+          return (
+            <div
+              key={idx}
+              style={{
+                background: isWarning ? "#fffbeb" : "#f0fdf4",
+                border: isWarning ? "1px solid #fef08a" : "1px solid #dcfce7",
+                borderRadius: "8px",
+                padding: "7px 10px",
+                fontSize: "11px",
+                lineHeight: "1.5",
+                color: isWarning ? "#854d0e" : "#166534",
+                marginTop: "4px"
+              }}
+            >
+              {renderInlineTokens(trimmed)}
+            </div>
+          );
         }
 
-        const isBullet = trimmed.startsWith("•") || trimmed.startsWith("-");
+        if (isHeader) {
+          return (
+            <div
+              key={idx}
+              style={{
+                fontSize: "12px",
+                fontWeight: 650,
+                color: "#14532d",
+                lineHeight: "1.45",
+                borderBottom: idx === 0 ? "1px solid #eaf1e8" : "none",
+                paddingBottom: idx === 0 ? "4px" : "0",
+                marginBottom: idx === 0 ? "2px" : "0"
+              }}
+            >
+              {renderInlineTokens(trimmed)}
+            </div>
+          );
+        }
+
+        if (numMatch) {
+          return (
+            <div
+              key={idx}
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "7px",
+                lineHeight: "1.45",
+                fontSize: "11.5px"
+              }}
+            >
+              <span
+                style={{
+                  minWidth: "18px",
+                  height: "18px",
+                  borderRadius: "50%",
+                  background: "#dcfce7",
+                  color: "#166534",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: "1px",
+                  flexShrink: 0
+                }}
+              >
+                {numMatch[1]}
+              </span>
+              <div style={{ flex: 1 }}>{renderInlineTokens(numMatch[2])}</div>
+            </div>
+          );
+        }
+
         return (
           <div
             key={idx}
             style={{
               paddingLeft: isBullet ? "12px" : "0",
               textIndent: isBullet ? "-12px" : "0",
-              lineHeight: "1.45"
+              lineHeight: "1.45",
+              fontSize: "11.5px"
             }}
           >
-            {parts}
+            {renderInlineTokens(trimmed)}
           </div>
         );
       })}
@@ -6308,6 +6425,132 @@ async function getAssistantAnswer(question, profile, formLocation) {
   const userState = (profile?.state || formLocation?.state || "Karnataka").trim();
   const userCity = (profile?.city || formLocation?.city || userDistrict || "Bengaluru").trim();
   const userPlaceLabel = userDistrict ? userDistrict + ", " + userState : (userCity ? userCity + ", " + userState : userState);
+
+  // -------------------------------------------------------------
+  // 0. CONVERSATIONAL & BASIC Q&A INTENTS
+  // -------------------------------------------------------------
+
+  // Identity: "who are you", "who r u", "who are u", "whats your name", "who made you"
+  if (/\b(who\s*(are|r)\s*(you|u)|who\s*(you|u)|what\s*is\s*your\s*name|what('s|s)\s*your\s*name|who\s*created\s*(you|u)|who\s*made\s*(you|u)|introduce\s*yourself|tell\s*me\s*about\s*yourself)\b/i.test(qLower)) {
+    return {
+      text: "👋 **Hello! I am Farmezy Smart Assistant**, your dedicated 24/7 agricultural & marketplace companion.\n\n" +
+        "🌱 **Who am I?**\n" +
+        "I am built into **Farmezy** — India's direct farm-to-table & wholesale platform. My mission is to assist farmers, traders, and consumers with accurate market prices, weather outlooks, and agricultural best practices.\n\n" +
+        "✨ **What I can do for you:**\n" +
+        "• 🌾 **Real-Time Mandi Prices**: Official wholesale rates across 180+ crops and APMC mandis nationwide.\n" +
+        "• ⛅ **7-Day Weather Forecast**: Rainfall probability, temperatures, and field spray advisories.\n" +
+        "• 👨‍🌾 **Direct Farmgate Selling**: Step-by-step guidance on listing harvests with camera photos and 0% commission.\n" +
+        "• 🛒 **Fresh Produce Buying**: Browse verified farms, connect directly on WhatsApp/Call, and track orders.\n" +
+        "• 🧾 **Invoices & Ratings**: Help with downloading official PDF invoices and submitting customer reviews.\n" +
+        "• 🌿 **Agronomic Guides**: Soil preparation, organic fertilizers (Jeevamrutha), disease control, and government schemes.\n\n" +
+        "💡 *Try asking me:* **'Ginger price in Bengaluru Rural'**, **'Weather in Pune'**, or **'How can you help me?'**"
+    };
+  }
+
+  // Capabilities: "how can you help me", "how can u help", "what can you do", "help me"
+  if (/\b(how\s*can\s*(you|u)\s*help(\s*me)?|what\s*can\s*(you|u)\s*do|what\s*do\s*(you|u)\s*do|how\s*(to|can\s*i)\s*use\s*(this|farmezy)|help\s*me|capabilities|features)\b/i.test(qLower)) {
+    return {
+      text: "🤝 **How I Can Help You on Farmezy:**\n\n" +
+        "📊 **1. Live Mandi Wholesale Rates**\n" +
+        "• Check current APMC prices and 7-day predictive momentum trends for 180+ commodities.\n" +
+        "• *Try:* **'Ginger price in Bengaluru Rural'**, **'Tomato price today'**, **'Garlic in Mandsaur'**, **'Onion in Nashik'**.\n\n" +
+        "⛅ **2. 7-Day Weather & Rain Advisory**\n" +
+        "• Get upcoming rainfall chance, temperatures, and smart irrigation/spraying tips for any district.\n" +
+        "• *Try:* **'7-day weather forecast'**, **'Will it rain in Shimla?'**, **'Weather in Pune'**.\n\n" +
+        "🌱 **3. Crop Cultivation & Pest Guides**\n" +
+        "• Detailed cultivation practices, seed treatments, and organic remedies for blight, rots, and borers.\n" +
+        "• *Try:* **'How to grow ginger'**, **'Tomato leaf curl control'**, **'Organic fertilizer recipe'**.\n\n" +
+        "📦 **4. Buying, Selling & Invoices**\n" +
+        "• Learn how to list produce, connect with farmers, order harvests, and download PDF invoices.\n" +
+        "• *Try:* **'How to sell harvest'**, **'How to download invoice'**, **'How to rate an order'**.\n\n" +
+        "🏛️ **5. Schemes & Sowing Calendars**\n" +
+        "• Details on PM-KISAN, PMFBY crop insurance, KCC loans, and Kharif/Rabi sowing schedules.\n" +
+        "• *Try:* **'PM Kisan scheme'**, **'When to sow wheat'**.\n\n" +
+        "💡 *Just type your question or tap any suggestion button below!*"
+    };
+  }
+
+  // About Farmezy
+  if (/\b(what\s*is\s*farmezy|what('s|s)\s*farmezy|about\s*farmezy|tell\s*me\s*about\s*farmezy|why\s*farmezy)\b/i.test(qLower)) {
+    return {
+      text: "🌾 **About Farmezy — Empowering Indian Agriculture**\n\n" +
+        "Farmezy is an open, direct farm-to-table platform connecting farmers directly with consumers, retailers, and wholesale buyers across India.\n\n" +
+        "🌟 **Key Highlights:**\n" +
+        "• 🚜 **Zero Middleman Commission**: Farmers keep 100% of their earnings; buyers get fresh produce at transparent farmgate rates.\n" +
+        "• 📸 **Real Field Camera Photos**: No stock photos — every crop listing features authentic camera-captured images of the current harvest.\n" +
+        "• 📈 **APMC Mandi Intelligence**: Live wholesale prices calibrated from AGMARKNET with 7-day trend projections.\n" +
+        "• 🧾 **Official PDF Invoices**: Instant vector invoices with printable and downloadable PDFs.\n" +
+        "• ⭐ **Verified Ratings & Reviews**: Authentic customer feedback and 1–5 star ratings from verified buyers.\n" +
+        "• 🔔 **Real-Time Notifications**: Instant order updates for farmers and customers via live alerts."
+    };
+  }
+
+  // Politeness: "how are you", "how r u"
+  if (/\b(how\s*are\s*(you|u)|how\s*r\s*(you|u)|how('s|s)\s*it\s*going)\b/i.test(qLower)) {
+    return {
+      text: "😊 **I'm doing great, thank you for asking!**\n\n" +
+        "I'm ready to assist you today with:\n" +
+        "• Real-time mandi prices across all APMC markets\n" +
+        "• Upcoming 7-day weather forecasts & rain outlooks\n" +
+        "• Crop cultivation, pest control & fertilizer guides\n\n" +
+        "What crop or location would you like to check today?"
+    };
+  }
+
+  // Politeness: "thank you", "thanks"
+  if (/\b(thank\s*you|thanks|thank\s*u|thx|dhanyawad|shukriya|nandri|dhanyavada)\b/i.test(qLower)) {
+    return {
+      text: "🙏 **You're very welcome!**\n\n" +
+        "Always glad to assist you. If you need updated market prices, weather reports, or farming advice anytime, just ask!\n\n" +
+        "🌱 *Happy farming and smart trading with Farmezy!*"
+    };
+  }
+
+  // Politeness: "bye", "goodbye"
+  if (/\b(bye|goodbye|see\s*you|tata|good\s*night)\b/i.test(qLower)) {
+    return {
+      text: "👋 **Goodbye and take care!**\n\n" +
+        "Wishing you bountiful harvests and great market prices. Come back anytime you need mandi updates or farming assistance! 🌱"
+    };
+  }
+
+  // Greetings
+  if (/^(hi|hello|hey|namaste|vanakkam|namaskara|good\s*(morning|afternoon|evening))\b/i.test(qLower)) {
+    return {
+      text: "Namaste! 🙏 Welcome to **Farmezy**.\n\n" +
+        "I am your 24/7 agriculture and market intelligence assistant. You can ask me:\n" +
+        "• **'Ginger price in Bengaluru Rural'** — Live mandi rates for any crop\n" +
+        "• **'7-day weather forecast'** — Next week's rain, temperature & farm advisory\n" +
+        "• **'Garlic price in Mandsaur'** — Mandi rates across 180+ Indian crops\n" +
+        "• **'How to grow Ginger?'** — Complete crop cultivation practices\n" +
+        "• **'How can you help me?'** — View all assistant capabilities"
+    };
+  }
+
+  // Invoice Guidance
+  if (/\b(how.*(download|get|find).*invoice|where.*invoice|download.*invoice|print.*invoice|invoice\s*download)\b/i.test(qLower)) {
+    return {
+      text: "🧾 **How to View & Download Invoices on Farmezy:**\n\n" +
+        "1. Navigate to **Orders** (or **My Requests**) in the navigation menu.\n" +
+        "2. Locate your order card.\n" +
+        "3. Tap **📄 Invoice** to preview the full electronic invoice.\n" +
+        "4. Click **📥 Download Invoice PDF** to save the vector-sharp PDF to your phone or computer.\n" +
+        "5. Click **🖨️ Print Invoice** if you want a clean printed paper copy.\n\n" +
+        "✅ Each invoice includes unique invoice number (e.g. *INV-198934*), item breakdown, buyer & seller details, and Farmezy branding."
+    };
+  }
+
+  // Ratings Guidance
+  if (/\b(how.*(rate|review)|give.*review|leave.*feedback)\b/i.test(qLower)) {
+    return {
+      text: "⭐ **How to Submit Ratings & Reviews on Farmezy:**\n\n" +
+        "1. Go to **Orders** (My Requests) in your Customer dashboard.\n" +
+        "2. On any received order, tap **⭐ Rate & Review**.\n" +
+        "3. Select 1 to 5 stars for the **Produce Quality** and 1 to 5 stars for the **Farmer Service**.\n" +
+        "4. Add your personal review comments and tap **Submit Review**.\n\n" +
+        "✅ Only verified buyers who completed an order can submit reviews. Average ratings update automatically across the marketplace!"
+    };
+  }
 
   // -------------------------------------------------------------
   // 1. WEATHER & CLIMATE INTENT
@@ -6688,13 +6931,15 @@ async function getAssistantAnswer(question, profile, formLocation) {
   // 12. CATCH-ALL INTELLIGENT HELPER
   // -------------------------------------------------------------
   return {
-    text: "I'm here to assist with all your farming, crop pricing, and weather needs! 🌾\n\n" +
+    text: "🌾 **Farmezy Smart Assistant**\n\n" +
+      "I'm here to assist with all your farming, mandi price, and weather needs!\n\n" +
       "Here are popular questions you can ask me:\n" +
-      "1. **Crop Mandi Prices**: E.g. *'Ginger price in Bengaluru Rural'*, *'Tomato price in my area'*, *'Garlic in Mandsaur'*, *'Onion in Nashik'*\n" +
-      "2. **7-Day Weather Forecasts**: E.g. *'Weather forecast for Bengaluru Rural'*, *'Will it rain in Shimla?'*\n" +
-      "3. **Crop Growing Guides**: E.g. *'How to grow ginger'*, *'Best spacing for tomatoes'*, *'Garlic sowing tips'*\n" +
-      "4. **Pest & Disease Control**: E.g. *'How to treat tomato leaf curl'*, *'Rhizome rot in ginger'*, *'Organic aphid spray'*\n" +
-      "5. **Marketplace Guidance**: E.g. *'How to sell my harvest'*, *'How to buy directly from farmers'*"
+      "• 📊 **Mandi Prices**: *'Ginger price in Bengaluru Rural'*, *'Tomato price today'*, *'Garlic in Mandsaur'*, *'Onion in Nashik'*\n" +
+      "• ⛅ **7-Day Weather**: *'Weather forecast for Bengaluru Rural'*, *'Will it rain in Shimla?'*\n" +
+      "• 🌿 **Crop Growing Guides**: *'How to grow ginger'*, *'Best spacing for tomatoes'*\n" +
+      "• 🛡️ **Pest & Disease Control**: *'Tomato leaf curl remedy'*, *'Rhizome rot in ginger'*\n" +
+      "• 📦 **Marketplace Help**: *'Who are you'*, *'How to sell harvest'*, *'How to download invoice'*\n\n" +
+      "💡 *Type your question above or tap any quick suggestion chip below!*"
   };
 }
 
