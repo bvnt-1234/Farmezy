@@ -913,6 +913,35 @@ function App() {
   }, [role])
 
   
+    const farmerId = profile?.farmerId || profile?.phone?.replace(/\D/g, "") || profile?.name || "farmer"
+  const customerId = profile?.customerId || profile?.phone?.replace(/\D/g, "") || profile?.name || "customer"
+
+  const loadOrders = async () => {
+    try {
+      const params = role === "Farmer" ? "farmerId=" + encodeURIComponent(farmerId) : "customerId=" + encodeURIComponent(customerId)
+      const response = await fetch("/api/orders?" + params)
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || "Could not load orders.")
+      const freshOrders = Array.isArray(data.orders) ? data.orders.map(order => ({ ...order, status: order.status === "new" ? "Requested" : order.status })) : []
+      setOrders(freshOrders)
+      if (role === "Customer") {
+        freshOrders.forEach(o => {
+          if (!orderStatusesRef.current.has(o.id)) {
+            orderStatusesRef.current.set(o.id, o.status)
+          }
+        })
+      }
+    } catch (error) {
+      setListingError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    if (role) {
+      loadOrders()
+    }
+  }, [role])
+
   // Active notification user identification
   const activeNotifUserId = role === "Farmer" ? farmerId : customerId
   const activeNotifPhone = profile?.phone || ""
@@ -1103,34 +1132,7 @@ function App() {
     return true
   })
 
-  const farmerId = profile?.farmerId || profile?.phone?.replace(/\D/g, "") || profile?.name || "farmer"
-  const customerId = profile?.customerId || profile?.phone?.replace(/\D/g, "") || profile?.name || "customer"
-
-  const loadOrders = async () => {
-    try {
-      const params = role === "Farmer" ? "farmerId=" + encodeURIComponent(farmerId) : "customerId=" + encodeURIComponent(customerId)
-      const response = await fetch("/api/orders?" + params)
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || "Could not load orders.")
-      const freshOrders = Array.isArray(data.orders) ? data.orders.map(order => ({ ...order, status: order.status === "new" ? "Requested" : order.status })) : []
-      setOrders(freshOrders)
-      if (role === "Customer") {
-        freshOrders.forEach(o => {
-          if (!orderStatusesRef.current.has(o.id)) {
-            orderStatusesRef.current.set(o.id, o.status)
-          }
-        })
-      }
-    } catch (error) {
-      setListingError(error.message)
-    }
-  }
-
-  useEffect(() => {
-    if (role) {
-      loadOrders()
-    }
-  }, [role])
+  
 
   const dismissNotification = id => {
     setCustomerNotifications(prev => prev.filter(n => n.id !== id))
