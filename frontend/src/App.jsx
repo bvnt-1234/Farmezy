@@ -382,10 +382,8 @@ export const MARKETPLACE_CATEGORIES = [
   "Fibre Crops",
   "Drug and Narcotics",
   "Forest Products",
-  "Medicinal and Aromatic Plants",
   "Live Stock,Poultry,Fisheries",
-  "Oils and Fats",
-  "Others"
+  "Oils and Fats"
 ]
 
 export const INDIAN_STATES = [
@@ -407,12 +405,15 @@ const CROP_CATEGORIES = [
   ["Dry Fruits", /almond|cashew|walnut|raisin|date|pistachio|anjeer|fig/i],
   ["Fibre Crops", /cotton|jute|hemp/i],
   ["Drug and Narcotics", /sugarcane|tobacco|arecanut/i],
-  ["Beverages", /coffee|tea|cocoa/i],
-  ["Flowers", /marigold|rose|jasmine|chrysanthemum|tuberose|gladiolus/i]
+  ["Beverages", /coffee|tea|cocoa|chicory/i],
+  ["Flowers", /marigold|rose|jasmine|chrysanthemum|shevanti|tuberose|gladiolus|carnation|gerbera/i],
+  ["Forest Products", /honey|shahad|bamboo|gond|gum|lac|tamarind|chironji|behada|harrah|wood|timber/i],
+  ["Live Stock,Poultry,Fisheries", /cow|cattle|bull|calf|buffalo|goat|sheep|chicken|cock|hen|duck|fish|prawn|crab|livestock/i],
+  ["Oils and Fats", /oil|ghee|butter|fat|dalda|palmolein/i]
 ]
 
 export function getCategoryForCrop(crop) {
-  if (!crop) return "Others"
+  if (!crop) return ""
   const clean = String(crop).trim()
   if (Array.isArray(agmarknetCatalogue?.commodities)) {
     const norm = clean.toLowerCase().replace(/[^a-z0-9]/g, "")
@@ -420,6 +421,7 @@ export function getCategoryForCrop(crop) {
       if (String(c.name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) return true
       if (c.agmarknet_name && String(c.agmarknet_name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) return true
       if (c.display_name && String(c.display_name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) return true
+      if (Array.isArray(c.aliases) && c.aliases.some(a => String(a).toLowerCase().replace(/[^a-z0-9]/g, "") === norm)) return true
       return false
     })
     if (found && (found.category || found.group_name)) {
@@ -427,7 +429,7 @@ export function getCategoryForCrop(crop) {
     }
   }
   const match = CROP_CATEGORIES.find(([, regex]) => regex.test(clean))
-  return match ? match[0] : "Others"
+  return match ? match[0] : ""
 }
 
 export function isListingExpired(dateStr) {
@@ -1434,6 +1436,10 @@ function App() {
     ? (selectedFormCommodityObj.variety_names || (selectedFormCommodityObj.varieties || []).map(v => typeof v === "string" ? v : v.name)).filter(Boolean)
     : []
 
+  const registeredFormGrades = selectedFormCommodityObj?.grades?.length
+    ? selectedFormCommodityObj.grades
+    : ["FAQ", "Grade A", "Grade B", "Grade C", "Local", "Export Quality", "Premium"]
+
   const displayedFormVarieties = registeredFormVarieties.filter(v => {
     if (!formVarietySearch.trim()) return true
     const q = formVarietySearch.toLowerCase().replace(/[^a-z0-9]/g, "")
@@ -1446,11 +1452,6 @@ function App() {
     const q = browseVarietySearch.toLowerCase().replace(/[^a-z0-9]/g, "")
     return v.toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)
   })
-
-  const registeredFormGrades = selectedFormCommodityObj?.grades?.length
-    ? selectedFormCommodityObj.grades
-    : ["FAQ", "Grade A", "Grade B", "Grade C", "Local", "Export Quality", "Premium"]
-
   const clearFilters = () => {
     setBrowseSearch("")
     setBrowseCategory("All Categories")
@@ -3246,9 +3247,13 @@ function App() {
                                       : `-- Select official registered variety (${registeredFormVarieties.length} available) --`)
                                   : `-- No varieties match "${formVarietySearch}" --`}
                               </option>
-                              {displayedFormVarieties.map(v => (
-                                <option key={v} value={v}>{v}</option>
-                              ))}
+                              {displayedFormVarieties.map(v => {
+                                const varObj = selectedFormCommodityObj?.varieties?.find(item => (typeof item === 'string' ? item : item.name) === v)
+                                const typeTag = varObj?.variety_type === 'breed' ? ' (Breed)' : (varObj?.variety_type === 'species' ? ' (Species)' : (varObj?.variety_type === 'product_type' ? ' (Product Type)' : (varObj?.variety_type === 'grade' ? ' (Grade)' : '')))
+                                return (
+                                  <option key={v} value={v}>{v}{typeTag}</option>
+                                )
+                              })}
                               {formVariety && formVariety !== "__custom__" && !displayedFormVarieties.includes(formVariety) && (
                                 <option value={formVariety}>{formVariety} (selected)</option>
                               )}
@@ -3266,12 +3271,19 @@ function App() {
                             )}
                           </div>
                         ) : (
-                          <input
-                            type="text"
-                            placeholder="e.g. Local, Hybrid, Desi..."
-                            value={formVariety}
-                            onChange={e => setFormVariety(e.target.value)}
-                          />
+                          <div className="variety-manual-entry">
+                            {formCrop && (
+                              <small style={{ display: "block", color: "#64748b", fontSize: "11px", marginBottom: "4px" }}>
+                                ℹ️ No verified variety information available. Please describe your harvest variety or type below:
+                              </small>
+                            )}
+                            <input
+                              type="text"
+                              placeholder="e.g. Local, Hybrid, Desi..."
+                              value={formVariety}
+                              onChange={e => setFormVariety(e.target.value)}
+                            />
+                          </div>
                         )}
                       </label>
 

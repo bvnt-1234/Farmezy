@@ -1,0 +1,334 @@
+{
+  "total_states_uts": 36,
+  "states_count": 28,
+  "union_territories_count": 8,
+  "states": [
+    {
+      "name": "Andhra Pradesh",
+      "type": "State",
+      "authority": "Andhra Pradesh State Agricultural Marketing Board (APSAMB)",
+      "portal_url": "https://market.ap.nic.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 26 APMCs including Guntur, Vijayawada, and Tirupati."
+    },
+    {
+      "name": "Arunachal Pradesh",
+      "type": "State",
+      "authority": "Arunachal Pradesh State Agri Marketing Board / NERAMAC",
+      "portal_url": "https://neramac.com/",
+      "reporting_channel": "Regional Primary Market / Cooperative Rates",
+      "has_local_mandi": true,
+      "status_note": "Regulated physical APMC auction yards are not established under Model APMC Act; agricultural trade occurs via primary rural collection centers (Pasighat, Ziro, Tezu) supported by NERAMAC."
+    },
+    {
+      "name": "Assam",
+      "type": "State",
+      "authority": "Assam State Agricultural Marketing Board (ASAMB)",
+      "portal_url": "https://asamb.assam.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 14 APMCs including Guwahati, Dhing, and Silchar."
+    },
+    {
+      "name": "Bihar",
+      "type": "State",
+      "authority": "Department of Agriculture / PACS Cooperative Marketing",
+      "portal_url": "https://state.bihar.gov.in/krishi/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "APMCs were repealed in 2006; market yards are managed by PACS cooperatives and report to central DMI."
+    },
+    {
+      "name": "Chattisgarh",
+      "type": "State",
+      "authority": "Chhattisgarh State Agricultural Marketing Board (CGSAMB)",
+      "portal_url": "https://agriportal.cg.nic.in/agrimark/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting for Krishi Upaj Mandis including Raipur and Bilaspur."
+    },
+    {
+      "name": "Goa",
+      "type": "State",
+      "authority": "Goa State Agricultural Marketing Board (GSAMB)",
+      "portal_url": "https://gsamb.in/",
+      "reporting_channel": "State Board & Cooperative Auction Rates",
+      "has_local_mandi": true,
+      "status_note": "Operates 5 market yards (Ponda Main, Sanquelim, Curchorem, Margao, Mapusa) trading primarily in Arecanut, Coconut, and Cashewnut via GSAMB & Goa Bagayatdar."
+    },
+    {
+      "name": "Gujarat",
+      "type": "State",
+      "authority": "Gujarat State Agricultural Marketing Board (GSAMB)",
+      "portal_url": "https://agri.gujarat.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 48 major APMCs including Surat, Rajkot, and Unjha."
+    },
+    {
+      "name": "Haryana",
+      "type": "State",
+      "authority": "Haryana State Agricultural Marketing Board (HSAMB)",
+      "portal_url": "https://hsamb.org.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 42 APMCs including Karnal, Ambala, and Hisar."
+    },
+    {
+      "name": "Himachal Pradesh",
+      "type": "State",
+      "authority": "Himachal Pradesh State Agricultural Marketing Board (HPSAMB)",
+      "portal_url": "https://hpsamb.nic.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 28 APMCs including Solan, Shimla, and Kangra."
+    },
+    {
+      "name": "Jharkhand",
+      "type": "State",
+      "authority": "Jharkhand State Agricultural Marketing Board (JSAMB) / e-NAM",
+      "portal_url": "https://enam.gov.in/web/dashboard/trade-data?state=JHARKHAND",
+      "reporting_channel": "e-NAM Integrated Market Yards",
+      "has_local_mandi": true,
+      "status_note": "Active electronic trading across 19 e-NAM integrated APMC yards including Ranchi (Pandra), Jamshedpur, and Dhanbad."
+    },
+    {
+      "name": "Karnataka",
+      "type": "State",
+      "authority": "Karnataka State Agri Marketing Board (KSAMB) & ReMS",
+      "portal_url": "http://www.remsl.in/",
+      "reporting_channel": "Unified Market Platform (UMP) / KSAMB Marata Vahini",
+      "has_local_mandi": true,
+      "status_note": "Integrated electronically on ReMS Unified Market Platform connecting 160+ APMCs across 31 districts."
+    },
+    {
+      "name": "Keralam",
+      "type": "State",
+      "authority": "Department of Agricultural Development and Farmers' Welfare",
+      "portal_url": "https://keralaagriculture.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 52 wholesale markets including Ernakulam, Kozhikode, and Palakkad."
+    },
+    {
+      "name": "Madhya Pradesh",
+      "type": "State",
+      "authority": "Madhya Pradesh State Agricultural Marketing Board (MPSAMB)",
+      "portal_url": "https://mpmandiboard.co.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 54 Krishi Upaj Mandis including Indore, Bhopal, and Ujjain."
+    },
+    {
+      "name": "Maharashtra",
+      "type": "State",
+      "authority": "Maharashtra State Agricultural Marketing Board (MSAMB)",
+      "portal_url": "https://www.msamb.com/",
+      "reporting_channel": "Central AGMARKNET DMI API & MSAMB",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across APMCs including Pune, Vashi (Navi Mumbai), and Karjat."
+    },
+    {
+      "name": "Manipur",
+      "type": "State",
+      "authority": "Manipur State Agricultural Marketing Board",
+      "portal_url": "https://agrimanipur.mn.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting for Imphal APMC yards."
+    },
+    {
+      "name": "Meghalaya",
+      "type": "State",
+      "authority": "Meghalaya State Agricultural Marketing Board",
+      "portal_url": "https://megagriculture.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 5 markets including Shillong and Tura."
+    },
+    {
+      "name": "Mizoram",
+      "type": "State",
+      "authority": "Mizoram Agricultural Marketing Board (MAMB) — Mizo Thlai Thar",
+      "portal_url": "https://mizothlaithar.mizoram.gov.in/",
+      "reporting_channel": "State Board Secondary Collection Centres (SCC)",
+      "has_local_mandi": true,
+      "status_note": "Collection center and floor price reporting across Aizawl, Kolasib, Champhai, and Lunglei for ginger, turmeric, and chilli."
+    },
+    {
+      "name": "Nagaland",
+      "type": "State",
+      "authority": "Nagaland State Agricultural Marketing Board (NSAMB)",
+      "portal_url": "https://agriculture.nagaland.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across Dimapur and Kohima mandis."
+    },
+    {
+      "name": "Odisha",
+      "type": "State",
+      "authority": "Odisha State Agricultural Marketing Board (OSAMB)",
+      "portal_url": "https://osamb.odisha.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 32 RMC mandis including Baripada, Cuttack, and Sambalpur."
+    },
+    {
+      "name": "Punjab",
+      "type": "State",
+      "authority": "Punjab State Agricultural Marketing Board (Punjab Mandi Board)",
+      "portal_url": "https://mandiboard.nic.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 46 APMCs including Ludhiana, Amritsar, and Jalandhar."
+    },
+    {
+      "name": "Rajasthan",
+      "type": "State",
+      "authority": "Rajasthan State Agricultural Marketing Board (RSAMB)",
+      "portal_url": "https://marketing.rajasthan.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 29 Krishi Upaj Mandis including Jaipur, Jodhpur, and Kota."
+    },
+    {
+      "name": "Sikkim",
+      "type": "State",
+      "authority": "SIMFED & Sikkim State Organic Certification Agency (SSOCA)",
+      "portal_url": "https://www.simfed.in/",
+      "reporting_channel": "Government Organic Procurement / FPO Hubs",
+      "has_local_mandi": false,
+      "status_note": "India's first 100% certified organic state; conventional APMC mandis do not operate. Agricultural trade is organized through SIMFED procurement hubs (Gangtok, Rangpo, Nayabazar) for certified organic cash crops."
+    },
+    {
+      "name": "Tamil Nadu",
+      "type": "State",
+      "authority": "Tamil Nadu State Agricultural Marketing Board (TNSAMB)",
+      "portal_url": "https://www.agrimark.tn.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 184 market committees including Koyambedu, Madurai, and Coimbatore."
+    },
+    {
+      "name": "Telangana",
+      "type": "State",
+      "authority": "Telangana State Agricultural Marketing Department",
+      "portal_url": "https://tsmarketing.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 34 APMCs including Bowenpally, Warangal, and Nizamabad."
+    },
+    {
+      "name": "Tripura",
+      "type": "State",
+      "authority": "Tripura State Agricultural Marketing Board",
+      "portal_url": "https://agri.tripura.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 8 mandis including Agartala APMC."
+    },
+    {
+      "name": "Uttar Pradesh",
+      "type": "State",
+      "authority": "UP State Agricultural Marketing Board (UP Mandi Parishad)",
+      "portal_url": "http://upmandiparishad.upsdc.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 22 mandis including Shadabad, Gulavati, and Agra."
+    },
+    {
+      "name": "Uttarakhand",
+      "type": "State",
+      "authority": "Uttarakhand State Agricultural Marketing Board (UKAMB)",
+      "portal_url": "https://ukamb.org/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 19 mandis including Dehradun, Haridwar, and Haldwani."
+    },
+    {
+      "name": "West Bengal",
+      "type": "State",
+      "authority": "West Bengal State Agricultural Marketing Board (WBSAMB)",
+      "portal_url": "https://wbsamb.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 28 regulated market committees including Silguri, Asansol, and Burdwan."
+    }
+  ],
+  "union_territories": [
+    {
+      "name": "Andaman and Nicobar",
+      "type": "Union Territory",
+      "authority": "Department of Agriculture, A&N Administration",
+      "portal_url": "https://andaman.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting for Port Blair APMC."
+    },
+    {
+      "name": "Chandigarh",
+      "type": "Union Territory",
+      "authority": "State Agricultural Marketing Board, UT Chandigarh",
+      "portal_url": "https://chandigarh.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting for Sector 26 Fruit & Vegetable Market."
+    },
+    {
+      "name": "Dadra and Nagar Haveli and Daman and Diu",
+      "type": "Union Territory",
+      "authority": "Price Monitoring Division / UT Administration",
+      "portal_url": "https://fcainfoweb.nic.in/",
+      "reporting_channel": "Price Monitoring Division (PMD) Silvassa",
+      "has_local_mandi": false,
+      "status_note": "Regulated producing APMC mandis are not established in D&NH and D&D. Wholesale prices are monitored by the Department of Consumer Affairs PMD at Silvassa; commercial supplies arrive via neighbouring APMC Vapi (Gujarat)."
+    },
+    {
+      "name": "Delhi",
+      "type": "Union Territory",
+      "authority": "Delhi Agricultural Marketing Board (DAMB) / APMC Azadpur",
+      "portal_url": "https://www.apmcazadpurdelhi.com/DailyRates.aspx",
+      "reporting_channel": "APMC Azadpur Daily Bazar Rates & e-NAM Delhi",
+      "has_local_mandi": true,
+      "status_note": "Active daily wholesale rates published by APMC Azadpur (Asia's largest terminal fruit & vegetable market) across 10 major commodities."
+    },
+    {
+      "name": "Jammu and Kashmir",
+      "type": "Union Territory",
+      "authority": "J&K Horticulture Planning & Marketing Directorate",
+      "portal_url": "http://jkhpm.jk.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting across 8 mandis including Narwal (Jammu) and Parimpora (Srinagar)."
+    },
+    {
+      "name": "Ladakh",
+      "type": "Union Territory",
+      "authority": "Directorate of Agriculture, UT Ladakh / PMD Leh & Kargil",
+      "portal_url": "https://fcainfoweb.nic.in/",
+      "reporting_channel": "Local Cooperative Auctions & PMD Price Monitoring",
+      "has_local_mandi": false,
+      "status_note": "No regulated physical APMC mandis exist in Ladakh due to terrain and climate. Local apricot (Halman / Raktsey Karpo) trade is handled via cooperative societies, and essential food wholesale prices are monitored by PMD in Leh and Kargil."
+    },
+    {
+      "name": "Lakshadweep",
+      "type": "Union Territory",
+      "authority": "Department of Agriculture / LDCL / PMD Kavaratti",
+      "portal_url": "https://fcainfoweb.nic.in/",
+      "reporting_channel": "Government Procurement (LDCL Copra MSP) & PMD Kavaratti",
+      "has_local_mandi": false,
+      "status_note": "Island territory with no regulated APMC mandi yards. Commercial agriculture centers on Copra (procured under MSP by LDCL); food supplies are transported via mainland Kochi (Ernakulam APMC, Kerala). Prices are monitored by PMD in Kavaratti."
+    },
+    {
+      "name": "Pondicherry",
+      "type": "Union Territory",
+      "authority": "Puducherry Agricultural Market Committee (PAMC)",
+      "portal_url": "https://agri.py.gov.in/",
+      "reporting_channel": "Central AGMARKNET DMI API",
+      "has_local_mandi": true,
+      "status_note": "Active daily reporting for Puducherry APMC."
+    }
+  ]
+}
+

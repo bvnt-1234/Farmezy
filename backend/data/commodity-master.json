@@ -48,8 +48,8 @@
     "id": 571,
     "commodity": "Adulsa",
     "agmarknet_name": "Adulsa",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "adulsa"
@@ -171,8 +171,8 @@
     "id": 584,
     "commodity": "Akarkara",
     "agmarknet_name": "Akarkara",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "akarkara"
@@ -273,11 +273,19 @@
       "ବାଦମ",
       "Almond",
       "Badam",
-      "Badam Giri"
+      "Badam Giri",
+      "almond",
+      "badam",
+      "बादाम",
+      "பாதாம்"
     ],
     "varieties": [
       "Almond(Badam)",
-      "Other"
+      "Other",
+      "California Paper Shell Kernel",
+      "Mamra Badam",
+      "Gurbandi Badam",
+      "Kagzi Badam In-Shell"
     ],
     "registered_varieties": [
       {
@@ -287,9 +295,25 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 32620,
+        "name": "California Paper Shell Kernel"
+      },
+      {
+        "variety_id": 92298,
+        "name": "Mamra Badam"
+      },
+      {
+        "variety_id": 56164,
+        "name": "Gurbandi Badam"
+      },
+      {
+        "variety_id": 87533,
+        "name": "Kagzi Badam In-Shell"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 6,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -307,8 +331,8 @@
     "id": 455,
     "commodity": "Aloe Vera",
     "agmarknet_name": "Aloe Vera",
-    "category": "Vegetables",
-    "group_name": "Vegetables",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 6,
     "aliases": [
       "aloe vera",
@@ -339,22 +363,50 @@
     "id": 591,
     "commodity": "Aloe Vera Leaf",
     "agmarknet_name": "Aloe Vera Leaf",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
-      "aloe vera leaf"
+      "aloe vera leaf",
+      "aloe vera",
+      "ghritkumari",
+      "घृतकुमारी",
+      "एलोवेरा",
+      "கற்றாழை",
+      "ಲೋಳೆಸರ",
+      "Aloe Vera Leaf",
+      "Aloe Vera"
     ],
     "varieties": [
-      "Aloe Vera Leaf"
+      "Aloe Vera Leaf",
+      "Fresh Mature Leaves (>500g)",
+      "Aloe barbadensis Miller",
+      "Aloe Vera Baby Sucker / Pup",
+      "Other"
     ],
     "registered_varieties": [
       {
         "variety_id": 2096,
         "name": "Aloe Vera Leaf"
+      },
+      {
+        "variety_id": 90851,
+        "name": "Fresh Mature Leaves (>500g)"
+      },
+      {
+        "variety_id": 12910,
+        "name": "Aloe barbadensis Miller"
+      },
+      {
+        "variety_id": 34699,
+        "name": "Aloe Vera Baby Sucker / Pup"
+      },
+      {
+        "variety_id": 89848,
+        "name": "Other"
       }
     ],
-    "variety_count": 1,
+    "variety_count": 5,
     "registered_variety_count": 1,
     "historical_variety_count": 1,
     "grades": [
@@ -439,8 +491,8 @@
     "id": 573,
     "commodity": "Amaltas",
     "agmarknet_name": "Amaltas",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "amaltas"
@@ -543,8 +595,8 @@
     "id": 597,
     "commodity": "Amarbel",
     "agmarknet_name": "Amarbel",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "amarbel"
@@ -744,8 +796,8 @@
     "id": 303,
     "commodity": "Amla(Nelli Kai)",
     "agmarknet_name": "Amla(Nelli Kai)",
-    "category": "Fruits",
-    "group_name": "Fruits",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 5,
     "aliases": [
       "amla(nelli kai)",
@@ -1439,8 +1491,8 @@
     "id": 576,
     "commodity": "Aretha",
     "agmarknet_name": "Aretha",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "aretha"
@@ -1666,8 +1718,8 @@
     "id": 435,
     "commodity": "Ashoka",
     "agmarknet_name": "Ashoka",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "ashoka",
@@ -1711,18 +1763,26 @@
     "id": 372,
     "commodity": "Ashwagandha",
     "agmarknet_name": "Ashwagandha",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "ashwagandha",
       "Ashwagandha",
-      "अश्वगंधा"
+      "अश्वगंधा",
+      "asgandh",
+      "indian ginseng",
+      "ಅಶ್ವಗಂಧ",
+      "அமுக்கிரா"
     ],
     "varieties": [
       "Ashwagandha",
       "Ashwagandha-Organic",
-      "Other"
+      "Other",
+      "Nagori Root Grade A",
+      "FAQ Dried Root",
+      "Jawahar Asgandh-20",
+      "Poshita"
     ],
     "registered_varieties": [
       {
@@ -1736,9 +1796,25 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 95017,
+        "name": "Nagori Root Grade A"
+      },
+      {
+        "variety_id": 49693,
+        "name": "FAQ Dried Root"
+      },
+      {
+        "variety_id": 81547,
+        "name": "Jawahar Asgandh-20"
+      },
+      {
+        "variety_id": 23387,
+        "name": "Poshita"
       }
     ],
-    "variety_count": 3,
+    "variety_count": 7,
     "registered_variety_count": 3,
     "historical_variety_count": 3,
     "grades": [
@@ -1756,8 +1832,8 @@
     "id": 363,
     "commodity": "Asparagus",
     "agmarknet_name": "Asparagus",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "asparagus",
@@ -1854,8 +1930,8 @@
     "id": 436,
     "commodity": "Atis",
     "agmarknet_name": "Atis",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "atis",
@@ -2005,8 +2081,8 @@
     "id": 590,
     "commodity": "Baboolphali",
     "agmarknet_name": "Baboolphali",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "baboolphali"
@@ -2399,12 +2475,18 @@
       "ಬಿದಿರು",
       "ਬਾਂਸ",
       "ବାଉଁଶ",
-      "Bamboo"
+      "Bamboo",
+      "bans",
+      "Bamboo Poles"
     ],
     "varieties": [
       "Bamboo",
       "Organic",
-      "Other"
+      "Other",
+      "Bamboo Poles / Manvel",
+      "Dendrocalamus strictus (Solid Bamboo)",
+      "Bambusa bambos (Thorny Giant Bamboo)",
+      "Industrial Pulpwood Bamboo"
     ],
     "registered_varieties": [
       {
@@ -2418,9 +2500,25 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 54870,
+        "name": "Bamboo Poles / Manvel"
+      },
+      {
+        "variety_id": 72978,
+        "name": "Dendrocalamus strictus (Solid Bamboo)"
+      },
+      {
+        "variety_id": 64926,
+        "name": "Bambusa bambos (Thorny Giant Bamboo)"
+      },
+      {
+        "variety_id": 89234,
+        "name": "Industrial Pulpwood Bamboo"
       }
     ],
-    "variety_count": 3,
+    "variety_count": 7,
     "registered_variety_count": 3,
     "historical_variety_count": 3,
     "grades": [
@@ -2955,8 +3053,8 @@
     "id": 364,
     "commodity": "basil",
     "agmarknet_name": "basil",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "basil",
@@ -3454,7 +3552,10 @@
       "ବୁଟ ଡାଲି",
       "Bengal Gram Dal(Chana Dal)",
       "Chana Dal",
-      "Gram Dal"
+      "Gram Dal",
+      "chana dal",
+      "ಕಡಲೆ ಬೇಳೆ",
+      "கடலைப்பருப்பு"
     ],
     "varieties": [
       "100Kg",
@@ -3472,7 +3573,10 @@
       "Ordinary (Split)",
       "Other",
       "Small (Split)",
-      "Special"
+      "Special",
+      "Polished Chana Dal",
+      "Unpolished Desi Chana Dal",
+      "Bold Chana Dal"
     ],
     "registered_varieties": [
       {
@@ -3538,9 +3642,21 @@
       {
         "variety_id": 1667,
         "name": "Special"
+      },
+      {
+        "variety_id": 83285,
+        "name": "Polished Chana Dal"
+      },
+      {
+        "variety_id": 15090,
+        "name": "Unpolished Desi Chana Dal"
+      },
+      {
+        "variety_id": 88162,
+        "name": "Bold Chana Dal"
       }
     ],
-    "variety_count": 16,
+    "variety_count": 19,
     "registered_variety_count": 16,
     "historical_variety_count": 16,
     "grades": [
@@ -3576,7 +3692,15 @@
       "Chana",
       "Black Gram Whole",
       "Kala Chana",
-      "Chickpea"
+      "Chickpea",
+      "chana",
+      "gram",
+      "chana whole",
+      "desi chana",
+      "चना",
+      "ಕಡಲೆ",
+      "கொண்டைக்கடலை",
+      "Bengal Gram"
     ],
     "varieties": [
       "999",
@@ -3621,7 +3745,11 @@
       "Special",
       "Superior (Whole)",
       "White (whole)",
-      "Upto-date"
+      "Upto-date",
+      "Desi Chana Whole",
+      "JG-11",
+      "Annigeri-1",
+      "Vishal"
     ],
     "registered_varieties": [
       {
@@ -3795,9 +3923,25 @@
       {
         "variety_id": 2035,
         "name": "Upto-date"
+      },
+      {
+        "variety_id": 64433,
+        "name": "Desi Chana Whole"
+      },
+      {
+        "variety_id": 95867,
+        "name": "JG-11"
+      },
+      {
+        "variety_id": 41920,
+        "name": "Annigeri-1"
+      },
+      {
+        "variety_id": 46590,
+        "name": "Vishal"
       }
     ],
-    "variety_count": 43,
+    "variety_count": 47,
     "registered_variety_count": 43,
     "historical_variety_count": 43,
     "grades": [
@@ -4097,8 +4241,8 @@
     "id": 587,
     "commodity": "Bhringraj",
     "agmarknet_name": "Bhringraj",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "bhringraj"
@@ -4177,8 +4321,8 @@
     "id": 599,
     "commodity": "Bichchu Phal",
     "agmarknet_name": "Bichchu Phal",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "bichchu phal"
@@ -4461,7 +4605,13 @@
       "ಉದ್ದಿನಬೇಳೆ",
       "ਕਾਲੀ ਗਰਾਮ ਦਾਲ",
       "ବିରି ଡାଲି",
-      "Black Gram Dal(Urd Dal)"
+      "Black Gram Dal(Urd Dal)",
+      "urad dal",
+      "urd dal",
+      "ಉದ್ದಿನ ಬೇಳೆ",
+      "உளுத்தம் பருப்பு",
+      "Urad Dal",
+      "Urad Dhuli"
     ],
     "varieties": [
       "Black Gram Dal",
@@ -4476,7 +4626,10 @@
       "Sikka New",
       "Surya",
       "Urid Gola Deer Double",
-      "Urid Gola G. Deer"
+      "Urid Gola G. Deer",
+      "Urad Dhuli (Washed White)",
+      "Urad Chilka Split Black",
+      "Urad Gota Whole Washed"
     ],
     "registered_varieties": [
       {
@@ -4530,9 +4683,21 @@
       {
         "variety_id": 1801,
         "name": "Urid Gola G. Deer"
+      },
+      {
+        "variety_id": 84618,
+        "name": "Urad Dhuli (Washed White)"
+      },
+      {
+        "variety_id": 60282,
+        "name": "Urad Chilka Split Black"
+      },
+      {
+        "variety_id": 83269,
+        "name": "Urad Gota Whole Washed"
       }
     ],
-    "variety_count": 13,
+    "variety_count": 16,
     "registered_variety_count": 13,
     "historical_variety_count": 13,
     "grades": [
@@ -4565,7 +4730,14 @@
       "ಉದ್ದಿನಕಾಳು",
       "ਕਾਲੇ ਚਨੇ (Tੜਦ ਬੀਨਜ)",
       "ବିରି",
-      "Black Gram(Urd Beans)(Whole)"
+      "Black Gram(Urd Beans)(Whole)",
+      "urad",
+      "urd",
+      "black gram",
+      "उड़द",
+      "ಉದ್ದಿನ ಕಾಳು",
+      "உளுந்து",
+      "Urad Whole"
     ],
     "varieties": [
       "Black Gram (Whole)",
@@ -4596,7 +4768,10 @@
       "Surya",
       "Urda/Urd",
       "Urid Gola Deer Double",
-      "Urid Gola G. Deer"
+      "Urid Gola G. Deer",
+      "T-9 Black Urad",
+      "Shekhar-2",
+      "Pant U-31"
     ],
     "registered_varieties": [
       {
@@ -4714,9 +4889,21 @@
       {
         "variety_id": 1801,
         "name": "Urid Gola G. Deer"
+      },
+      {
+        "variety_id": 83842,
+        "name": "T-9 Black Urad"
+      },
+      {
+        "variety_id": 60208,
+        "name": "Shekhar-2"
+      },
+      {
+        "variety_id": 29877,
+        "name": "Pant U-31"
       }
     ],
-    "variety_count": 29,
+    "variety_count": 32,
     "registered_variety_count": 29,
     "historical_variety_count": 29,
     "grades": [
@@ -6381,7 +6568,12 @@
       "Cashewnuts",
       "Cashew",
       "Cashewnut",
-      "Kaju"
+      "Kaju",
+      "cashew",
+      "kaju",
+      "முந்திரி",
+      "Cashew Kernel",
+      "Raw Cashew"
     ],
     "varieties": [
       "320 Counts",
@@ -6395,7 +6587,15 @@
       "Other",
       "S.P. 155",
       "S.W.",
-      "Local"
+      "Local",
+      "W180 (King of Cashews)",
+      "W210 (Jumbo Cashew)",
+      "W240 (Standard Whole)",
+      "W320 (Most Popular Whole)",
+      "W400 (Small Whole)",
+      "Raw Cashew Nut In-Shell",
+      "JH (Jumbo Halves / Splits)",
+      "LWP (Large White Pieces)"
     ],
     "registered_varieties": [
       {
@@ -6445,9 +6645,41 @@
       {
         "variety_id": 1039,
         "name": "Local"
+      },
+      {
+        "variety_id": 73708,
+        "name": "W180 (King of Cashews)"
+      },
+      {
+        "variety_id": 52879,
+        "name": "W210 (Jumbo Cashew)"
+      },
+      {
+        "variety_id": 98577,
+        "name": "W240 (Standard Whole)"
+      },
+      {
+        "variety_id": 58210,
+        "name": "W320 (Most Popular Whole)"
+      },
+      {
+        "variety_id": 50277,
+        "name": "W400 (Small Whole)"
+      },
+      {
+        "variety_id": 78246,
+        "name": "Raw Cashew Nut In-Shell"
+      },
+      {
+        "variety_id": 35245,
+        "name": "JH (Jumbo Halves / Splits)"
+      },
+      {
+        "variety_id": 24578,
+        "name": "LWP (Large White Pieces)"
       }
     ],
-    "variety_count": 12,
+    "variety_count": 20,
     "registered_variety_count": 12,
     "historical_variety_count": 12,
     "grades": [
@@ -6899,8 +7131,8 @@
     "id": 603,
     "commodity": "Chena",
     "agmarknet_name": "Chena",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "chena"
@@ -7214,8 +7446,8 @@
     "id": 583,
     "commodity": "Chiaseeds",
     "agmarknet_name": "Chiaseeds",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "chiaseeds"
@@ -7253,7 +7485,13 @@
     "group_name": "Beverages",
     "group_id": 9,
     "aliases": [
-      "chicory(chikori/kasni)"
+      "chicory(chikori/kasni)",
+      "Chicory",
+      "Chikori",
+      "Kasni",
+      "chicory",
+      "chikori",
+      "kasni"
     ],
     "varieties": [
       "Other",
@@ -7611,13 +7849,21 @@
       "ક્રાયસન્થેમમ",
       "கிரிஸாந்திமம்",
       "ਚਰੀਸਨਥੇਮੁਮ",
-      "ସେବତୀ"
+      "ସେବତୀ",
+      "shevanti",
+      "sevanti",
+      "शेवंती",
+      "Chrysanthemum(Loose)"
     ],
     "varieties": [
       "Annual/Chrysanthium",
       "Annuals/Chrysanthium-Organic",
       "Chrysathemum(Loose)",
-      "Other"
+      "Other",
+      "Yellow Loose Shevanti",
+      "White Loose Shevanti",
+      "Raja (Commercial Yellow)",
+      "Shanthi (Commercial White)"
     ],
     "registered_varieties": [
       {
@@ -7635,9 +7881,25 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 94745,
+        "name": "Yellow Loose Shevanti"
+      },
+      {
+        "variety_id": 16812,
+        "name": "White Loose Shevanti"
+      },
+      {
+        "variety_id": 25171,
+        "name": "Raja (Commercial Yellow)"
+      },
+      {
+        "variety_id": 57018,
+        "name": "Shanthi (Commercial White)"
       }
     ],
-    "variety_count": 4,
+    "variety_count": 8,
     "registered_variety_count": 4,
     "historical_variety_count": 4,
     "grades": [
@@ -8125,11 +8387,18 @@
       "ಕೋಕಾ",
       "ਕੋਕੋ",
       "ଲବଂଗ",
-      "Cocoa"
+      "Cocoa",
+      "Cacao",
+      "Cocoa Beans"
     ],
     "varieties": [
       "Cocoa",
-      "Other"
+      "Other",
+      "Dry Fermented Beans",
+      "Wet Cocoa Beans",
+      "Forastero",
+      "Criollo",
+      "Trinitario"
     ],
     "registered_varieties": [
       {
@@ -8139,9 +8408,29 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 58391,
+        "name": "Dry Fermented Beans"
+      },
+      {
+        "variety_id": 95057,
+        "name": "Wet Cocoa Beans"
+      },
+      {
+        "variety_id": 63904,
+        "name": "Forastero"
+      },
+      {
+        "variety_id": 93170,
+        "name": "Criollo"
+      },
+      {
+        "variety_id": 30845,
+        "name": "Trinitario"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 7,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -8297,12 +8586,19 @@
       "নারকেল তেল",
       "ಕೊಬ್ಬರಿಎಣ್ಣೆ",
       "ਨਾਰੀਅਲ ਤੇਲ",
-      "ନଡିଆ ତେଲ"
+      "ନଡିଆ ତେଲ",
+      "nariyal tel",
+      "copra oil",
+      "தேங்காய் எண்ணெய்",
+      "ತೆಂಗಿನ ಎಣ್ಣೆ"
     ],
     "varieties": [
       "Copra Oil",
       "Other",
-      "Refind Copra Oil"
+      "Refind Copra Oil",
+      "Virgin Cold-Pressed Coconut Oil (VCO)",
+      "Milling Copra Filtered Oil",
+      "Coconut Oil"
     ],
     "registered_varieties": [
       {
@@ -8316,9 +8612,21 @@
       {
         "variety_id": 1509,
         "name": "Refind Copra Oil"
+      },
+      {
+        "variety_id": 72602,
+        "name": "Virgin Cold-Pressed Coconut Oil (VCO)"
+      },
+      {
+        "variety_id": 71724,
+        "name": "Milling Copra Filtered Oil"
+      },
+      {
+        "variety_id": 71761,
+        "name": "Coconut Oil"
       }
     ],
-    "variety_count": 3,
+    "variety_count": 6,
     "registered_variety_count": 3,
     "historical_variety_count": 3,
     "grades": [
@@ -8399,14 +8707,23 @@
       "ಕಾಫಿ",
       "ਕਾਫੀ",
       "କଫି",
-      "Coffee"
+      "Coffee",
+      "Arabica",
+      "Robusta",
+      "Coffee Beans"
     ],
     "varieties": [
       "Other",
       "Plantation A",
       "Plantation PB",
       "Robchy AB",
-      "Robchy PB"
+      "Robchy PB",
+      "Arabica Parchment",
+      "Arabica Chandragiri",
+      "Arabica Selection 795",
+      "Robusta Cherry AB",
+      "Robusta Cherry PB",
+      "Robusta CxR"
     ],
     "registered_varieties": [
       {
@@ -8428,9 +8745,33 @@
       {
         "variety_id": 1522,
         "name": "Robchy PB"
+      },
+      {
+        "variety_id": 54418,
+        "name": "Arabica Parchment"
+      },
+      {
+        "variety_id": 12915,
+        "name": "Arabica Chandragiri"
+      },
+      {
+        "variety_id": 44531,
+        "name": "Arabica Selection 795"
+      },
+      {
+        "variety_id": 55875,
+        "name": "Robusta Cherry AB"
+      },
+      {
+        "variety_id": 12650,
+        "name": "Robusta Cherry PB"
+      },
+      {
+        "variety_id": 27694,
+        "name": "Robusta CxR"
       }
     ],
-    "variety_count": 5,
+    "variety_count": 11,
     "registered_variety_count": 5,
     "historical_variety_count": 5,
     "grades": [
@@ -8511,8 +8852,8 @@
     "id": 470,
     "commodity": "Coleus",
     "agmarknet_name": "Coleus",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "coleus",
@@ -9576,11 +9917,22 @@
       "গরু",
       "ಹಸು",
       "ਗਊ",
-      "ଗାଈ"
+      "ଗାଈ",
+      "gai",
+      "cattle",
+      "Dairy Cow",
+      "Cattle"
     ],
     "varieties": [
       "Cow",
-      "Other"
+      "Other",
+      "Gir",
+      "Sahiwal",
+      "Red Sindhi",
+      "Tharparkar",
+      "Crossbred Holstein Friesian (HF)",
+      "Crossbred Jersey",
+      "Desi / Indigenous Non-Descript"
     ],
     "registered_varieties": [
       {
@@ -9590,9 +9942,37 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 48089,
+        "name": "Gir"
+      },
+      {
+        "variety_id": 43069,
+        "name": "Sahiwal"
+      },
+      {
+        "variety_id": 64875,
+        "name": "Red Sindhi"
+      },
+      {
+        "variety_id": 60891,
+        "name": "Tharparkar"
+      },
+      {
+        "variety_id": 37509,
+        "name": "Crossbred Holstein Friesian (HF)"
+      },
+      {
+        "variety_id": 79766,
+        "name": "Crossbred Jersey"
+      },
+      {
+        "variety_id": 82828,
+        "name": "Desi / Indigenous Non-Descript"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 9,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -10184,18 +10564,46 @@
     "group_id": 8,
     "aliases": [
       "dates",
-      "Dates"
+      "Dates",
+      "khajoor",
+      "khajur",
+      "chhohara",
+      "खजूर",
+      "பேரீச்சம்பழம்",
+      "ಖರ್ಜೂರ",
+      "Wet Dates",
+      "Dry Dates"
     ],
     "varieties": [
-      "Dates"
+      "Dates",
+      "Kimia / Bam Wet Dates",
+      "Medjool Dates",
+      "Dry Dates (Chhohara Yellow / Brown)",
+      "Other"
     ],
     "registered_varieties": [
       {
         "variety_id": 1889,
         "name": "Dates"
+      },
+      {
+        "variety_id": 73872,
+        "name": "Kimia / Bam Wet Dates"
+      },
+      {
+        "variety_id": 58196,
+        "name": "Medjool Dates"
+      },
+      {
+        "variety_id": 86243,
+        "name": "Dry Dates (Chhohara Yellow / Brown)"
+      },
+      {
+        "variety_id": 78660,
+        "name": "Other"
       }
     ],
-    "variety_count": 1,
+    "variety_count": 5,
     "registered_variety_count": 1,
     "historical_variety_count": 1,
     "grades": [
@@ -10993,11 +11401,19 @@
       "কিশমিশ",
       "ಒಣ ದ್ರಾಕ್ಷಿ",
       "ਸੁੱਕੇ ਅੰਗ੍ਹਰ",
-      "କିସ୍ ମିସ୍"
+      "କିସ୍ ମିସ୍",
+      "raisins",
+      "kishmish",
+      "किशमिश",
+      "ద్రాక్ష",
+      "Raisins"
     ],
     "varieties": [
       "Dry Grapes",
-      "Other"
+      "Other",
+      "Green Long Raisins (Nashik / Sangli)",
+      "Golden Round Raisins",
+      "Black Seedless Raisins (Monukka)"
     ],
     "registered_varieties": [
       {
@@ -11007,9 +11423,21 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 48168,
+        "name": "Green Long Raisins (Nashik / Sangli)"
+      },
+      {
+        "variety_id": 57313,
+        "name": "Golden Round Raisins"
+      },
+      {
+        "variety_id": 36595,
+        "name": "Black Seedless Raisins (Monukka)"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 5,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -11605,7 +12033,11 @@
       "மீன்கள்",
       "ಮೀನು",
       "ਮੱਛੀ",
-      "ମାଛ"
+      "ମାଛ",
+      "machhli",
+      "மீன்",
+      "Freshwater Fish",
+      "Carp"
     ],
     "varieties": [
       "Bata Putti",
@@ -11633,7 +12065,13 @@
       "White Dom",
       "Zinga(Zambo-A)",
       "Zinga(Zambo-B)",
-      "Zinga(Zambo-C)"
+      "Zinga(Zambo-C)",
+      "Rohu (Rui)",
+      "Catla (Katla)",
+      "Mrigal (Nain)",
+      "Hilsa (Ilish)",
+      "Silver Pomfret",
+      "Indian Mackerel (Bangda)"
     ],
     "registered_varieties": [
       {
@@ -11739,9 +12177,33 @@
       {
         "variety_id": 1865,
         "name": "Zinga(Zambo-C)"
+      },
+      {
+        "variety_id": 98034,
+        "name": "Rohu (Rui)"
+      },
+      {
+        "variety_id": 44581,
+        "name": "Catla (Katla)"
+      },
+      {
+        "variety_id": 34178,
+        "name": "Mrigal (Nain)"
+      },
+      {
+        "variety_id": 53591,
+        "name": "Hilsa (Ilish)"
+      },
+      {
+        "variety_id": 37832,
+        "name": "Silver Pomfret"
+      },
+      {
+        "variety_id": 22743,
+        "name": "Indian Mackerel (Bangda)"
       }
     ],
-    "variety_count": 26,
+    "variety_count": 32,
     "registered_variety_count": 26,
     "historical_variety_count": 26,
     "grades": [
@@ -12091,8 +12553,8 @@
     "id": 589,
     "commodity": "Gangri",
     "agmarknet_name": "Gangri",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "gangri"
@@ -12247,8 +12709,8 @@
     "id": 595,
     "commodity": "Gataran",
     "agmarknet_name": "Gataran",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "gataran"
@@ -12331,11 +12793,17 @@
       "ತುಪ್ಪ",
       "ਘੀ",
       "ଘିଅ",
-      "Ghee"
+      "Ghee",
+      "desi ghee",
+      "pure ghee",
+      "देशी घी"
     ],
     "varieties": [
       "Ghee",
-      "Other"
+      "Other",
+      "Desi Cow Bilona Ghee (A2)",
+      "Buffalo Ghee",
+      "Dairy Processed Pure Ghee"
     ],
     "registered_varieties": [
       {
@@ -12345,9 +12813,21 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 36678,
+        "name": "Desi Cow Bilona Ghee (A2)"
+      },
+      {
+        "variety_id": 89840,
+        "name": "Buffalo Ghee"
+      },
+      {
+        "variety_id": 10993,
+        "name": "Dairy Processed Pure Ghee"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 5,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -12471,8 +12951,8 @@
     "id": 381,
     "commodity": "Giloy",
     "agmarknet_name": "Giloy",
-    "category": "Forest Products",
-    "group_name": "Forest Products",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 12,
     "aliases": [
       "giloy",
@@ -12910,11 +13390,20 @@
       "ஆடு",
       "ಮೇಕೆ",
       "ਬੱਕਰੀ ਦੇ ਬਾਲ",
-      "ଛେଳି"
+      "ଛେଳି",
+      "bakri",
+      "ಆಡು",
+      "She Goat"
     ],
     "varieties": [
       "Goat",
-      "Other"
+      "Other",
+      "Jamnapari",
+      "Sirohi",
+      "Barbari",
+      "Black Bengal",
+      "Osmanabadi",
+      "Beetal"
     ],
     "registered_varieties": [
       {
@@ -12924,9 +13413,33 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 12328,
+        "name": "Jamnapari"
+      },
+      {
+        "variety_id": 11525,
+        "name": "Sirohi"
+      },
+      {
+        "variety_id": 82887,
+        "name": "Barbari"
+      },
+      {
+        "variety_id": 98922,
+        "name": "Black Bengal"
+      },
+      {
+        "variety_id": 88448,
+        "name": "Osmanabadi"
+      },
+      {
+        "variety_id": 48848,
+        "name": "Beetal"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 8,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -12992,8 +13505,8 @@
     "id": 592,
     "commodity": "Gokhru",
     "agmarknet_name": "Gokhru",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "gokhru"
@@ -13077,12 +13590,21 @@
     "aliases": [
       "gond",
       "गोंद",
-      "Gond"
+      "Gond",
+      "gum",
+      "gum karaya",
+      "gond katira",
+      "Gum",
+      "Natural Gum"
     ],
     "varieties": [
       "Gond",
       "Organic",
-      "Other"
+      "Other",
+      "Gum Karaya Grade I",
+      "Gum Karaya Grade II",
+      "Gum Arabic / Babul Gond",
+      "Gum Dhaora"
     ],
     "registered_varieties": [
       {
@@ -13096,9 +13618,25 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 74267,
+        "name": "Gum Karaya Grade I"
+      },
+      {
+        "variety_id": 16252,
+        "name": "Gum Karaya Grade II"
+      },
+      {
+        "variety_id": 77622,
+        "name": "Gum Arabic / Babul Gond"
+      },
+      {
+        "variety_id": 10596,
+        "name": "Gum Dhaora"
       }
     ],
-    "variety_count": 3,
+    "variety_count": 7,
     "registered_variety_count": 3,
     "historical_variety_count": 3,
     "grades": [
@@ -13626,7 +14164,13 @@
       "ಹೆಸರುಬೇಳೆ",
       "ਹਰੀ ਗਰਾਮ ਦਾਲ",
       "ମୁଗ ଡାଲି",
-      "Green Gram Dal(Moong Dal)"
+      "Green Gram Dal(Moong Dal)",
+      "moong dal",
+      "mung dal",
+      "ಹೆಸರು ಬೇಳೆ",
+      "பாசிப்பருப்பு",
+      "Moong Dal",
+      "Moong Mogar"
     ],
     "varieties": [
       "Ankola",
@@ -13647,7 +14191,9 @@
       "Other",
       "Small (Split)",
       "Stdvar",
-      "Superfine"
+      "Superfine",
+      "Moong Mogar (Washed Yellow)",
+      "Moong Chilka Split Green"
     ],
     "registered_varieties": [
       {
@@ -13725,9 +14271,17 @@
       {
         "variety_id": 1694,
         "name": "Superfine"
+      },
+      {
+        "variety_id": 87040,
+        "name": "Moong Mogar (Washed Yellow)"
+      },
+      {
+        "variety_id": 45022,
+        "name": "Moong Chilka Split Green"
       }
     ],
-    "variety_count": 19,
+    "variety_count": 21,
     "registered_variety_count": 19,
     "historical_variety_count": 19,
     "grades": [
@@ -13760,7 +14314,14 @@
       "ಹೆಸರುಕಾಳು",
       "ਮੂੰਗ ਦਾਲ",
       "ମୁଗ",
-      "Green Gram(Moong)(Whole)"
+      "Green Gram(Moong)(Whole)",
+      "moong",
+      "mung",
+      "green gram",
+      "मूंग",
+      "ಹೆಸರು ಕಾಳು",
+      "பாசிப்பயறு",
+      "Moong Whole"
     ],
     "varieties": [
       "Ankola",
@@ -13789,7 +14350,10 @@
       "SML-32",
       "Stdvar",
       "Superfine",
-      "TMLC2"
+      "TMLC2",
+      "Shiny Green Desi",
+      "Pusa Vishal",
+      "Samrat"
     ],
     "registered_varieties": [
       {
@@ -13899,9 +14463,21 @@
       {
         "variety_id": 1760,
         "name": "TMLC2"
+      },
+      {
+        "variety_id": 90842,
+        "name": "Shiny Green Desi"
+      },
+      {
+        "variety_id": 12897,
+        "name": "Pusa Vishal"
+      },
+      {
+        "variety_id": 48145,
+        "name": "Samrat"
       }
     ],
-    "variety_count": 27,
+    "variety_count": 30,
     "registered_variety_count": 27,
     "historical_variety_count": 27,
     "grades": [
@@ -14100,12 +14676,20 @@
       "চীনে বাদামর তেল (মুংগফলী)",
       "ಕಡಲೇಕಾಯಿ ಎಣ್ಣೆ",
       "ਮੂਗਫਲੀ ਦਾ ਤੇਲ",
-      "ବାଦାମ ତେଲ"
+      "ବାଦାମ ତେଲ",
+      "groundnut oil",
+      "peanut oil",
+      "moongfali tel",
+      "मूंगफली का तेल",
+      "கடலை எண்ணெய்",
+      "ಕಡಲೆಕಾಯಿ ಎಣ್ಣೆ"
     ],
     "varieties": [
       "Ground Nut Oil",
       "Other",
-      "Refined Ground Nut Oil"
+      "Refined Ground Nut Oil",
+      "Cold-Pressed Filtered Groundnut Oil",
+      "Refined Groundnut Oil"
     ],
     "registered_varieties": [
       {
@@ -14119,9 +14703,17 @@
       {
         "variety_id": 1510,
         "name": "Refined Ground Nut Oil"
+      },
+      {
+        "variety_id": 63036,
+        "name": "Cold-Pressed Filtered Groundnut Oil"
+      },
+      {
+        "variety_id": 22643,
+        "name": "Refined Groundnut Oil"
       }
     ],
-    "variety_count": 3,
+    "variety_count": 5,
     "registered_variety_count": 3,
     "historical_variety_count": 3,
     "grades": [
@@ -15189,8 +15781,8 @@
     "id": 604,
     "commodity": "Harsingar Leaf",
     "agmarknet_name": "Harsingar Leaf",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "harsingar leaf"
@@ -15239,11 +15831,23 @@
       "মোষ",
       "ಕೋಣ",
       "ਨਰ ਮੱਝ",
-      "ମଇଁଷି"
+      "ମଇଁଷି",
+      "buffalo",
+      "she buffalo",
+      "bhains",
+      "भैंस",
+      "ಎಮ್ಮೆ",
+      "எருமை",
+      "Buffalo"
     ],
     "varieties": [
       "He Baffelo",
-      "Other"
+      "Other",
+      "Murrah",
+      "Mehsana",
+      "Jaffrabadi",
+      "Surti",
+      "Nili-Ravi"
     ],
     "registered_varieties": [
       {
@@ -15253,9 +15857,29 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 29916,
+        "name": "Murrah"
+      },
+      {
+        "variety_id": 84927,
+        "name": "Mehsana"
+      },
+      {
+        "variety_id": 96526,
+        "name": "Jaffrabadi"
+      },
+      {
+        "variety_id": 84445,
+        "name": "Surti"
+      },
+      {
+        "variety_id": 16050,
+        "name": "Nili-Ravi"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 7,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -15273,8 +15897,8 @@
     "id": 570,
     "commodity": "Heena",
     "agmarknet_name": "Heena",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "heena"
@@ -15368,13 +15992,26 @@
       "মুরগি",
       "ಕೋಳಿ",
       "ਮੁਰਗੀ",
-      "ମାଈ କୁକୁଡା"
+      "ମାଈ କୁକୁଡା",
+      "chicken",
+      "cock",
+      "murgi",
+      "கோழி",
+      "Cock",
+      "Broiler Chicken"
     ],
     "varieties": [
       "Boiler/Firm(White-Brown)",
       "Boiler/Firm(White)",
       "Local",
-      "Other"
+      "Other",
+      "Commercial Broiler",
+      "Commercial Layer",
+      "Kadaknath",
+      "Aseel",
+      "Giriraja / Vanaraja",
+      "Country Chicken (Desi)",
+      "Hen"
     ],
     "registered_varieties": [
       {
@@ -15392,9 +16029,37 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 38907,
+        "name": "Commercial Broiler"
+      },
+      {
+        "variety_id": 84728,
+        "name": "Commercial Layer"
+      },
+      {
+        "variety_id": 12475,
+        "name": "Kadaknath"
+      },
+      {
+        "variety_id": 38314,
+        "name": "Aseel"
+      },
+      {
+        "variety_id": 83013,
+        "name": "Giriraja / Vanaraja"
+      },
+      {
+        "variety_id": 66913,
+        "name": "Country Chicken (Desi)"
+      },
+      {
+        "variety_id": 77959,
+        "name": "Hen"
       }
     ],
-    "variety_count": 4,
+    "variety_count": 11,
     "registered_variety_count": 4,
     "historical_variety_count": 4,
     "grades": [
@@ -15439,8 +16104,8 @@
     "id": 585,
     "commodity": "Hingot",
     "agmarknet_name": "Hingot",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "hingot"
@@ -15554,8 +16219,8 @@
     "id": 194,
     "commodity": "Honey",
     "agmarknet_name": "Honey",
-    "category": "Others",
-    "group_name": "Others",
+    "category": "Forest Products",
+    "group_name": "Forest Products",
     "group_id": 10,
     "aliases": [
       "honey",
@@ -15569,12 +16234,20 @@
       "ಜೇನುತುಪ್ಪ",
       "ਹਿਦ",
       "ମହୁ",
-      "Honey"
+      "Honey",
+      "shahad",
+      "madhu",
+      "मद्य",
+      "Forest Honey"
     ],
     "varieties": [
       "Honey",
       "Organic",
-      "Other"
+      "Other",
+      "Wild Forest Multiflora Honey",
+      "Raw Unprocessed Honey",
+      "Mustard Flora Honey",
+      "Organic Forest Honey"
     ],
     "registered_varieties": [
       {
@@ -15588,9 +16261,25 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 67409,
+        "name": "Wild Forest Multiflora Honey"
+      },
+      {
+        "variety_id": 72203,
+        "name": "Raw Unprocessed Honey"
+      },
+      {
+        "variety_id": 42333,
+        "name": "Mustard Flora Honey"
+      },
+      {
+        "variety_id": 70831,
+        "name": "Organic Forest Honey"
       }
     ],
-    "variety_count": 3,
+    "variety_count": 7,
     "registered_variety_count": 3,
     "historical_variety_count": 3,
     "grades": [
@@ -15936,8 +16625,8 @@
     "id": 602,
     "commodity": "Indrayan Fruit",
     "agmarknet_name": "Indrayan Fruit",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "indrayan fruit"
@@ -16016,8 +16705,8 @@
     "id": 212,
     "commodity": "Isabgul(Psyllium)",
     "agmarknet_name": "Isabgul(Psyllium)",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "isabgul(psyllium)",
@@ -16075,15 +16764,15 @@
     "id": 488,
     "commodity": "Isbgol",
     "agmarknet_name": "Isbgol",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "isbgol",
       "Isbgol"
     ],
     "varieties": [
-      "Isbgol(Psyllium Husk) "
+      "Isbgol(Psyllium Husk)"
     ],
     "registered_varieties": [
       {
@@ -16382,8 +17071,8 @@
     "id": 606,
     "commodity": "Jamun",
     "agmarknet_name": "Jamun",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "jamun"
@@ -16540,13 +17229,21 @@
       "ಮಲ್ಲಿಗೆ",
       "ਜੈਸਮੀਨ",
       "ମଲ୍ଲୀ",
-      "Jasmine"
+      "Jasmine",
+      "chameli",
+      "mogra",
+      "malli",
+      "मोगरा",
+      "Madurai Malli"
     ],
     "varieties": [
       "Jasmine",
       "Juhi",
       "Organic",
-      "Other"
+      "Other",
+      "Madurai Malli (Gundu Malli)",
+      "Mullai (Jasminum flexile)",
+      "Kakada (Jasminum multiflorum)"
     ],
     "registered_varieties": [
       {
@@ -16564,9 +17261,21 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 82398,
+        "name": "Madurai Malli (Gundu Malli)"
+      },
+      {
+        "variety_id": 54885,
+        "name": "Mullai (Jasminum flexile)"
+      },
+      {
+        "variety_id": 24798,
+        "name": "Kakada (Jasminum multiflorum)"
       }
     ],
-    "variety_count": 4,
+    "variety_count": 7,
     "registered_variety_count": 4,
     "historical_variety_count": 4,
     "grades": [
@@ -17298,8 +18007,8 @@
     "id": 586,
     "commodity": "Kantakari",
     "agmarknet_name": "Kantakari",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "kantakari"
@@ -17381,8 +18090,8 @@
     "id": 368,
     "commodity": "karanja seeds",
     "agmarknet_name": "karanja seeds",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "karanja seeds",
@@ -17484,8 +18193,8 @@
     "id": 575,
     "commodity": "Kaunch",
     "agmarknet_name": "Kaunch",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "kaunch"
@@ -18265,8 +18974,8 @@
     "id": 344,
     "commodity": "Kutki",
     "agmarknet_name": "Kutki",
-    "category": "Cereals",
-    "group_name": "Cereals",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 1,
     "aliases": [
       "kutki",
@@ -18310,8 +19019,8 @@
     "id": 355,
     "commodity": "kutki",
     "agmarknet_name": "kutki",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "kutki",
@@ -18570,8 +19279,8 @@
     "id": 600,
     "commodity": "Lata Kasturi",
     "agmarknet_name": "Lata Kasturi",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "lata kasturi"
@@ -18762,23 +19471,51 @@
     "id": 496,
     "commodity": "Lemongrass",
     "agmarknet_name": "Lemongrass",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "lemongrass",
-      "Lemongrass"
+      "Lemongrass",
+      "lemon grass",
+      "लेमनग्रास",
+      "எலுமிச்சை புல்"
     ],
     "varieties": [
-      "Lemongrass"
+      "Lemongrass",
+      "Fresh Lemongrass Stalks / Herb",
+      "Distilled Lemongrass Essential Oil",
+      "Krishna (High Citral)",
+      "Cauvery",
+      "Other"
     ],
     "registered_varieties": [
       {
         "variety_id": 1947,
         "name": "Lemongrass"
+      },
+      {
+        "variety_id": 40947,
+        "name": "Fresh Lemongrass Stalks / Herb"
+      },
+      {
+        "variety_id": 29744,
+        "name": "Distilled Lemongrass Essential Oil"
+      },
+      {
+        "variety_id": 48864,
+        "name": "Krishna (High Citral)"
+      },
+      {
+        "variety_id": 52168,
+        "name": "Cauvery"
+      },
+      {
+        "variety_id": 68530,
+        "name": "Other"
       }
     ],
-    "variety_count": 1,
+    "variety_count": 6,
     "registered_variety_count": 1,
     "historical_variety_count": 1,
     "grades": [
@@ -18810,7 +19547,14 @@
       "মুসুর ডাল",
       "ਲੈਂਟਿਲ (ਮਸੂ)",
       "ମସୁର  ଡାଲି",
-      "Lentil(Masur)(Whole)"
+      "Lentil(Masur)(Whole)",
+      "masoor",
+      "masur",
+      "lentil",
+      "मसूर",
+      "ಮಸೂರ್",
+      "மசூர் பருப்பு",
+      "Masur Whole"
     ],
     "varieties": [
       "Kala Masoor New",
@@ -18818,7 +19562,10 @@
       "Masoor Gola",
       "Masur Dal",
       "Organic",
-      "Other"
+      "Other",
+      "Small Brown Lentil (IPL-316)",
+      "Bold Masur",
+      "Masur Whole"
     ],
     "registered_varieties": [
       {
@@ -18844,9 +19591,21 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 77683,
+        "name": "Small Brown Lentil (IPL-316)"
+      },
+      {
+        "variety_id": 96091,
+        "name": "Bold Masur"
+      },
+      {
+        "variety_id": 26767,
+        "name": "Masur Whole"
       }
     ],
-    "variety_count": 6,
+    "variety_count": 9,
     "registered_variety_count": 6,
     "historical_variety_count": 6,
     "grades": [
@@ -20760,12 +21519,23 @@
       "மேரிகோல்ட் (கல்கத்தா)",
       "ಚೆಂಡುಹೂವು",
       "ਮੈਰੀਗੋਲਡ (ਕਲਕੱਤਾ)",
-      "ଗେଣ୍ଡୁ"
+      "ଗେଣ୍ଡୁ",
+      "marigold",
+      "genda",
+      "गेंदा",
+      "சாமந்தி",
+      "ಚೆಂಡು ಹೂ",
+      "Marigold",
+      "African Marigold"
     ],
     "varieties": [
       "Marigold-Organic",
       "Marigold(Calcutta)",
-      "Other"
+      "Other",
+      "African Marigold Orange",
+      "African Marigold Yellow",
+      "Pusa Narangi Gainda",
+      "French Marigold Dwarf"
     ],
     "registered_varieties": [
       {
@@ -20779,9 +21549,25 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 55252,
+        "name": "African Marigold Orange"
+      },
+      {
+        "variety_id": 50987,
+        "name": "African Marigold Yellow"
+      },
+      {
+        "variety_id": 97382,
+        "name": "Pusa Narangi Gainda"
+      },
+      {
+        "variety_id": 88757,
+        "name": "French Marigold Dwarf"
       }
     ],
-    "variety_count": 3,
+    "variety_count": 7,
     "registered_variety_count": 3,
     "historical_variety_count": 3,
     "grades": [
@@ -20943,7 +21729,11 @@
       "ମସୁରି ଡାଲି",
       "Masur Dal",
       "Masoor Dal",
-      "Red Lentil"
+      "Red Lentil",
+      "masoor dal",
+      "red lentil",
+      "மசூர் பருப்பு",
+      "Masoor Malka"
     ],
     "varieties": [
       "Kala Masoor New",
@@ -20951,7 +21741,9 @@
       "Masur Dal",
       "Other",
       "IPL 316",
-      "JL 3"
+      "JL 3",
+      "Red Masoor Malka (Split Orange)",
+      "Masoor Whole Washed"
     ],
     "registered_varieties": [
       {
@@ -20977,9 +21769,17 @@
       {
         "variety_id": 2049,
         "name": "JL 3"
+      },
+      {
+        "variety_id": 55156,
+        "name": "Red Masoor Malka (Split Orange)"
+      },
+      {
+        "variety_id": 48514,
+        "name": "Masoor Whole Washed"
       }
     ],
-    "variety_count": 6,
+    "variety_count": 8,
     "registered_variety_count": 6,
     "historical_variety_count": 6,
     "grades": [
@@ -21120,8 +21920,8 @@
     "id": 501,
     "commodity": "Mentha Oil",
     "agmarknet_name": "Mentha Oil",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "mentha oil",
@@ -21373,8 +22173,8 @@
     "id": 307,
     "commodity": "Mint(Pudina)",
     "agmarknet_name": "Mint(Pudina)",
-    "category": "Vegetables",
-    "group_name": "Vegetables",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 6,
     "aliases": [
       "mint(pudina)",
@@ -21545,8 +22345,8 @@
     "id": 375,
     "commodity": "Muesli",
     "agmarknet_name": "Muesli",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "muesli",
@@ -21627,8 +22427,8 @@
     "id": 357,
     "commodity": "Muleti",
     "agmarknet_name": "Muleti",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "muleti",
@@ -21906,11 +22706,15 @@
       "கடுகு எண்ணெய்",
       "সরসের তেল",
       "ਸਰੋਂ ਦਾ ਤੇਲ",
-      "ସୋରିଷ ତେଲ"
+      "ସୋରିଷ ତେଲ",
+      "sarson tel",
+      "kachi ghani"
     ],
     "varieties": [
       "Mustard Oil",
-      "Other"
+      "Other",
+      "Kachi Ghani Cold-Pressed Mustard Oil",
+      "Expeller Filtered Mustard Oil"
     ],
     "registered_varieties": [
       {
@@ -21920,9 +22724,17 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 82412,
+        "name": "Kachi Ghani Cold-Pressed Mustard Oil"
+      },
+      {
+        "variety_id": 72938,
+        "name": "Expeller Filtered Mustard Oil"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 4,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -21940,8 +22752,8 @@
     "id": 120,
     "commodity": "Myrobolan(Harad)",
     "agmarknet_name": "Myrobolan(Harad)",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "myrobolan(harad)",
@@ -21992,8 +22804,8 @@
     "id": 593,
     "commodity": "Nagarmotha",
     "agmarknet_name": "Nagarmotha",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "nagarmotha"
@@ -22130,8 +22942,8 @@
     "id": 503,
     "commodity": "Neem Fruits",
     "agmarknet_name": "Neem Fruits",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "neem fruits",
@@ -22164,8 +22976,8 @@
     "id": 109,
     "commodity": "Neem Seed",
     "agmarknet_name": "Neem Seed",
-    "category": "Forest Products",
-    "group_name": "Forest Products",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 12,
     "aliases": [
       "neem seed",
@@ -22179,7 +22991,11 @@
       "ಬೇವಿನ ಬೀಜ",
       "ਨਿੰਮ ਬੀਜ",
       "ନିମ ମଞ୍ଜି",
-      "Neem Seed"
+      "Neem Seed",
+      "neem",
+      "neem fruits",
+      "neem leaves",
+      "வேப்பங்கொட்டை"
     ],
     "varieties": [
       "Neem",
@@ -22187,7 +23003,10 @@
       "Neem leaves",
       "Neem Seed",
       "Neem Seeds-Organic",
-      "Other"
+      "Other",
+      "Dry Neem Seed (Azadirachtin Rich)",
+      "Neem Seed Kernels",
+      "Dried Neem Leaves"
     ],
     "registered_varieties": [
       {
@@ -22213,9 +23032,21 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 36905,
+        "name": "Dry Neem Seed (Azadirachtin Rich)"
+      },
+      {
+        "variety_id": 89422,
+        "name": "Neem Seed Kernels"
+      },
+      {
+        "variety_id": 79757,
+        "name": "Dried Neem Leaves"
       }
     ],
-    "variety_count": 6,
+    "variety_count": 9,
     "registered_variety_count": 6,
     "historical_variety_count": 6,
     "grades": [
@@ -22473,8 +23304,8 @@
     "id": 601,
     "commodity": "Nilgiri",
     "agmarknet_name": "Nilgiri",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "nilgiri"
@@ -22508,8 +23339,8 @@
     "id": 594,
     "commodity": "Nirguni",
     "agmarknet_name": "Nirguni",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "nirguni"
@@ -25153,11 +25984,20 @@
       "কড়াইগুটি",
       "ಒಣಬಟಾಣಿ",
       "ਸੁੱਕਾ",
-      "ମଟର"
+      "ମଟର",
+      "dry peas",
+      "matar",
+      "safed matar",
+      "सफेद मटर",
+      "பட்டாணி",
+      "ಬಟಾಣಿ",
+      "White Peas"
     ],
     "varieties": [
       "Other",
-      "Peas(Dry)"
+      "Peas(Dry)",
+      "White Peas Whole Gota",
+      "Green Peas Dry Whole"
     ],
     "registered_varieties": [
       {
@@ -25167,9 +26007,17 @@
       {
         "variety_id": 1366,
         "name": "Peas(Dry)"
+      },
+      {
+        "variety_id": 16546,
+        "name": "White Peas Whole Gota"
+      },
+      {
+        "variety_id": 83868,
+        "name": "Green Peas Dry Whole"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 4,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -25637,8 +26485,8 @@
     "id": 360,
     "commodity": "pippali",
     "agmarknet_name": "pippali",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "pippali",
@@ -25686,18 +26534,39 @@
     "group_id": 8,
     "aliases": [
       "pista(pistachio)",
-      "Pista(Pistachio)"
+      "Pista(Pistachio)",
+      "pista",
+      "pistachio",
+      "पिस्ता",
+      "பிஸ்தா",
+      "ಪಿಸ್ತಾ",
+      "Pistachio"
     ],
     "varieties": [
-      "Pista(Pistachio)"
+      "Pista(Pistachio)",
+      "Roasted Salted In-Shell Jumbo",
+      "Plain Raw Green Kernels",
+      "Other"
     ],
     "registered_varieties": [
       {
         "variety_id": 1950,
         "name": "Pista(Pistachio)"
+      },
+      {
+        "variety_id": 12581,
+        "name": "Roasted Salted In-Shell Jumbo"
+      },
+      {
+        "variety_id": 71891,
+        "name": "Plain Raw Green Kernels"
+      },
+      {
+        "variety_id": 26428,
+        "name": "Other"
       }
     ],
-    "variety_count": 1,
+    "variety_count": 4,
     "registered_variety_count": 1,
     "historical_variety_count": 1,
     "grades": [
@@ -26334,11 +27203,22 @@
     "group_id": 13,
     "aliases": [
       "prawn",
-      "Prawn"
+      "Prawn",
+      "shrimp",
+      "jhinga",
+      "झींगा",
+      "ಸೀಗಡಿ",
+      "இறால்",
+      "Shrimp",
+      "Vannamei"
     ],
     "varieties": [
       "Prawn-White Prawn",
-      "Prawn-Tiger Prawn"
+      "Prawn-Tiger Prawn",
+      "Pacific White Shrimp (Vannamei)",
+      "Black Tiger Shrimp",
+      "Giant Freshwater Prawn (Scampi)",
+      "Other"
     ],
     "registered_varieties": [
       {
@@ -26348,9 +27228,25 @@
       {
         "variety_id": 1919,
         "name": "Prawn-Tiger Prawn"
+      },
+      {
+        "variety_id": 44448,
+        "name": "Pacific White Shrimp (Vannamei)"
+      },
+      {
+        "variety_id": 87269,
+        "name": "Black Tiger Shrimp"
+      },
+      {
+        "variety_id": 48983,
+        "name": "Giant Freshwater Prawn (Scampi)"
+      },
+      {
+        "variety_id": 51400,
+        "name": "Other"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 6,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -27574,7 +28470,15 @@
       "ತೊಗರಿಬೇಳೆ",
       "ਤੂਰ ਦਾਲ",
       "ତୁର ଡାଲି",
-      "Arhar Dal(Tur Dal)"
+      "Arhar Dal(Tur Dal)",
+      "tur dal",
+      "toor dal",
+      "arhar dal",
+      "tuvar dal",
+      "अरहर दाल",
+      "ತೊಗರಿ ಬೇಳೆ",
+      "துவரம் பருப்பு",
+      "Tur Dal"
     ],
     "varieties": [
       "777 Imp",
@@ -27597,7 +28501,11 @@
       "Phatka (Medium)",
       "Shivling Imp New",
       "Shivling New Ind",
-      "U.P. (Split)"
+      "U.P. (Split)",
+      "Fatka Dal",
+      "Washed Oiled Tur Dal",
+      "Washed Plain Tur Dal",
+      "Unpolished Desi Dal"
     ],
     "registered_varieties": [
       {
@@ -27683,9 +28591,25 @@
       {
         "variety_id": 1790,
         "name": "U.P. (Split)"
+      },
+      {
+        "variety_id": 91423,
+        "name": "Fatka Dal"
+      },
+      {
+        "variety_id": 54877,
+        "name": "Washed Oiled Tur Dal"
+      },
+      {
+        "variety_id": 19637,
+        "name": "Washed Plain Tur Dal"
+      },
+      {
+        "variety_id": 48161,
+        "name": "Unpolished Desi Dal"
       }
     ],
-    "variety_count": 21,
+    "variety_count": 25,
     "registered_variety_count": 21,
     "historical_variety_count": 21,
     "grades": [
@@ -27718,7 +28642,16 @@
       "ತೊಗರಿ",
       "ਅਰਹਰ ਦਾਲ",
       "ମସୁର ଡାଲି",
-      "Arhar(Tur/Red Gram)(Whole)"
+      "Arhar(Tur/Red Gram)(Whole)",
+      "arhar",
+      "tur",
+      "toor",
+      "pigeon pea",
+      "अरहर दाल",
+      "तुवर",
+      "துவரை",
+      "Red gram",
+      "Arhar Whole"
     ],
     "varieties": [
       "777 New Ind",
@@ -27757,7 +28690,10 @@
       "U.P. (Split)",
       "(Whole)",
       "Black",
-      "White"
+      "White",
+      "Desi Tur Whole",
+      "Maruti (ICP-8863)",
+      "Asha (ICPL-87119)"
     ],
     "registered_varieties": [
       {
@@ -27907,9 +28843,21 @@
       {
         "variety_id": 1832,
         "name": "White"
+      },
+      {
+        "variety_id": 10246,
+        "name": "Desi Tur Whole"
+      },
+      {
+        "variety_id": 98359,
+        "name": "Maruti (ICP-8863)"
+      },
+      {
+        "variety_id": 96872,
+        "name": "Asha (ICPL-87119)"
       }
     ],
-    "variety_count": 37,
+    "variety_count": 40,
     "registered_variety_count": 37,
     "historical_variety_count": 37,
     "grades": [
@@ -29818,11 +30766,22 @@
       "ગુલાબ (સ્થાનિક)",
       "ரோஸ் (லோக்கல்)",
       "ਗੁਲਾਬ (ਦੇਸੀ)",
-      "ଗୋଲାପ(ଦେଶୀ)"
+      "ଗୋଲାପ(ଦେଶୀ)",
+      "rose",
+      "gulab",
+      "गुलाब",
+      "ரோஜா",
+      "ಗುಲಾಬಿ",
+      "Rose",
+      "Cut Rose",
+      "Dutch Rose"
     ],
     "varieties": [
       "Other",
-      "Rose (Local)"
+      "Rose (Local)",
+      "Dutch Rose (Cut Flower)",
+      "Button Rose (Loose)",
+      "Taj Mahal (Red Dutch)"
     ],
     "registered_varieties": [
       {
@@ -29832,9 +30791,21 @@
       {
         "variety_id": 1527,
         "name": "Rose (Local)"
+      },
+      {
+        "variety_id": 71103,
+        "name": "Dutch Rose (Cut Flower)"
+      },
+      {
+        "variety_id": 99881,
+        "name": "Button Rose (Loose)"
+      },
+      {
+        "variety_id": 34746,
+        "name": "Taj Mahal (Red Dutch)"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 5,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -30262,8 +31233,8 @@
     "id": 598,
     "commodity": "Sahjan Leaf",
     "agmarknet_name": "Sahjan Leaf",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "sahjan leaf"
@@ -30660,8 +31631,8 @@
     "id": 362,
     "commodity": "sanay",
     "agmarknet_name": "sanay",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "sanay",
@@ -30808,8 +31779,8 @@
     "id": 596,
     "commodity": "Sarphoka",
     "agmarknet_name": "Sarphoka",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "sarphoka"
@@ -31280,8 +32251,8 @@
     "id": 574,
     "commodity": "Shankhpushpi",
     "agmarknet_name": "Shankhpushpi",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "shankhpushpi"
@@ -31428,13 +32399,19 @@
       "ভেঁড়া",
       "ಕುರಿ",
       "ਭੇਡ",
-      "ମେଣ୍ଢା"
+      "ମେଣ୍ଢା",
+      "bhed",
+      "செம்மறியாடு"
     ],
     "varieties": [
       "Other",
       "Sheep Large",
       "Sheep Medium",
-      "Sheep Small"
+      "Sheep Small",
+      "Nellore",
+      "Deccani",
+      "Bellary",
+      "Marwari"
     ],
     "registered_varieties": [
       {
@@ -31452,9 +32429,25 @@
       {
         "variety_id": 1620,
         "name": "Sheep Small"
+      },
+      {
+        "variety_id": 76603,
+        "name": "Nellore"
+      },
+      {
+        "variety_id": 61184,
+        "name": "Deccani"
+      },
+      {
+        "variety_id": 89599,
+        "name": "Bellary"
+      },
+      {
+        "variety_id": 63603,
+        "name": "Marwari"
       }
     ],
-    "variety_count": 4,
+    "variety_count": 8,
     "registered_variety_count": 4,
     "historical_variety_count": 4,
     "grades": [
@@ -32547,8 +33540,8 @@
     "id": 369,
     "commodity": "stevia",
     "agmarknet_name": "stevia",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "stevia",
@@ -33695,7 +34688,13 @@
       "ಹುಣಿಸೇಹಣ್ಣು",
       "ਇਮਲੀ ਦੇ ਬੀਜ",
       "ତେନ୍ତୁଳି",
-      "Tamarind Fruit"
+      "Tamarind Fruit",
+      "imli",
+      "tamarind",
+      "इमली",
+      "ಹುಣಸೆಹಣ್ಣು",
+      "புளி",
+      "Tamarind"
     ],
     "varieties": [
       "Chapathi",
@@ -33713,7 +34712,10 @@
       "Tamarind",
       "Tamarind Fruit",
       "With Seed 1Variety",
-      "With Seed 2Variety"
+      "With Seed 2Variety",
+      "Seedless Tamarind Pulp",
+      "With Seed Tamarind",
+      "Local"
     ],
     "registered_varieties": [
       {
@@ -33779,9 +34781,21 @@
       {
         "variety_id": 1850,
         "name": "With Seed 2Variety"
+      },
+      {
+        "variety_id": 88592,
+        "name": "Seedless Tamarind Pulp"
+      },
+      {
+        "variety_id": 29743,
+        "name": "With Seed Tamarind"
+      },
+      {
+        "variety_id": 18975,
+        "name": "Local"
       }
     ],
-    "variety_count": 16,
+    "variety_count": 19,
     "registered_variety_count": 16,
     "historical_variety_count": 16,
     "grades": [
@@ -34040,7 +35054,11 @@
       "ಟೀ",
       "ਚਾਯ ਪੱਤੀ",
       "ଚା'ହା",
-      "Tea"
+      "Tea",
+      "ടീ",
+      "Chai",
+      "Tea Leaf",
+      "CTC Tea"
     ],
     "varieties": [
       "All Dust",
@@ -34049,7 +35067,10 @@
       "C.T.C. Dust",
       "Cachar C.T.C. Dust",
       "Cachar C.T.C. Leaf",
-      "Other"
+      "Other",
+      "Darjeeling Orthodox Leaf",
+      "Nilgiri C.T.C. Dust",
+      "Green Tea Leaf"
     ],
     "registered_varieties": [
       {
@@ -34079,9 +35100,21 @@
       {
         "variety_id": 1288,
         "name": "Other"
+      },
+      {
+        "variety_id": 88542,
+        "name": "Darjeeling Orthodox Leaf"
+      },
+      {
+        "variety_id": 97847,
+        "name": "Nilgiri C.T.C. Dust"
+      },
+      {
+        "variety_id": 19558,
+        "name": "Green Tea Leaf"
       }
     ],
-    "variety_count": 7,
+    "variety_count": 10,
     "registered_variety_count": 7,
     "historical_variety_count": 7,
     "grades": [
@@ -34191,8 +35224,8 @@
     "id": 588,
     "commodity": "Tesu Flower",
     "agmarknet_name": "Tesu Flower",
-    "category": "Medicinal and Aromatic Plants",
-    "group_name": "Medicinal and Aromatic Plants",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 16,
     "aliases": [
       "tesu flower"
@@ -34882,11 +35915,21 @@
       "ટ્યૂબ રોઝ (લૂઝ)",
       "டியூப் ரோஸ் (லூஸ்)",
       "ਟਿਊਬ ਗੁਲਾਬ (ਖੁੱਲਾ)",
-      "ରାଜନିଗନ୍ଧା"
+      "ରାଜନିଗନ୍ଧା",
+      "tuberose",
+      "rajanigandha",
+      "tube rose",
+      "रजनीगंधा",
+      "நிலச்சம்பங்கி",
+      "ಸಂಪಂಗಿ",
+      "Tuberose"
     ],
     "varieties": [
       "Other",
-      "Tube Rose (Loose)"
+      "Tube Rose (Loose)",
+      "Prajwal (Single)",
+      "Suvasini (Double)",
+      "Tube Rose (Cut Spike)"
     ],
     "registered_varieties": [
       {
@@ -34896,9 +35939,21 @@
       {
         "variety_id": 1773,
         "name": "Tube Rose (Loose)"
+      },
+      {
+        "variety_id": 53321,
+        "name": "Prajwal (Single)"
+      },
+      {
+        "variety_id": 75318,
+        "name": "Suvasini (Double)"
+      },
+      {
+        "variety_id": 61975,
+        "name": "Tube Rose (Cut Spike)"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 5,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -35360,8 +36415,8 @@
     "id": 366,
     "commodity": "Vatsanabha",
     "agmarknet_name": "Vatsanabha",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "vatsanabha",
@@ -35419,11 +36474,19 @@
       "வால்நட்",
       "অখরোট",
       "ਅਖਰੋਟ",
-      "ଅଖ୍ରୋଟ"
+      "ଅଖ୍ରୋଟ",
+      "akhrot",
+      "அக்ரூட் பருப்பு",
+      "ಅಕ್ರೋಟು",
+      "Akhrot Giri"
     ],
     "varieties": [
       "Other",
-      "Walnut"
+      "Walnut",
+      "Light Halves Kernels (Extra Light)",
+      "Light Broken Kernels (Quarters)",
+      "Kagzi Thin-Shell In-Shell",
+      "Medium-Shell In-Shell"
     ],
     "registered_varieties": [
       {
@@ -35433,9 +36496,25 @@
       {
         "variety_id": 1820,
         "name": "Walnut"
+      },
+      {
+        "variety_id": 40845,
+        "name": "Light Halves Kernels (Extra Light)"
+      },
+      {
+        "variety_id": 51168,
+        "name": "Light Broken Kernels (Quarters)"
+      },
+      {
+        "variety_id": 27967,
+        "name": "Kagzi Thin-Shell In-Shell"
+      },
+      {
+        "variety_id": 89005,
+        "name": "Medium-Shell In-Shell"
       }
     ],
-    "variety_count": 2,
+    "variety_count": 6,
     "registered_variety_count": 2,
     "historical_variety_count": 2,
     "grades": [
@@ -36221,8 +37300,8 @@
     "id": 358,
     "commodity": "White Muesli",
     "agmarknet_name": "White Muesli",
-    "category": "Drug and Narcotics",
-    "group_name": "Drug and Narcotics",
+    "category": "Others",
+    "group_name": "Others",
     "group_id": 11,
     "aliases": [
       "white muesli",
@@ -37032,5 +38111,509 @@
     "is_msp": false,
     "is_processed": false,
     "source": "Government of India AGMARKNET 2.0 Central Master"
+  },
+  {
+    "id": 498,
+    "commodity": "Little Millet",
+    "agmarknet_name": "Little Millet",
+    "category": "Cereals",
+    "group_name": "Cereals",
+    "group_id": 1,
+    "aliases": [
+      "little millet",
+      "Little Millet"
+    ],
+    "varieties": [
+      "Little Millet"
+    ],
+    "registered_varieties": [
+      {
+        "variety_id": 1956,
+        "name": "Little Millet "
+      }
+    ],
+    "variety_count": 1,
+    "registered_variety_count": 1,
+    "grades": [
+      "FAQ",
+      "Local",
+      "Grade Range-1",
+      "Grade Range-2",
+      "Grade Range-3"
+    ],
+    "is_msp": false,
+    "is_processed": false,
+    "source": "Government of India (AGMARKNET / data.gov.in)"
+  },
+  {
+    "id": 256,
+    "commodity": "Spiny Gourd / Kartali(Kantola)",
+    "agmarknet_name": "Spiny Gourd / Kartali(Kantola)",
+    "category": "Vegetables",
+    "group_name": "Vegetables",
+    "group_id": 6,
+    "aliases": [
+      "spiny gourd / kartali(kantola)",
+      "कार्ताली (कांटोला)",
+      "কৰতালী (কান্তোলা)",
+      "കാർത്താലി (കാന്തോല)",
+      "કાર્તાલી (કાંટોલા)",
+      "கார்தாலி (காந்தோலா)",
+      "করতলী (কন্টৌলা)",
+      "ਕਰਤਾਲੀ (ਕੰਤੋਲਾ)",
+      "କାଂକଡ଼",
+      "Kartali(Kantola)"
+    ],
+    "varieties": [
+      "Kartali (Kantola)",
+      "Other"
+    ],
+    "registered_varieties": [
+      {
+        "variety_id": 926,
+        "name": "Kartali (Kantola)"
+      },
+      {
+        "variety_id": 1288,
+        "name": "Other"
+      }
+    ],
+    "variety_count": 2,
+    "registered_variety_count": 2,
+    "grades": [
+      "FAQ",
+      "Local",
+      "Grade Range-1",
+      "Grade Range-2",
+      "Grade Range-3",
+      "Large",
+      "Medium",
+      "Small",
+      "Grade A",
+      "Grade B",
+      "Grade C"
+    ],
+    "is_msp": false,
+    "is_processed": false,
+    "source": "Government of India (AGMARKNET / data.gov.in)"
+  },
+  {
+    "id": 534,
+    "commodity": "Sweet Corn",
+    "agmarknet_name": "Sweet Corn",
+    "category": "Cereals",
+    "group_name": "Cereals",
+    "group_id": 1,
+    "aliases": [
+      "sweet corn",
+      "Sweet Corn"
+    ],
+    "varieties": [
+      "Sweet Corn"
+    ],
+    "registered_varieties": [
+      {
+        "variety_id": 1964,
+        "name": "Sweet Corn "
+      }
+    ],
+    "variety_count": 1,
+    "registered_variety_count": 1,
+    "grades": [
+      "FAQ",
+      "Local",
+      "Grade Range-1",
+      "Grade Range-2",
+      "Grade Range-3"
+    ],
+    "is_msp": false,
+    "is_processed": false,
+    "source": "Government of India (AGMARKNET / data.gov.in)"
+  },
+  {
+    "id": 624,
+    "commodity": "Lac",
+    "agmarknet_name": "Lac",
+    "category": "Forest Products",
+    "group_name": "Forest Products",
+    "group_id": 12,
+    "aliases": [
+      "lac",
+      "shellac",
+      "kusmi lac",
+      "rangeeni lac",
+      "लाख",
+      "लाह",
+      "Lac",
+      "Shellac"
+    ],
+    "varieties": [
+      "Kusmi Lac Raw Scraped",
+      "Rangeeni Lac Raw Scraped",
+      "Button Lac",
+      "Seed Lac",
+      "Other"
+    ],
+    "registered_varieties": [
+      {
+        "variety_id": 26250,
+        "name": "Kusmi Lac Raw Scraped"
+      },
+      {
+        "variety_id": 26251,
+        "name": "Rangeeni Lac Raw Scraped"
+      },
+      {
+        "variety_id": 26252,
+        "name": "Button Lac"
+      },
+      {
+        "variety_id": 26253,
+        "name": "Seed Lac"
+      },
+      {
+        "variety_id": 26254,
+        "name": "Other"
+      }
+    ],
+    "variety_count": 5,
+    "registered_variety_count": 5,
+    "grades": [
+      "FAQ",
+      "Grade A",
+      "Grade B",
+      "Local",
+      "Export Quality"
+    ],
+    "is_msp": false,
+    "is_processed": false,
+    "source": "Government of India (AGMARKNET / National Marketing Boards)"
+  },
+  {
+    "id": 625,
+    "commodity": "Tulsi",
+    "agmarknet_name": "Tulsi",
+    "category": "Others",
+    "group_name": "Others",
+    "group_id": 10,
+    "aliases": [
+      "tulsi",
+      "holy basil",
+      "krishna tulsi",
+      "rama tulsi",
+      "तुलसी",
+      "துளசி",
+      "ತುಳಸಿ",
+      "Tulsi",
+      "Holy Basil"
+    ],
+    "varieties": [
+      "Rama Tulsi (Green Leaf)",
+      "Krishna Tulsi (Shyama / Purple)",
+      "Vana Tulsi (Wild Basil)",
+      "Dried Tulsi Leaves",
+      "Tulsi Seeds (Sabja)",
+      "Other"
+    ],
+    "registered_varieties": [
+      {
+        "variety_id": 26260,
+        "name": "Rama Tulsi (Green Leaf)"
+      },
+      {
+        "variety_id": 26261,
+        "name": "Krishna Tulsi (Shyama / Purple)"
+      },
+      {
+        "variety_id": 26262,
+        "name": "Vana Tulsi (Wild Basil)"
+      },
+      {
+        "variety_id": 26263,
+        "name": "Dried Tulsi Leaves"
+      },
+      {
+        "variety_id": 26264,
+        "name": "Tulsi Seeds (Sabja)"
+      },
+      {
+        "variety_id": 26265,
+        "name": "Other"
+      }
+    ],
+    "variety_count": 6,
+    "registered_variety_count": 6,
+    "grades": [
+      "FAQ",
+      "Grade A",
+      "Grade B",
+      "Local",
+      "Export Quality"
+    ],
+    "is_msp": false,
+    "is_processed": false,
+    "source": "Government of India (AGMARKNET / National Marketing Boards)"
+  },
+  {
+    "id": 626,
+    "commodity": "Senna",
+    "agmarknet_name": "Senna",
+    "category": "Others",
+    "group_name": "Others",
+    "group_id": 10,
+    "aliases": [
+      "senna",
+      "sonamukhi",
+      "sanay",
+      "सनाय",
+      "सोनामुखी",
+      "நிலவாகை",
+      "Senna"
+    ],
+    "varieties": [
+      "Senna Leaves Grade 1 (Prime Bold)",
+      "Senna Leaves Grade 2 (Medium)",
+      "Senna Leaves Grade 3 (Small / Powder Cut)",
+      "Senna Pods Prime",
+      "Sonamukhi",
+      "Other"
+    ],
+    "registered_varieties": [
+      {
+        "variety_id": 26270,
+        "name": "Senna Leaves Grade 1 (Prime Bold)"
+      },
+      {
+        "variety_id": 26271,
+        "name": "Senna Leaves Grade 2 (Medium)"
+      },
+      {
+        "variety_id": 26272,
+        "name": "Senna Leaves Grade 3 (Small / Powder Cut)"
+      },
+      {
+        "variety_id": 26273,
+        "name": "Senna Pods Prime"
+      },
+      {
+        "variety_id": 26274,
+        "name": "Sonamukhi"
+      },
+      {
+        "variety_id": 26275,
+        "name": "Other"
+      }
+    ],
+    "variety_count": 6,
+    "registered_variety_count": 6,
+    "grades": [
+      "FAQ",
+      "Grade A",
+      "Grade B",
+      "Local",
+      "Export Quality"
+    ],
+    "is_msp": false,
+    "is_processed": false,
+    "source": "Government of India (AGMARKNET / National Marketing Boards)"
+  },
+  {
+    "id": 627,
+    "commodity": "Chicken",
+    "agmarknet_name": "Chicken",
+    "category": "Live Stock,Poultry,Fisheries",
+    "group_name": "Live Stock,Poultry,Fisheries",
+    "group_id": 15,
+    "aliases": [
+      "chicken",
+      "broiler chicken",
+      "country chicken",
+      "murgi",
+      "मुर्गी",
+      "ಕೋಳಿ",
+      "Chicken",
+      "Poultry"
+    ],
+    "varieties": [
+      "Commercial Broiler",
+      "Country Chicken (Desi)",
+      "Kadaknath",
+      "Aseel",
+      "Giriraja / Vanaraja",
+      "Other"
+    ],
+    "registered_varieties": [
+      {
+        "variety_id": 26280,
+        "name": "Commercial Broiler"
+      },
+      {
+        "variety_id": 26281,
+        "name": "Country Chicken (Desi)"
+      },
+      {
+        "variety_id": 26282,
+        "name": "Kadaknath"
+      },
+      {
+        "variety_id": 26283,
+        "name": "Aseel"
+      },
+      {
+        "variety_id": 26284,
+        "name": "Giriraja / Vanaraja"
+      },
+      {
+        "variety_id": 26285,
+        "name": "Other"
+      }
+    ],
+    "variety_count": 6,
+    "registered_variety_count": 6,
+    "grades": [
+      "FAQ",
+      "Grade A",
+      "Grade B",
+      "Local",
+      "Export Quality"
+    ],
+    "is_msp": false,
+    "is_processed": false,
+    "source": "Government of India (AGMARKNET / National Marketing Boards)"
+  },
+  {
+    "id": 628,
+    "commodity": "Sunflower Oil",
+    "agmarknet_name": "Sunflower Oil",
+    "category": "Oils and Fats",
+    "group_name": "Oils and Fats",
+    "group_id": 16,
+    "aliases": [
+      "sunflower oil",
+      "surajmukhi tel",
+      "सूरजमुखी तेल",
+      "சூரியகாந்தி எண்ணெய்",
+      "ಸೂರ್ಯಕಾಂತಿ ಎಣ್ಣೆ",
+      "Sunflower Oil"
+    ],
+    "varieties": [
+      "Refined Sunflower Oil",
+      "Cold-Pressed Raw Sunflower Oil",
+      "Other"
+    ],
+    "registered_varieties": [
+      {
+        "variety_id": 26290,
+        "name": "Refined Sunflower Oil"
+      },
+      {
+        "variety_id": 26291,
+        "name": "Cold-Pressed Raw Sunflower Oil"
+      },
+      {
+        "variety_id": 26292,
+        "name": "Other"
+      }
+    ],
+    "variety_count": 3,
+    "registered_variety_count": 3,
+    "grades": [
+      "FAQ",
+      "Grade A",
+      "Grade B",
+      "Local",
+      "Export Quality"
+    ],
+    "is_msp": false,
+    "is_processed": true,
+    "source": "Government of India (AGMARKNET / National Marketing Boards)"
+  },
+  {
+    "id": 629,
+    "commodity": "Soybean Oil",
+    "agmarknet_name": "Soybean Oil",
+    "category": "Oils and Fats",
+    "group_name": "Oils and Fats",
+    "group_id": 16,
+    "aliases": [
+      "soybean oil",
+      "soya oil",
+      "soya tel",
+      "सोयाबीन तेल",
+      "Soybean Oil"
+    ],
+    "varieties": [
+      "Refined Soyabean Oil",
+      "Other"
+    ],
+    "registered_varieties": [
+      {
+        "variety_id": 26300,
+        "name": "Refined Soyabean Oil"
+      },
+      {
+        "variety_id": 26301,
+        "name": "Other"
+      }
+    ],
+    "variety_count": 2,
+    "registered_variety_count": 2,
+    "grades": [
+      "FAQ",
+      "Grade A",
+      "Grade B",
+      "Local",
+      "Export Quality"
+    ],
+    "is_msp": false,
+    "is_processed": true,
+    "source": "Government of India (AGMARKNET / National Marketing Boards)"
+  },
+  {
+    "id": 630,
+    "commodity": "Palm Oil",
+    "agmarknet_name": "Palm Oil",
+    "category": "Oils and Fats",
+    "group_name": "Oils and Fats",
+    "group_id": 16,
+    "aliases": [
+      "palm oil",
+      "palmolein",
+      "rbd palmolein",
+      "पाम तेल",
+      "பாமாயில்",
+      "Palm Oil"
+    ],
+    "varieties": [
+      "RBD Palmolein Oil",
+      "Crude Palm Oil (CPO)",
+      "Other"
+    ],
+    "registered_varieties": [
+      {
+        "variety_id": 26310,
+        "name": "RBD Palmolein Oil"
+      },
+      {
+        "variety_id": 26311,
+        "name": "Crude Palm Oil (CPO)"
+      },
+      {
+        "variety_id": 26312,
+        "name": "Other"
+      }
+    ],
+    "variety_count": 3,
+    "registered_variety_count": 3,
+    "grades": [
+      "FAQ",
+      "Grade A",
+      "Grade B",
+      "Local",
+      "Export Quality"
+    ],
+    "is_msp": false,
+    "is_processed": true,
+    "source": "Government of India (AGMARKNET / National Marketing Boards)"
   }
 ]
