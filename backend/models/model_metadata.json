@@ -1,0 +1,126 @@
+{
+  "dataset": "historical_mandi_prices_3years.csv",
+  "training_years": [
+    2023,
+    2024
+  ],
+  "test_year": 2025,
+  "training_rows": 448,
+  "test_rows": 224,
+  "model_comparison": [
+    {
+      "model": "Naive Persistence Baseline",
+      "mae": 683.94,
+      "rmse": 1159.94,
+      "mape": 13.0,
+      "r2": 0.9358,
+      "min_prediction": 26.77,
+      "max_prediction": 15390.0,
+      "negative_predictions": 0
+    },
+    {
+      "model": "Trend Persistence Baseline",
+      "mae": 573.66,
+      "rmse": 1055.55,
+      "mape": 10.85,
+      "r2": 0.9468,
+      "min_prediction": 28.14,
+      "max_prediction": 14951.75,
+      "negative_predictions": 0
+    },
+    {
+      "model": "Ridge Regression (Log)",
+      "mae": 475.55,
+      "rmse": 824.3,
+      "mape": 9.12,
+      "r2": 0.9676,
+      "min_prediction": 31.41,
+      "max_prediction": 14221.02,
+      "negative_predictions": 0
+    },
+    {
+      "model": "Random Forest Regressor",
+      "mae": 614.84,
+      "rmse": 1060.59,
+      "mape": 11.39,
+      "r2": 0.9463,
+      "min_prediction": 28.36,
+      "max_prediction": 15049.06,
+      "negative_predictions": 0
+    },
+    {
+      "model": "Gradient Boosting Regressor",
+      "mae": 604.29,
+      "rmse": 1049.57,
+      "mape": 10.87,
+      "r2": 0.9474,
+      "min_prediction": 29.75,
+      "max_prediction": 14457.78,
+      "negative_predictions": 0
+    }
+  ],
+  "winning_model": "Ridge Regression (Log)",
+  "commodity_breakdown": {
+    "Mustard Oil": {
+      "unit": "Quintal (100 KG)",
+      "actual_mean": 14474.11,
+      "predicted_mean": 13555.67,
+      "mae": 1510.77,
+      "mape": 10.06
+    },
+    "Onion": {
+      "unit": "Quintal (100 KG)",
+      "actual_mean": 3388.39,
+      "predicted_mean": 3169.36,
+      "mae": 325.3,
+      "mape": 9.37
+    },
+    "Paddy (Rice)": {
+      "unit": "Quintal (100 KG)",
+      "actual_mean": 2300.82,
+      "predicted_mean": 2361.95,
+      "mae": 197.44,
+      "mape": 8.89
+    },
+    "Potato": {
+      "unit": "Quintal (100 KG)",
+      "actual_mean": 1823.14,
+      "predicted_mean": 1754.98,
+      "mae": 165.8,
+      "mape": 8.92
+    },
+    "Sugarcane": {
+      "unit": "Tonne",
+      "actual_mean": 34.32,
+      "predicted_mean": 32.73,
+      "mae": 3.06,
+      "mape": 8.8
+    },
+    "Tomato": {
+      "unit": "Quintal (100 KG)",
+      "actual_mean": 3294.36,
+      "predicted_mean": 3339.84,
+      "mae": 242.13,
+      "mape": 7.5
+    },
+    "Tur (Arhar) Dal": {
+      "unit": "Quintal (100 KG)",
+      "actual_mean": 9642.5,
+      "predicted_mean": 8667.79,
+      "mae": 1173.74,
+      "mape": 11.75
+    },
+    "Wheat": {
+      "unit": "Quintal (100 KG)",
+      "actual_mean": 2427.43,
+      "predicted_mean": 2373.68,
+      "mae": 186.12,
+      "mape": 7.67
+    }
+  },
+  "files_generated": [
+    "backend/models/farmezy_price_model.joblib",
+    "backend/models/model_metadata.json",
+    "backend/models/price_forecasts_2025_2026.json"
+  ]
+}

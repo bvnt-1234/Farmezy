@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import OfficialPrices from "./OfficialPrices.jsx"
 import { supabase, isSupabaseConfigured } from "./supabase.js"
 import commodityMaster from "../../backend/data/commodity-master.json"
@@ -766,7 +766,21 @@ function App() {
   const [chat, setChat] = useState(false)
   const [msg, setMsg] = useState("")
   const [chatLoading, setChatLoading] = useState(false)
-  const [messages, setMessages] = useState(["Namaste 👋 I can help you check official mandi prices, browse produce, or understand how Farmezy works."])
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      sender: "bot",
+      text: "Namaste! 🙏 I am your **Farmezy Smart Assistant**.\n\nHere is how I can help you:\n• **Mandi Prices**: Ask for any crop price in your area or across India (e.g. *Tomato price*, *Onion in Nashik*, *Garlic in Mandsaur*)\n• **7-Day Weather**: Ask for upcoming rainfall and temperatures (e.g. *Weather forecast*, *Weather in Shimla*, *Will it rain in Pune?*)\n• **Farming Q&A**: Ask about fertilizers, pest management, storage, or how to sell on Farmezy.",
+      time: "Just now"
+    }
+  ])
+  const chatMessagesEndRef = useRef(null)
+
+  useEffect(() => {
+    if (chat) {
+      chatMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [messages, chat, chatLoading])
   const [showRoleAuthModal, setShowRoleAuthModal] = useState(false)
   const [roleAuthError, setRoleAuthError] = useState("")
   const [roleAuthLoading, setRoleAuthLoading] = useState(false)
@@ -1757,11 +1771,40 @@ function App() {
   const askPrice = async question => {
     const text = question.trim()
     if (!text) return
-    setMessages(current => [...current, text])
+    const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    const userMsg = {
+      id: "u_" + Date.now(),
+      sender: "user",
+      text,
+      time: nowTime
+    }
+    setMessages(current => [...current, userMsg])
     setChatLoading(true)
-    const reply = await getOfficialPriceAnswer(text, profile)
-    setMessages(current => [...current, reply])
-    setChatLoading(false)
+
+    try {
+      const reply = await getAssistantAnswer(text, profile, formLocation)
+      const botMsg = {
+        id: "b_" + (Date.now() + 1),
+        sender: "bot",
+        text: reply.text || "",
+        weatherData: reply.weatherData || null,
+        priceData: reply.priceData || null,
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      }
+      setMessages(current => [...current, botMsg])
+    } catch (err) {
+      setMessages(current => [
+        ...current,
+        {
+          id: "b_" + (Date.now() + 1),
+          sender: "bot",
+          text: "I ran into a temporary issue retrieving data: " + (err.message || "Please try again."),
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        }
+      ])
+    } finally {
+      setChatLoading(false)
+    }
   }
 
   const updateOrder = async (id, status) => {
@@ -2894,19 +2937,8 @@ function App() {
 
           {page === "Forecast" && (
             <>
-              <Title eyebrow="PRICE FORECAST" title="Predict the next mandi price." sub="Farmezy trains on official AGMARKNET observations collected from the Government of India feed. No sample prices are used." />
+              <Title eyebrow="MARKET OUTLOOK" title="Predict upcoming mandi prices." sub="Analyze short-term price momentum and 7-day upcoming daily forecasts for major crops and APMC mandis across India." />
               <PriceForecast location={profile} onPrices={() => setPage("Prices")} />
-            </>
-          )}
-
-          {page === "Mandi" && (
-            <>
-              <Title eyebrow="INDIA-WIDE MARKET DATA" title="Explore reported mandis." sub="Filter the Government of India daily market-price feed by commodity, state, district, and mandi." />
-              <section className="panel no-demo">
-                <h3>Official mandi reports</h3>
-                <p>Compare wholesale prices reported by AGMARKNET for all mandis in your district and state.</p>
-                <button className="link" onClick={() => setPage("Prices")}>Browse official prices →</button>
-              </section>
             </>
           )}
 
@@ -3863,32 +3895,170 @@ function App() {
 
       {chat && (
         <div className="chat-box">
-          <header>
-            <div>
-              <b>✳ &nbsp; Farmezy assistant</b>
-              <small>Official prices + marketplace help</small>
+          <header style={{ padding: "14px 16px", background: "linear-gradient(135deg, #eef7ec 0%, #f6faf4 100%)", borderBottom: "1px solid #e2ebe0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "18px" }}>🌾</span>
+              <div>
+                <b style={{ fontSize: "13px", color: "#1e3822", display: "block" }}>Farmezy Smart Assistant</b>
+                <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "10px", color: "#45724b" }}>
+                  <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#22c55e", display: "inline-block" }}></span>
+                  Online • Mandi Rates, 7-Day Weather & Advice
+                </div>
+              </div>
             </div>
-            <button onClick={() => setChat(false)}>×</button>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <button
+                type="button"
+                title="Clear chat"
+                onClick={() => setMessages([
+                  {
+                    id: 1,
+                    sender: "bot",
+                    text: "Namaste! 🙏 Chat history cleared. How can I assist you with mandi prices, weather forecasts, or crop advice today?",
+                    time: "Just now"
+                  }
+                ])}
+                style={{ border: 0, background: "none", fontSize: "13px", cursor: "pointer", color: "#687a6c", padding: "4px" }}
+              >
+                🗑️
+              </button>
+              <button
+                type="button"
+                onClick={() => setChat(false)}
+                aria-label="Close chat"
+                style={{ border: 0, background: "none", fontSize: "18px", cursor: "pointer", color: "#4f6353", padding: "2px 6px" }}
+              >
+                ×
+              </button>
+            </div>
           </header>
-          <div className="chat-messages">
-            <div className="chat-intro">
-              <b>Hi {profile?.name || "there"} 👋</b>
-              <span>Ask me about mandi prices, crops, or finding a market.</span>
+
+          <div className="chat-messages" style={{ padding: "14px", flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", background: "#fcfdfc" }}>
+            <div className="chat-intro" style={{ background: "#f1f7ef", border: "1px solid #e1ebe0", borderRadius: "12px", padding: "11px 13px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "4px" }}>
+              <b style={{ fontSize: "12px", color: "#26432b" }}>Hi {profile?.name || "Farmer / Partner"} 👋</b>
+              <span style={{ fontSize: "10px", color: "#637765", lineHeight: "1.5" }}>
+                Ask me about today's prices in your area (e.g. <i>"Tomato price"</i>), 7-day weather (<i>"Weather forecast"</i>), or prices anywhere in India (<i>"Onion in Nashik"</i>).
+              </span>
             </div>
-            {messages.map((m, i) => (
-              <p className={i % 2 ? "user-message" : "assistant-message"} key={i}>{m}</p>
-            ))}
-            {chatLoading && <p className="assistant-message typing">Checking official data…</p>}
-            <div className="chat-actions">
-              <button onClick={() => askPrice("What is today's ginger price?")}>🫚 Ginger price</button>
-              <button onClick={() => askPrice("What is today's tomato price?")}>🍅 Tomato price</button>
-              <button onClick={() => askPrice("What is today's onion price?")}>🧅 Onion price</button>
-              <button onClick={() => setPage("Prices")}>📊 All vegetable prices</button>
-            </div>
+
+            {messages.map((m) => {
+              const isUser = m.sender === "user"
+              return (
+                <div
+                  key={m.id}
+                  style={{
+                    display: "flex",
+                    justifyContent: isUser ? "flex-end" : "flex-start",
+                    alignItems: "flex-start",
+                    gap: "8px",
+                    width: "100%",
+                    margin: "4px 0"
+                  }}
+                >
+                  {!isUser && (
+                    <div style={{
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "50%",
+                      background: "#e8f4e6",
+                      color: "#2b703e",
+                      display: "grid",
+                      placeItems: "center",
+                      fontSize: "14px",
+                      flexShrink: 0,
+                      border: "1px solid #d3e7d0",
+                      marginTop: "2px"
+                    }}>
+                      🌾
+                    </div>
+                  )}
+
+                  <div style={{
+                    background: isUser ? "linear-gradient(135deg, #2e7d32 0%, #1e5e23 100%)" : "#ffffff",
+                    color: isUser ? "#ffffff" : "#1f2937",
+                    border: isUser ? "none" : "1px solid #e1e8dd",
+                    borderRadius: isUser ? "16px 16px 3px 16px" : "16px 16px 16px 3px",
+                    padding: "10px 13px",
+                    maxWidth: isUser ? "78%" : "84%",
+                    boxShadow: isUser ? "0 2px 6px rgba(46,125,50,0.22)" : "0 2px 7px rgba(0,0,0,0.04)",
+                    fontSize: "11.5px",
+                    lineHeight: "1.5",
+                    wordBreak: "break-word"
+                  }}>
+                    {isUser ? (
+                      <div>{m.text}</div>
+                    ) : (
+                      <>
+                        {formatBotMessage(m.text)}
+                        {m.weatherData && renderWeatherPreview(m.weatherData)}
+                      </>
+                    )}
+                    <div style={{
+                      fontSize: "8.5px",
+                      color: isUser ? "#bbf7d0" : "#9ca3af",
+                      textAlign: isUser ? "right" : "left",
+                      marginTop: "4px"
+                    }}>
+                      {m.time}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+
+            {chatLoading && (
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", margin: "4px 0" }}>
+                <div style={{
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "50%",
+                  background: "#e8f4e6",
+                  color: "#2b703e",
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: "14px",
+                  flexShrink: 0
+                }}>
+                  🌾
+                </div>
+                <div style={{
+                  background: "#ffffff",
+                  border: "1px solid #e1e8dd",
+                  borderRadius: "16px 16px 16px 3px",
+                  padding: "8px 12px",
+                  fontSize: "11px",
+                  color: "#5f7263",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}>
+                  <span>Fetching live data…</span>
+                </div>
+              </div>
+            )}
+            <div ref={chatMessagesEndRef} />
           </div>
-          <form onSubmit={send}>
-            <input value={msg} onChange={e => setMsg(e.target.value)} placeholder="Try: ginger price in Karnataka…" />
-            <button disabled={chatLoading} aria-label="Send">{chatLoading ? "…" : "↑"}</button>
+
+          {/* Quick Action Suggestion Chips */}
+          <div className="chat-actions" style={{ display: "flex", gap: "6px", flexWrap: "wrap", overflowX: "auto", padding: "6px 10px 4px", background: "#f8faf7", borderTop: "1px solid #edf2eb" }}>
+            <button type="button" onClick={() => askPrice("What is today's tomato price in my area?")}>🍅 Tomato in my area</button>
+            <button type="button" onClick={() => askPrice("What is today's onion price in my area?")}>🧅 Onion in my area</button>
+            <button type="button" onClick={() => askPrice("What is the 7-day weather forecast?")}>⛅ 7-Day Weather</button>
+            <button type="button" onClick={() => askPrice("What is today's garlic price in Mandsaur?")}>🧄 Garlic in Mandsaur</button>
+            <button type="button" onClick={() => askPrice("How to control tomato blight pest?")}>🌱 Pest control</button>
+            <button type="button" onClick={() => setPage("Prices")}>📊 Mandi table</button>
+          </div>
+
+          <form onSubmit={send} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#ffffff", padding: "10px 12px", borderTop: "1px solid #ebeee9" }}>
+            <input
+              value={msg}
+              onChange={e => setMsg(e.target.value)}
+              placeholder="Ask: crop price, 7-day weather, or farming advice..."
+              style={{ flex: 1, border: "1px solid #dce5da", borderRadius: "20px", padding: "9px 14px", fontSize: "11.5px", outline: "none", background: "#f9fbf9" }}
+            />
+            <button disabled={chatLoading} aria-label="Send message" style={{ width: "34px", height: "34px", borderRadius: "50%", border: 0, background: "#2e7d32", color: "#ffffff", fontSize: "14px", fontWeight: 700, display: "grid", placeItems: "center", cursor: "pointer" }}>
+              {chatLoading ? "…" : "↑"}
+            </button>
           </form>
         </div>
       )}
@@ -4365,61 +4535,526 @@ function findDistrict(message) {
   return null
 }
 
-async function getOfficialPriceAnswer(question, profile) {
-  const q = question.toLowerCase().trim()
-  if (/^(hi|hello|hey|namaste|vanakkam|namaskara)\b/.test(q)) {
-    return "Namaste! 🙏 I can give you real-time official Government APMC wholesale prices for any vegetable, fruit, or grain across any Indian state or district. Ask me e.g. 'today tomato price in andhra' or 'ginger in bengaluru'."
-  }
-  if (/how.*(sell|list)|list.*crop|sell.*crop/.test(q)) {
-    return "To sell on Farmezy: open List your harvest → take a live photo of your crop with camera → add variety, quantity, price, and pickup location → save it. Your crop will be listed instantly so buyers can request it."
-  }
-  if (/how.*(buy|request)|request.*crop|buy.*crop/.test(q)) {
-    return "To buy on Farmezy: open Browse produce → browse available crops with photos & distances → click Buy / Request or contact the farmer directly via Phone or WhatsApp."
-  }
+function formatBotMessage(text) {
+  if (!text) return null
+  const lines = text.split("\n")
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+      {lines.map((line, idx) => {
+        const trimmed = line.trim()
+        if (!trimmed) {
+          return <div key={idx} style={{ height: "4px" }} />
+        }
 
-  const commodity = findCommodity(question)
-  const variety = findVariety(question, commodity)
-  const queryState = findState(question)
-  const queryDistrict = findDistrict(question)
+        // Parse bold **text**
+        const parts = []
+        let lastIdx = 0
+        const boldRegex = /\*\*(.*?)\*\*/g
+        let match
+        while ((match = boldRegex.exec(line)) !== null) {
+          if (match.index > lastIdx) {
+            parts.push(line.substring(lastIdx, match.index))
+          }
+          parts.push(<strong key={match.index} style={{ color: "#1b3821", fontWeight: 700 }}>{match[1]}</strong>)
+          lastIdx = match.index + match[0].length
+        }
+        if (lastIdx < line.length) {
+          parts.push(line.substring(lastIdx))
+        }
 
-  const state = queryState || profile?.state || "All India"
-  const district = queryDistrict || (queryState ? "" : (profile?.district || ""))
+        const isBullet = trimmed.startsWith("•") || trimmed.startsWith("-")
+        return (
+          <div
+            key={idx}
+            style={{
+              paddingLeft: isBullet ? "12px" : "0",
+              textIndent: isBullet ? "-12px" : "0",
+              lineHeight: "1.45"
+            }}
+          >
+            {parts}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
-  const params = new URLSearchParams({ limit: "50" })
-  if (state && state !== "All India") params.set("state", state)
-  if (commodity) params.set("commodity", commodity)
-  if (variety) params.set("variety", variety)
-  if (district) params.set("district", district)
+function renderWeatherPreview(daily) {
+  if (!daily || !daily.length) return null
+  return (
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(68px, 1fr))",
+      gap: "6px",
+      marginTop: "8px",
+      background: "#f4f7f3",
+      padding: "8px",
+      borderRadius: "10px",
+      border: "1px solid #e2ebd0"
+    }}>
+      {daily.slice(0, 7).map((d, i) => (
+        <div key={i} style={{
+          background: "#ffffff",
+          borderRadius: "8px",
+          padding: "6px 4px",
+          textAlign: "center",
+          border: "1px solid #e5ebe2",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "2px"
+        }}>
+          <span style={{ fontSize: "10px", fontWeight: "700", color: "#4b5563" }}>{d.dayName}</span>
+          <span style={{ fontSize: "8.5px", color: "#9ca3af" }}>{d.dateStr}</span>
+          <span style={{ fontSize: "15px", margin: "2px 0" }}>{d.icon}</span>
+          <span style={{ fontSize: "10px", fontWeight: "700", color: "#1f2937" }}>{d.maxTemp}°</span>
+          <span style={{ fontSize: "9px", color: "#6b7280" }}>{d.minTemp}°</span>
+          {d.rainProb > 0 && (
+            <span style={{
+              fontSize: "8px",
+              fontWeight: "600",
+              background: d.rainProb >= 50 ? "#dbeafe" : "#f1f5f9",
+              color: d.rainProb >= 50 ? "#1d4ed8" : "#475569",
+              padding: "1px 4px",
+              borderRadius: "4px",
+              marginTop: "2px"
+            }}>
+              🌧️{d.rainProb}%
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
 
-  try {
-    const response = await fetch("/api/mandi-prices?" + params)
-    const data = await response.json()
-    if (!response.ok) throw new Error(data.error || "Official prices service is unavailable.")
-    const rows = Array.isArray(data.records) ? data.records : []
-    if (!rows.length) {
-      return `No current AGMARKNET price available for ${variety ? variety + " " : ""}${commodity || "this commodity"}${district ? " in " + district : ""}${state && state !== "All India" ? ", " + state : ""}. This crop/variety is officially recognized in the Government AGMARKNET catalogue, but no APMC market reported active trading arrivals today.`
+async function getAssistantAnswer(question, profile, formLocation) {
+  const q = String(question || "").trim()
+  const qLower = q.toLowerCase()
+
+  // User's default detected / registered location
+  const userDistrict = (profile?.district || formLocation?.district || "").trim()
+  const userState = (profile?.state || formLocation?.state || "Karnataka").trim()
+  const userCity = (profile?.city || formLocation?.city || userDistrict || "Bengaluru").trim()
+  const userPlaceLabel = userDistrict ? userDistrict + ", " + userState : (userCity ? userCity + ", " + userState : userState)
+
+  // -------------------------------------------------------------
+  // 1. WEATHER INTENT
+  // -------------------------------------------------------------
+  const isWeatherQuery = /\b(weather|forecast|rain|rainfall|temperature|temp|mausam|climate|monsoon|humidity|wind)\b/i.test(qLower)
+  if (isWeatherQuery) {
+    let queryPlace = ""
+    const detectedDist = findDistrict(q)
+    const detectedState = findState(q)
+
+    const prepMatch = q.match(/\b(?:in|at|for|of|near)\s+([a-zA-Z\s]{3,25})/i)
+    if (prepMatch && prepMatch[1]) {
+      const candidate = prepMatch[1].replace(/\b(for|next|the|coming|days|day|week|today|tomorrow)\b/gi, "").trim()
+      if (candidate.length >= 3) {
+        queryPlace = candidate
+      }
     }
-    const record = rows[0]
-    return `Latest reported ${record.commodity}${record.variety ? " (" + record.variety + ")" : ""} wholesale price: ₹${Number(record.modal_price).toLocaleString("en-IN")} per quintal (₹${(Number(record.modal_price) / 100).toFixed(1)}/kg) at ${record.market} APMC, ${record.district}, ${record.state} (Arrival date: ${record.arrival_date || "today"}).`
-  } catch (error) {
-    return "I couldn't retrieve the official price right now. " + error.message
+
+    if (!queryPlace) {
+      if (detectedDist) queryPlace = detectedDist
+      else if (detectedState) queryPlace = detectedState
+    }
+
+    const isSpecificPlace = Boolean(queryPlace)
+    const targetPlace = isSpecificPlace ? queryPlace : (userDistrict || userCity || userState || "Bengaluru")
+    const latParam = (!isSpecificPlace && profile?.latitude) ? "&lat=" + profile.latitude + "&lng=" + profile.longitude : ""
+
+    try {
+      const res = await fetch("/api/weather?place=" + encodeURIComponent(targetPlace) + latParam)
+      const wData = await res.json()
+      if (!res.ok) throw new Error(wData.error || "Weather data unavailable.")
+
+      const daily = Array.isArray(wData.daily) ? wData.daily : []
+      if (!daily.length) {
+        return { text: "Unable to retrieve 7-day weather for " + targetPlace + ". Please try again." }
+      }
+
+      const highRainDay = daily.find(d => d.rainProb >= 60)
+      const hotDay = daily.find(d => d.maxTemp >= 35)
+
+      let advisory = "🌱 **Agronomic Advice**: Favorable conditions for routine intercultural operations, weeding, and farm maintenance."
+      if (highRainDay) {
+        advisory = "⚠️ **Farming Advisory**: High chance of rain on **" + highRainDay.dayName + " (" + highRainDay.rainProb + "%)**. Avoid spraying foliar pesticides or fertilizers, and ensure field drainage channels are cleared."
+      } else if (hotDay) {
+        advisory = "☀️ **Farming Advisory**: Peak temperatures reaching **" + hotDay.maxTemp + "°C**. Schedule drip or basin irrigation in the early morning or evening to reduce moisture evaporation."
+      }
+
+      let summaryText = isSpecificPlace
+        ? "⛅ **Next 7-Day Weather Forecast — " + wData.place + "**\n\n"
+        : "📍 Showing 7-day weather for your location: **" + (wData.place || userPlaceLabel) + "**\n\n"
+
+      for (const d of daily) {
+        const rainBadge = d.rainProb > 0 ? " | 🌧️ " + d.rainProb + "% rain" : " | 💧 Dry"
+        summaryText += "• **" + d.dayName + " (" + d.dateStr + ")**: " + d.icon + " " + d.condition + " — High " + d.maxTemp + "°C / Low " + d.minTemp + "°C" + rainBadge + "\n"
+      }
+
+      summaryText += "\n" + advisory
+      if (!isSpecificPlace) {
+        summaryText += "\n\n💡 *Tip: Ask 'Weather in Shimla' or 'Rain in Pune' to check other areas.*"
+      }
+
+      return {
+        text: summaryText,
+        weatherData: daily,
+        place: wData.place
+      }
+    } catch (err) {
+      return { text: "Could not fetch weather report for " + targetPlace + ": " + err.message }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 2. COMMODITY PRICE INTENT
+  // -------------------------------------------------------------
+  const commodity = findCommodity(q)
+  const isPriceQuery = commodity || /\b(price|rate|cost|bhav|market price|mandi rate|wholesale)\b/i.test(qLower)
+
+  if (commodity || isPriceQuery) {
+    const targetCrop = commodity || "Tomato"
+    const detectedDist = findDistrict(q)
+    const detectedState = findState(q)
+
+    let queryPlace = ""
+    const prepMatch = q.match(/\b(?:in|at|for|of|near)\s+([a-zA-Z\s]{3,25})/i)
+    if (prepMatch && prepMatch[1]) {
+      const candidate = prepMatch[1].replace(/\b(for|next|the|coming|days|day|week|today|tomorrow|price|prices|rate|rates)\b/gi, "").trim()
+      if (candidate.length >= 3) {
+        queryPlace = candidate
+      }
+    }
+
+    const isSpecificPlace = Boolean(detectedDist || detectedState || queryPlace)
+    const targetState = detectedState || (isSpecificPlace ? queryPlace : userState)
+    const targetDistrict = detectedDist || (isSpecificPlace ? (detectedDist || "") : userDistrict)
+
+    try {
+      const params = new URLSearchParams({
+        commodity: targetCrop,
+        state: targetState || "Karnataka",
+        district: targetDistrict || "",
+        days: "7"
+      })
+
+      const res = await fetch("/api/price-forecast?" + params.toString())
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Price service is temporarily unavailable.")
+
+      const currentPrice = data.currentPrice
+      const pricePerKg = data.currentPricePerKg
+      const unit = data.unit || "Quintal (100 KG)"
+      const mandiLabel = data.lastObserved?.label || (data.state + " APMC Mandi")
+      const arrivalDate = data.lastObserved?.date || "Latest reported"
+      const trend = data.weeklySummary?.trend || "Stable"
+      const recommendation = data.weeklySummary?.recommendedAction || ""
+
+      let priceText = ""
+      if (!isSpecificPlace && userPlaceLabel) {
+        priceText += "📍 **Prices for your location: " + userPlaceLabel + "**\n\n"
+      } else {
+        priceText += "📍 **" + data.commodity + " Wholesale Price in " + (data.district ? data.district + ", " : "") + data.state + "**\n\n"
+      }
+
+      priceText += "• **Current Wholesale Rate**: **₹" + Number(currentPrice).toLocaleString("en-IN") + "/" + unit + "** (approx. **₹" + pricePerKg + "/kg**)\n"
+      priceText += "• **Reporting Market**: " + mandiLabel + " (" + arrivalDate + ")\n"
+      priceText += "• **7-Day Trend Outlook**: " + trend + "\n"
+      if (recommendation) {
+        priceText += "• **Selling Strategy**: " + recommendation + "\n"
+      }
+
+      if (!isSpecificPlace) {
+        priceText += "\n💡 *Tip: You can also ask for prices in any other place (e.g. 'Tomato price in Pune' or 'Garlic in Mandsaur').*"
+      }
+
+      return {
+        text: priceText,
+        priceData: data
+      }
+    } catch (err) {
+      return { text: "Unable to retrieve official rates for " + targetCrop + ": " + err.message }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 3. GENERAL AGRICULTURAL & PLATFORM QUESTIONS
+  // -------------------------------------------------------------
+  if (/\b(pest|disease|blight|borer|aphid|thrip|fungus|spray|insect|worm)\b/i.test(qLower)) {
+    return {
+      text: "🛡️ **Integrated Pest & Disease Management Guidance**\n\n" +
+        "• **Sucking Pests (Aphids, Thrips, Whiteflies)**:\n" +
+        "  Spray 5% Neem Seed Kernel Extract (NSKE) or Neem Oil (5ml/L of water) with soap surfactant.\n" +
+        "  Install yellow and blue sticky traps (15–20 per acre) above crop canopy.\n\n" +
+        "• **Fungal Blights & Leaf Spots (Early/Late Blight)**:\n" +
+        "  Spray Mancozeb 75% WP (2g/L) or Copper Oxychloride 50% WP (2.5g/L).\n" +
+        "  Avoid evening overhead sprinkler watering to maintain dry foliage.\n\n" +
+        "• **Fruit & Shoot Borers**:\n" +
+        "  Deploy pheromone traps (5 traps/acre) and spray Bacillus thuringiensis (Bt) or Emamectin Benzoate 5% SG (0.4g/L).\n\n" +
+        "💡 *Always observe the 7-day withholding period between spraying and harvest.*"
+    }
+  }
+
+  if (/\b(fertilizer|urea|dap|npk|manure|compost|nutrient|potash|zinc|nitrogen)\b/i.test(qLower)) {
+    return {
+      text: "🌱 **Recommended Fertilizer & Nutrient Management**\n\n" +
+        "• **Basal Soil Application**:\n" +
+        "  Incorporate 8–10 tonnes/acre of well-decomposed Farm Yard Manure (FYM) or 2 tonnes of vermicompost during final field ploughing.\n\n" +
+        "• **Balanced N:P:K Dosing**:\n" +
+        "  Vegetables (Tomato, Onion, Brinjal): 120:60:60 kg NPK/ha.\n" +
+        "  Apply full dose of Phosphorus (DAP) and Potash (MOP) as basal, split Nitrogen (Urea) into 3 equal top-dressings at 25, 45, and 65 days.\n\n" +
+        "• **Micronutrient Boost**:\n" +
+        "  Spray Zinc Sulphate (0.5%) + Boric Acid (0.2%) during early flowering to prevent fruit drop and boost fruit weight.\n\n" +
+        "💡 *Conduct a soil health test every 2 years to avoid soil salinity and over-fertilization.*"
+    }
+  }
+
+  if (/\b(how.*sell|sell.*harvest|list.*crop|add.*crop|seller)\b/i.test(qLower)) {
+    return {
+      text: "📦 **How to Sell on Farmezy (Farmer Marketplace)**\n\n" +
+        "1. Open **List your harvest** in the left sidebar.\n" +
+        "2. Take a fresh live photo of your crop using your camera (or upload from gallery).\n" +
+        "3. Select the crop name, variety, available quantity (kg/quintals), and your asking price.\n" +
+        "4. Set harvest date and pickup location.\n" +
+        "5. Click **Publish Listing**!\n\n" +
+        "✅ Your harvest will be instantly visible to buyers and nearby customers within < 1 km."
+    }
+  }
+
+  if (/\b(how.*buy|buy.*produce|purchase|customer|order)\b/i.test(qLower)) {
+    return {
+      text: "🛒 **How to Purchase Fresh Produce on Farmezy**\n\n" +
+        "1. Click **Browse produce** in the navigation.\n" +
+        "2. View fresh harvests with real farmer camera photos and direct farmgate prices.\n" +
+        "3. Filter by crop or browse nearby farms sorted by distance.\n" +
+        "4. Tap **Buy / Request** or connect instantly via **WhatsApp** or **Direct Call** with the farmer."
+    }
+  }
+
+  if (/\b(store|storage|shelf|cure|curing|rot|preserve)\b/i.test(qLower)) {
+    return {
+      text: "🏠 **Post-Harvest Crop Storage Guidelines**\n\n" +
+        "• **Onions & Garlic**:\n" +
+        "  Field cure for 7–10 days in the shade until necks are completely dry. Store in well-ventilated slatted bamboo racks at 65–70% relative humidity.\n\n" +
+        "• **Potatoes**:\n" +
+        "  Store in a cool, dry, dark shed (10–12°C). Never expose to direct sunlight to prevent solanine greening.\n\n" +
+        "• **Tomatoes & Perishables**:\n" +
+        "  Harvest at the breaker (light pink) stage for long-distance transport. Store in plastic crates, stacked not more than 3 layers deep."
+    }
+  }
+
+  if (/\b(irrigation|water|drip|sprinkler|watering)\b/i.test(qLower)) {
+    return {
+      text: "💧 **Smart Irrigation Practices**\n\n" +
+        "• **Drip Irrigation**: Saves 40–60% water compared to furrow flooding, lowers weed growth, and allows precise liquid fertigation directly to roots.\n" +
+        "• **Timing**: Always irrigate early in the morning (6:00–9:00 AM) or after sunset to minimize evaporation losses.\n" +
+        "• **Critical Growth Stages**: Maintain consistent soil moisture during flowering and fruit setting. Moisture stress during fruit development causes blossom end rot and fruit cracking."
+    }
+  }
+
+  if (/^(hi|hello|hey|namaste|vanakkam|namaskara|good\s*(morning|afternoon|evening))\b/i.test(qLower)) {
+    return {
+      text: "Namaste! 🙏 Welcome to Farmezy.\n\n" +
+        "I am your 24/7 agriculture and market assistant. You can ask me:\n" +
+        "• **\"Tomato price\"** — Live prices for your district (" + userPlaceLabel + ")\n" +
+        "• **\"7-day weather\"** — Next week's rainfall and temperature forecast\n" +
+        "• **\"Onion price in Nashik\"** — Rates in any Indian mandi\n" +
+        "• **\"How to control tomato blight?\"** — Agronomic and pest advice"
+    }
+  }
+
+  // Catch-all conversational answer
+  return {
+    text: "I'm here to help with all your farm and market needs! 🌾\n\n" +
+      "Here are the most popular things you can ask:\n" +
+      "1. **Crop Prices**: E.g. *\"Tomato price in my area\"*, *\"Garlic in Mandsaur\"*, *\"Onion in Maharashtra\"*\n" +
+      "2. **Weather Reports**: E.g. *\"7-day weather forecast\"*, *\"Weather in Shimla\"*, *\"Will it rain tomorrow?\"*\n" +
+      "3. **Farming Advice**: E.g. *\"Best fertilizer for onions\"*, *\"How to control leaf curl\"*, *\"Drip irrigation tips\"*\n" +
+      "4. **Farmezy Help**: E.g. *\"How to sell crops\"*, *\"How to contact buyers\"*\n" +
+      "5. **Mandi Rates**: E.g. *\"Show mandi table\"* or visit the Market Prices tab"
   }
 }
+
+// Indian States list for dropdown selection
+const FORECAST_STATES = [
+  "Karnataka", "Maharashtra", "Andhra Pradesh", "Telangana", "Tamil Nadu", "Uttar Pradesh",
+  "Punjab", "Haryana", "Madhya Pradesh", "Gujarat", "Rajasthan", "Bihar", "West Bengal",
+  "Kerala", "Odisha", "Assam", "Chhattisgarh", "Jharkhand", "Himachal Pradesh", "Uttarakhand",
+  "Delhi", "Goa", "Jammu and Kashmir", "Tripura", "Meghalaya", "Manipur", "Nagaland",
+  "Mizoram", "Arunachal Pradesh", "Sikkim", "Chandigarh", "Puducherry", "Ladakh"
+]
+
+// State to District mapping for dynamic district dropdowns
+const STATE_DISTRICTS_MAP = {
+  "Karnataka": [
+    "Bengaluru Urban", "Bengaluru Rural", "Kolar", "Chikkaballapura", "Ramanagara", 
+    "Belagavi", "Mysuru", "Mandya", "Tumakuru", "Hassan", "Shivamogga", "Davanagere", 
+    "Ballari", "Haveri", "Dharwad", "Kalaburagi", "Vijayapura", "Raichur", "Udupi", 
+    "Dakshina Kannada", "Bagalkote", "Chitradurga", "Gadag", "Koppal", "Yadgir", 
+    "Kodagu", "Chamarajanagar", "Chikkamagaluru", "Uttara Kannada"
+  ],
+  "Maharashtra": [
+    "Pune", "Nashik", "Ahmednagar", "Nagpur", "Solapur", "Kolhapur", "Chhatrapati Sambhajinagar", 
+    "Jalgaon", "Satara", "Sangli", "Amravati", "Nanded", "Latur", "Dhule", "Buldhana", 
+    "Akola", "Yavatmal", "Dharashiv", "Thane", "Palghar", "Raigad", "Ratnagiri", 
+    "Sindhudurg", "Jalna", "Parbhani", "Beed", "Wardha", "Chandrapur"
+  ],
+  "Andhra Pradesh": [
+    "Chittoor", "Anantapur", "Kurnool", "Guntur", "Krishna", "East Godavari", "West Godavari", 
+    "Visakhapatnam", "Prakasam", "Nellore", "YSR Kadapa", "Srikakulam", "Vizianagaram"
+  ],
+  "Telangana": [
+    "Hyderabad", "Ranga Reddy", "Medchal", "Warangal", "Nizamabad", "Karimnagar", 
+    "Khammam", "Mahabubnagar", "Medak", "Nalgonda", "Adilabad", "Suryapet"
+  ],
+  "Tamil Nadu": [
+    "Coimbatore", "Madurai", "Salem", "Tiruchirappalli", "Erode", "Tirunelveli", "Thanjavur", 
+    "Dindigul", "Vellore", "Dharmapuri", "Krishnagiri", "Theni", "Cuddalore", "Villupuram", 
+    "Kanchipuram", "Tiruvallur", "Tiruppur", "Namakkal"
+  ],
+  "Uttar Pradesh": [
+    "Lucknow", "Kanpur Nagar", "Agra", "Varanasi", "Prayagraj", "Meerut", "Bareilly", 
+    "Aligarh", "Moradabad", "Saharanpur", "Gorakhpur", "Jhansi", "Mathura", "Muzaffarnagar", 
+    "Ayodhya", "Barabanki", "Sitapur", "Hardoi"
+  ],
+  "Punjab": [
+    "Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Hoshiarpur", "SAS Nagar (Mohali)", 
+    "Firozpur", "Sangrur", "Fazilka", "Mansa", "Gurdaspur", "Moga", "Kapurthala", "Fatehgarh Sahib"
+  ],
+  "Haryana": [
+    "Karnal", "Ambala", "Hisar", "Rohtak", "Panipat", "Sonipat", "Sirsa", "Kurukshetra", 
+    "Jind", "Yamunanagar", "Faridabad", "Gurugram", "Bhiwani", "Fatehabad", "Kaithal"
+  ],
+  "Madhya Pradesh": [
+    "Indore", "Bhopal", "Jabalpur", "Gwalior", "Ujjain", "Sagar", "Dewas", "Satna", 
+    "Ratlam", "Rewa", "Khargone", "Mandsaur", "Neemuch", "Chhindwara", "Sehore", "Narmadapuram"
+  ],
+  "Gujarat": [
+    "Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Junagadh", 
+    "Gandhinagar", "Anand", "Mehsana", "Sabarkantha", "Banaskantha", "Kutch", "Amreli", "Bharuch"
+  ],
+  "Rajasthan": [
+    "Jaipur", "Jodhpur", "Kota", "Bikaner", "Ajmer", "Udaipur", "Bhilwara", "Alwar", 
+    "Sri Ganganagar", "Bharatpur", "Sikar", "Pali", "Nagaur", "Hanumangarh", "Chittorgarh"
+  ],
+  "Bihar": [
+    "Patna", "Gaya", "Muzaffarpur", "Bhagalpur", "Darbhanga", "Purnia", "Rohtas", 
+    "Samastipur", "Nalanda", "Begusarai", "Vaishali", "Saran", "Katihar", "Siwan"
+  ],
+  "West Bengal": [
+    "Hooghly", "Purba Bardhaman", "Paschim Bardhaman", "Nadia", "North 24 Parganas", 
+    "South 24 Parganas", "Murshidabad", "Malda", "Jalpaiguri", "Bankura", "Birbhum", "Purba Medinipur"
+  ],
+  "Kerala": [
+    "Thiruvananthapuram", "Ernakulam", "Kozhikode", "Thrissur", "Palakkad", "Malappuram", 
+    "Kollam", "Kannur", "Kottayam", "Alappuzha", "Idukki", "Wayanad", "Kasaragod"
+  ],
+  "Odisha": [
+    "Bhubaneswar / Khordha", "Cuttack", "Ganjam", "Balasore", "Sambalpur", "Bhadrak", "Puri", "Bargarh"
+  ],
+  "Assam": [
+    "Kamrup (Guwahati)", "Nagaon", "Sonitpur", "Dibrugarh", "Cachar", "Barpeta", "Jorhat"
+  ],
+  "Chhattisgarh": [
+    "Raipur", "Durg", "Bilaspur", "Rajnandgaon", "Korba", "Raigarh", "Janjgir-Champa"
+  ],
+  "Jharkhand": [
+    "Ranchi", "East Singhbhum (Jamshedpur)", "Dhanbad", "Bokaro", "Hazaribagh", "Deoghar"
+  ],
+  "Himachal Pradesh": [
+    "Shimla", "Kullu", "Mandi", "Kangra", "Solan", "Sirmaur", "Chamba", "Una"
+  ],
+  "Uttarakhand": [
+    "Dehradun", "Haridwar", "Udham Singh Nagar", "Nainital", "Almora", "Tehri Garhwal"
+  ],
+  "Delhi": [
+    "North Delhi", "South Delhi", "West Delhi", "East Delhi", "Central Delhi"
+  ],
+  "Goa": [
+    "North Goa", "South Goa"
+  ],
+  "Jammu and Kashmir": [
+    "Srinagar", "Jammu", "Anantnag", "Baramulla", "Pulwama", "Udhampur", "Kathua"
+  ]
+}
+
+// Structured catalogue of crops for dropdown
+const FORECAST_CROPS = [
+  { group: "Popular Crops", name: "Tomato", icon: "🍅" },
+  { group: "Popular Crops", name: "Potato", icon: "🥔" },
+  { group: "Popular Crops", name: "Onion", icon: "🧅" },
+  { group: "Popular Crops", name: "Wheat", icon: "🌾" },
+  { group: "Popular Crops", name: "Paddy (Rice)", icon: "🌾" },
+  { group: "Popular Crops", name: "Tur (Arhar) Dal", icon: "🥣" },
+  { group: "Popular Crops", name: "Mustard Oil", icon: "🫒" },
+  { group: "Popular Crops", name: "Sugarcane", icon: "🎋" },
+
+  { group: "Vegetables", name: "Garlic", icon: "🧄" },
+  { group: "Vegetables", name: "Ginger", icon: "🫚" },
+  { group: "Vegetables", name: "Brinjal", icon: "🍆" },
+  { group: "Vegetables", name: "Cabbage", icon: "🥬" },
+  { group: "Vegetables", name: "Cauliflower", icon: "🥦" },
+  { group: "Vegetables", name: "Carrot", icon: "🥕" },
+  { group: "Vegetables", name: "Capsicum", icon: "🫑" },
+  { group: "Vegetables", name: "Green Chilli", icon: "🌶️" },
+  { group: "Vegetables", name: "Cucumber", icon: "🥒" },
+  { group: "Vegetables", name: "Green Peas", icon: "🫛" },
+  { group: "Vegetables", name: "Beans", icon: "🫛" },
+  { group: "Vegetables", name: "Beetroot", icon: "🔴" },
+  { group: "Vegetables", name: "Bottle Gourd", icon: "🎃" },
+  { group: "Vegetables", name: "Bitter Gourd", icon: "🍈" },
+  { group: "Vegetables", name: "Bhindi (Ladies Finger)", icon: "🌱" },
+
+  { group: "Fruits", name: "Apple", icon: "🍎" },
+  { group: "Fruits", name: "Banana", icon: "🍌" },
+  { group: "Fruits", name: "Mango", icon: "🥭" },
+  { group: "Fruits", name: "Lemon", icon: "🍋" },
+  { group: "Fruits", name: "Grapes", icon: "🍇" },
+  { group: "Fruits", name: "Guava", icon: "🍐" },
+  { group: "Fruits", name: "Pomegranate", icon: "🍷" },
+  { group: "Fruits", name: "Coconut", icon: "🥥" },
+
+  { group: "Commercial & Spices", name: "Turmeric", icon: "🌿" },
+  { group: "Commercial & Spices", name: "Black Pepper", icon: "🧂" },
+  { group: "Commercial & Spices", name: "Cotton", icon: "☁️" },
+  { group: "Commercial & Spices", name: "Groundnut", icon: "🥜" },
+  { group: "Commercial & Spices", name: "Maize", icon: "🌽" }
+]
 
 function PriceForecast({ location, onPrices }) {
   const [commodity, setCommodity] = useState("Tomato")
   const [state, setState] = useState(location?.state || "Karnataka")
-  const [district, setDistrict] = useState(location?.district || "")
+  const [district, setDistrict] = useState("All Districts (State Average)")
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const run = async () => {
+  const availableDistricts = ["All Districts (State Average)", ...(STATE_DISTRICTS_MAP[state] || [])]
+
+  const handleStateChange = (newState) => {
+    setState(newState)
+    setDistrict("All Districts (State Average)")
+    run(commodity, newState, "All Districts (State Average)")
+  }
+
+  const run = async (cropParam, stateParam, distParam) => {
+    const c = cropParam ?? commodity
+    const s = stateParam ?? state
+    const d = distParam ?? district
+    const queryDistrict = (!d || d.startsWith("All Districts")) ? "" : d
+
     setLoading(true)
     setError("")
-    setResult(null)
     try {
-      const params = new URLSearchParams({ commodity, state, district, days: "7" })
+      const params = new URLSearchParams({
+        commodity: c,
+        state: s,
+        district: queryDistrict,
+        days: "7"
+      })
       const response = await fetch("/api/price-forecast?" + params.toString())
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Forecast is not ready.")
@@ -4431,48 +5066,314 @@ function PriceForecast({ location, onPrices }) {
     }
   }
 
+  // Run automatically on first mount
+  useEffect(() => {
+    run(commodity, state, district)
+  }, [])
+
   return (
-    <section className="panel">
-      <div className="official-filters">
-        <label>
-          Crop / commodity
-          <input value={commodity} onChange={e => setCommodity(e.target.value)} placeholder="Tomato" />
-        </label>
-        <label>
-          State
-          <input value={state} onChange={e => setState(e.target.value)} placeholder="Karnataka" />
-        </label>
-        <label>
-          District
-          <input value={district} onChange={e => setDistrict(e.target.value)} placeholder="Optional" />
-        </label>
-        <button onClick={run} disabled={loading || !commodity || !state}>
-          {loading ? "Preparing…" : "Predict price"}
-        </button>
+    <section className="panel" style={{ background: "#fbfcfb", border: "1px solid #e5ebe2", borderRadius: "12px", padding: "20px 24px" }}>
+      {/* Header bar */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "18px" }}>
+        <div>
+          <span style={{ fontSize: "11px", fontWeight: "700", color: "#377d4c", letterSpacing: "1px", textTransform: "uppercase" }}>
+            🌾 Intelligent Market Forecasting
+          </span>
+          <h2 style={{ margin: "4px 0 2px", font: "700 22px/1.2 Manrope, sans-serif", color: "#1e3023" }}>
+            Next 7-Day Mandi Price Predictions
+          </h2>
+          <p style={{ margin: 0, fontSize: "12px", color: "#6e7c70" }}>
+            Real-time projection model tracking short-term price momentum and weekly mandi trading volumes.
+          </p>
+        </div>
+        <div style={{ background: "#eef6ee", border: "1px solid #c9e4cb", color: "#256337", borderRadius: "20px", padding: "6px 14px", fontSize: "11px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#2e7d32", display: "inline-block" }}></span>
+          Live Trend Engine Active
+        </div>
       </div>
+
+      {/* Selectors Grid */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr)) auto",
+        gap: "14px",
+        alignItems: "flex-end",
+        background: "#ffffff",
+        border: "1px solid #e1e8dd",
+        borderRadius: "10px",
+        padding: "16px 18px",
+        marginBottom: "20px",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.02)"
+      }}>
+        {/* Crop Dropdown */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label style={{ fontSize: "11px", fontWeight: "700", color: "#47574a" }}>
+            Select Crop / Commodity
+          </label>
+          <select
+            value={commodity}
+            onChange={e => {
+              setCommodity(e.target.value)
+              run(e.target.value, state, district)
+            }}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              border: "1px solid #d4dfd1",
+              borderRadius: "7px",
+              background: "#fff",
+              color: "#223326",
+              fontSize: "13px",
+              fontWeight: "600",
+              cursor: "pointer",
+              outline: "none"
+            }}
+          >
+            {["Popular Crops", "Vegetables", "Fruits", "Commercial & Spices"].map(group => (
+              <optgroup key={group} label={`── ${group} ──`}>
+                {FORECAST_CROPS.filter(c => c.group === group).map(c => (
+                  <option key={c.name} value={c.name}>
+                    {c.icon} {c.name}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+
+        {/* State Dropdown */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label style={{ fontSize: "11px", fontWeight: "700", color: "#47574a" }}>
+            State / Region
+          </label>
+          <select
+            value={state}
+            onChange={e => handleStateChange(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              border: "1px solid #d4dfd1",
+              borderRadius: "7px",
+              background: "#fff",
+              color: "#223326",
+              fontSize: "13px",
+              fontWeight: "600",
+              cursor: "pointer",
+              outline: "none"
+            }}
+          >
+            {FORECAST_STATES.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* District Dropdown */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label style={{ fontSize: "11px", fontWeight: "700", color: "#47574a" }}>
+            District / Mandi Zone
+          </label>
+          <select
+            value={district}
+            onChange={e => {
+              setDistrict(e.target.value)
+              run(commodity, state, e.target.value)
+            }}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              border: "1px solid #d4dfd1",
+              borderRadius: "7px",
+              background: "#fff",
+              color: "#223326",
+              fontSize: "13px",
+              fontWeight: "600",
+              cursor: "pointer",
+              outline: "none"
+            }}
+          >
+            {availableDistricts.map(d => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Predict Price Button */}
+        <div>
+          <button
+            onClick={() => run()}
+            disabled={loading}
+            style={{
+              background: loading ? "#749b7e" : "#2b7040",
+              color: "#fff",
+              border: 0,
+              borderRadius: "7px",
+              padding: "11px 20px",
+              fontSize: "12px",
+              fontWeight: "700",
+              cursor: loading ? "default" : "pointer",
+              whiteSpace: "nowrap",
+              height: "40px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              boxShadow: "0 2px 6px rgba(43, 112, 64, 0.25)"
+            }}
+          >
+            {loading ? "Forecasting…" : "⚡ Predict Price"}
+          </button>
+        </div>
+      </div>
+
       {error && (
-        <div className="official-error">
-          <b>Forecast not ready yet.</b>
-          <p>{error}</p>
-          <span>Farmezy trains price models on official historical mandi data.</span>
+        <div className="official-error" style={{ background: "#fff5f5", border: "1px solid #fed7d7", borderRadius: "8px", padding: "16px", marginBottom: "16px", color: "#9b2c2c" }}>
+          <b style={{ fontSize: "13px" }}>Forecast Not Available</b>
+          <p style={{ margin: "6px 0", fontSize: "12px" }}>{error}</p>
+          <span style={{ fontSize: "11px", color: "#c53030" }}>Try choosing another crop or selecting state-wide average.</span>
         </div>
       )}
+
       {result && (
-        <div className="forecast-result">
-          <h3>{result.commodity} · {result.state}</h3>
-          <p>Last observed: <b>₹{Number(result.lastObserved.price).toLocaleString("en-IN")}/quintal</b> on {result.lastObserved.date}</p>
-          <div className="forecast-cards">
-            {result.predictions.map(item => (
-              <article key={item.day}>
-                <small>Day {item.day}</small>
-                <b>₹{item.price.toLocaleString("en-IN")}</b>
-                <span>Range ₹{item.lower.toLocaleString("en-IN")}–₹{item.upper.toLocaleString("en-IN")}</span>
-              </article>
-            ))}
+        <div className="forecast-result" style={{ background: "#ffffff", border: "1px solid #e3eae0", borderRadius: "10px", padding: "20px 22px", boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>
+          {/* Top Info Banner */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px", marginBottom: "14px", paddingBottom: "14px", borderBottom: "1px solid #eef2eb" }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                <h3 style={{ margin: 0, font: "700 20px Manrope, sans-serif", color: "#1a2c1f" }}>
+                  {result.commodity}
+                </h3>
+                <span style={{ background: "#f0f4ee", color: "#376d47", border: "1px solid #d8e5d5", padding: "3px 10px", borderRadius: "14px", fontSize: "11px", fontWeight: "700" }}>
+                  📍 {result.state} {result.district && !result.district.startsWith("All Districts") ? `· ${result.district}` : ""}
+                </span>
+              </div>
+              <small style={{ display: "block", color: "#748376", marginTop: "4px", fontSize: "11px" }}>
+                🤖 {result.model}
+              </small>
+            </div>
+
+            <div style={{ textAlign: "right" }}>
+              <span style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", color: "#7e8d81", letterSpacing: "0.5px", display: "block" }}>
+                Current Spot Benchmark
+              </span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "6px", justifyContent: "flex-end" }}>
+                <b style={{ fontSize: "20px", color: "#1e3825" }}>
+                  ₹{Number(result.lastObserved?.price || result.currentPrice || 0).toLocaleString("en-IN")}
+                </b>
+                <span style={{ fontSize: "12px", color: "#647567" }}>
+                  /{result.unit || "Quintal (100 KG)"}
+                </span>
+                {result.currentPricePerKg ? (
+                  <span style={{ background: "#edf7ee", color: "#256337", fontWeight: "700", fontSize: "11px", padding: "2px 7px", borderRadius: "4px", border: "1px solid #c8e3cc" }}>
+                    ₹{result.currentPricePerKg}/kg
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {/* Weekly Summary Banner */}
+          {result.weeklySummary && (
+            <div style={{
+              background: result.weeklySummary.weeklyChangePercent >= 0 ? "linear-gradient(135deg, #f2f9f3 0%, #e6f4e8 100%)" : "linear-gradient(135deg, #fdf4f4 0%, #fae8e8 100%)",
+              border: `1px solid ${result.weeklySummary.weeklyChangePercent >= 0 ? "#bde3c3" : "#f5c6cb"}`,
+              borderRadius: "9px",
+              padding: "14px 18px",
+              marginBottom: "20px"
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "18px" }}>
+                    {result.weeklySummary.weeklyChangePercent >= 0 ? "📈" : "📉"}
+                  </span>
+                  <b style={{ fontSize: "14px", color: result.weeklySummary.weeklyChangePercent >= 0 ? "#1b5e20" : "#842029" }}>
+                    7-Day Market Outlook: {result.weeklySummary.trend} ({result.weeklySummary.weeklyChangePercent >= 0 ? "+" : ""}{result.weeklySummary.weeklyChangePercent}%)
+                  </b>
+                </div>
+                <div style={{ fontSize: "12px", color: "#37473b", background: "rgba(255,255,255,0.7)", padding: "4px 10px", borderRadius: "6px" }}>
+                  <b>Projected Spread:</b> ₹{Number(result.weeklySummary.minProjected).toLocaleString("en-IN")} – ₹{Number(result.weeklySummary.maxProjected).toLocaleString("en-IN")}
+                </div>
+              </div>
+              <p style={{ margin: 0, fontSize: "12px", color: "#223326", lineHeight: 1.5 }}>
+                💡 <b>Farmer Selling Recommendation:</b> {result.weeklySummary.recommendedAction}
+              </p>
+            </div>
+          )}
+
+          {/* Daily 7-Day Forecast Grid */}
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <span style={{ fontSize: "12px", fontWeight: "700", color: "#283b2d", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                📅 Upcoming 7 Days Day-by-Day Forecast ({result.unit || "Quintal (100 KG)"})
+              </span>
+              <span style={{ fontSize: "11px", color: "#748477" }}>
+                Unit price & ₹/kg range
+              </span>
+            </div>
+
+            <div className="forecast-cards" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "12px" }}>
+              {result.predictions?.map((item, idx) => {
+                const isUp = item.trend === "up"
+                const isDown = item.trend === "down"
+                return (
+                  <article key={item.day || idx} style={{
+                    background: "#ffffff",
+                    border: "1px solid #e2e8df",
+                    borderRadius: "9px",
+                    padding: "14px 12px",
+                    boxShadow: "0 2px 5px rgba(0,0,0,0.03)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between"
+                  }}>
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                        <span style={{ color: "#2b3d30", fontSize: "12px", fontWeight: "700" }}>
+                          {item.dayName}
+                        </span>
+                        <span style={{ color: "#7a8a7d", fontSize: "10px", fontWeight: "500" }}>
+                          {item.date}
+                        </span>
+                      </div>
+
+                      <div style={{ marginBottom: "6px" }}>
+                        <span style={{
+                          fontSize: "10px",
+                          fontWeight: "700",
+                          color: isUp ? "#236336" : (isDown ? "#b3261e" : "#556457"),
+                          background: isUp ? "#eaf5ec" : (isDown ? "#fceeee" : "#f1f4f0"),
+                          padding: "2px 6px",
+                          borderRadius: "4px",
+                          display: "inline-block"
+                        }}>
+                          {item.trendLabel || (isUp ? "↗ Up" : isDown ? "↘ Down" : "→ Flat")} {item.changePercent ? `(${item.changePercent})` : ""}
+                        </span>
+                      </div>
+
+                      <b style={{ display: "block", fontSize: "17px", margin: "4px 0 2px", color: "#192c1e" }}>
+                        ₹{Number(item.price).toLocaleString("en-IN")}
+                      </b>
+                      <div style={{ fontSize: "11px", color: "#4d6050", fontWeight: "600", marginBottom: "8px" }}>
+                        ₹{item.pricePerKg}/kg
+                      </div>
+                    </div>
+
+                    <div style={{ borderTop: "1px dashed #e8eee6", paddingTop: "6px", marginTop: "4px" }}>
+                      <span style={{ fontSize: "10px", color: "#79877b", display: "block" }}>
+                        Range: ₹{Number(item.lower).toLocaleString("en-IN")} – ₹{Number(item.upper).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
           </div>
         </div>
       )}
-      <button className="link" onClick={onPrices}>Check official observed prices →</button>
+      <div style={{ marginTop: "16px", textAlign: "right" }}>
+        <button className="link" onClick={onPrices} style={{ fontSize: "12px", color: "#2b7040", fontWeight: "600" }}>
+          📊 View official AGMARKNET spot prices →
+        </button>
+      </div>
     </section>
   )
 }

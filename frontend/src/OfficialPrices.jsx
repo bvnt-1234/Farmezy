@@ -1322,6 +1322,137 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   )
 }
 
+function cropSymbol(name) {
+  const n = String(name || "").toLowerCase()
+  if (n.includes("ginger")) return "🫚"
+  if (n.includes("lady") || n.includes("ladies") || n.includes("okra") || n.includes("bhindi")) return "🫛"
+  if (n.includes("garlic")) return "🧄"
+  if (n.includes("tomato")) return "🍅"
+  if (n.includes("onion")) return "🧅"
+  if (n.includes("potato")) return "🥔"
+  if (n.includes("chilli") || n.includes("chili") || n.includes("mirchi")) return "🌶️"
+  if (n.includes("capsicum")) return "🫑"
+  if (n.includes("carrot")) return "🥕"
+  if (n.includes("cucumber") || n.includes("kheera")) return "🥒"
+  if (n.includes("cabbage")) return "🥬"
+  if (n.includes("spinach") || n.includes("palak")) return "🥬"
+  if (n.includes("cauliflower") || n.includes("kohl") || n.includes("gobi")) return "🥦"
+  if (n.includes("broccoli")) return "🥦"
+  if (n.includes("drumstick") || n.includes("moringa")) return "🌿"
+  if (n.includes("coriander") || n.includes("mint") || n.includes("methi")) return "🌿"
+  if (n.includes("brinjal") || n.includes("eggplant") || n.includes("baingan")) return "🍆"
+  if (n.includes("pea")) return "🫛"
+  if (n.includes("corn") || n.includes("maize")) return "🌽"
+  if (n.includes("banana")) return "🍌"
+  if (n.includes("apple")) return "🍎"
+  if (n.includes("mango")) return "🥭"
+  if (n.includes("lemon") || n.includes("lime") || n.includes("nimbu")) return "🍋"
+  if (n.includes("grape")) return "🍇"
+  if (n.includes("pumpkin")) return "🎃"
+  if (n.includes("watermelon")) return "🍉"
+  if (n.includes("papaya")) return "🍈"
+  if (n.includes("coconut")) return "🥥"
+  if (n.includes("rice") || n.includes("paddy") || n.includes("wheat") || n.includes("ragi") || n.includes("jowar")) return "🌾"
+  if (n.includes("thogari") || n.includes("thogri") || n.includes("cluster") || n.includes("guar") || n.includes("gorika")) return "🫛"
+  if (n.includes("knol") || n.includes("knool") || n.includes("kohlrabi") || n.includes("navil") || n.includes("ganth")) return "🥬"
+  if (n.includes("bean")) return "🫘"
+  if (n.includes("beetroot")) return "🟣"
+  if (n.includes("radish") || n.includes("mooli") || n.includes("mullangi") || n.includes("daikon")) return "🥕"
+  if (n.includes("snake") || n.includes("padaval") || n.includes("chichinda")) return "🥒"
+  if (n.includes("ginger")) return "🫚"
+  return "🌱"
+}
+
+const genericCropImage = "/placeholder.png"
+
+function cropPhoto(name) {
+  const n = String(name || "").toLowerCase()
+
+  // 1. Specific Target Commodities (Clean agricultural product photography)
+  // Drumstick / Moringa: Fresh harvested individual pods (never pods hanging on tree)
+  if (n.includes("drumstick") || n.includes("moringa") || n.includes("sahjan") || n.includes("murungakkai") || n.includes("nuggekayi")) return "/drumstick.jpg"
+
+  // Green Banana / Plantain: Actual raw unripe green cooking bananas (never yellow bananas)
+  if (n.includes("green banana") || n.includes("banana - green") || n.includes("banana green") || n.includes("plantain") || n.includes("raw banana") || n.includes("vazhaikkai") || n.includes("baalekayi") || n.includes("kachha kela")) return "/green_banana.jpg"
+
+  // Mosambi / Sweet Lime: Indian sweet lime Citrus limetta (never lemon or orange)
+  if (n.includes("mosambi") || n.includes("sweet lime") || n.includes("citrus limetta") || n.includes("moushumi") || n.includes("battayi")) return "/mosambi.jpg"
+
+  // Coconut: Whole mature coconut and cut half with white meat (never coconut tree or seedling)
+  if (n.includes("coconut") || n.includes("copra") || n.includes("nariyal") || n.includes("thengai") || n.includes("tenginakayi")) return "/coconut.jpg"
+
+  // Chikoo / Sapodilla: Fresh ripe sapodilla fruit
+  if (n.includes("chikoo") || n.includes("chiku") || n.includes("sapota") || n.includes("sapodilla")) return "/chikoo.jpg"
+
+  // Amla: Fresh Indian gooseberry Phyllanthus emblica
+  if (n.includes("amla") || n.includes("gooseberry") || n.includes("nellikai") || n.includes("nelli kai") || n.includes("usirikaya")) return "/amla.jpg"
+
+  // Jasmine: Fresh white jasmine flowers / mogra blossoms (never tree, plant bush or leaves)
+  if (n.includes("jasmine") || n.includes("mogra") || n.includes("gundu malli") || n.includes("malli") || n.includes("chameli") || n.includes("mallepuvu")) return "/jasmine.jpg"
+
+  // Brinjal / Eggplant: Glossy purple brinjal fruit on clean white background (never plant leaves)
+  if (n.includes("brinjal") || n.includes("eggplant") || n.includes("aubergine") || n.includes("baingan") || n.includes("badanekai") || n.includes("kathirikai") || n.includes("vankaya")) return "/brinjal.jpg"
+
+  // Pomegranate: Fresh whole and cut pomegranate fruits with ruby arils (never tree or flower)
+  if (n.includes("pomegranate") || n.includes("anar") || n.includes("dalimbe") || n.includes("danimma") || n.includes("mathulai")) return "/pomegranate.jpg"
+
+  // Guava: Fresh guava fruit
+  if (n.includes("guava") || n.includes("amrood")) return "/guava.jpg"
+
+  // Watermelon: Fresh watermelon fruit
+  if (n.includes("watermelon") || n.includes("tarbooz")) return "/watermelon.jpg"
+
+  // Cabbage: Clean cabbage head (no baskets or plates)
+  if (n.includes("cabbage") || n.includes("patta gobhi") || n.includes("bandha gobhi") || n.includes("muttakose")) return "/cabbage.jpg"
+
+  // Okra / Ladies Finger: Clean pods on neutral background (no bowls)
+  if (n.includes("bhindi") || n.includes("okra") || n.includes("lady") || n.includes("ladies") || n.includes("bhendi") || n.includes("vendakkai") || n.includes("bendakaya")) return "/ladies_finger.jpg"
+
+  // Spices & Base Staples
+  if (n.includes("ginger") || n.includes("adrak") || n.includes("inji") || n.includes("allam") || n.includes("shunti")) return "/ginger.jpg"
+  if (n.includes("tomato") || n.includes("tamatar") || n.includes("thakkali")) return "/tomato.jpg"
+  if (n.includes("onion") || n.includes("pyaz") || n.includes("eerulli") || n.includes("vengayam")) return "/onion.jpg"
+  if (n.includes("potato") || n.includes("aloo") || n.includes("alugadde") || n.includes("urulaikizhangu")) return "/potato.jpg"
+  if (n.includes("carrot") || n.includes("gajar") || n.includes("gajjari")) return "/carrot.jpg"
+
+  // Gourds & Regional Specialties
+  if (n.includes("snake") || n.includes("padaval") || n.includes("chichinda") || n.includes("pudalangai") || n.includes("potlakaya")) return "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg"
+  if (n.includes("ridgeguard") || n.includes("ridgegourd") || n.includes("tori") || n.includes("turai")) return "https://upload.wikimedia.org/wikipedia/commons/5/59/Luffa_acutangula.jpg"
+  if (n.includes("knol") || n.includes("knool") || n.includes("kohlrabi") || n.includes("turnip") || n.includes("ganth") || n.includes("navil")) return "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg"
+  if (n.includes("yam") || n.includes("suran") || n.includes("amphophalus")) return "https://upload.wikimedia.org/wikipedia/commons/7/7b/Amorphophallus_paeoniifolius_at_Taman_Botani_Negara_Shah_Alam.jpg"
+  if (n.includes("bengal gram") || n.includes("chana")) return "https://upload.wikimedia.org/wikipedia/commons/1/12/Cicer_arietinum_%284217744781%29.jpg"
+  if (n.includes("arecanut") || n.includes("supari")) return "https://upload.wikimedia.org/wikipedia/commons/e/e0/Areca_nut_in_a_basket.jpg"
+  if (n.includes("gur") || n.includes("jaggery")) return "https://upload.wikimedia.org/wikipedia/commons/d/dc/Jaggery_blocks.jpg"
+  if (n.includes("garlic")) return "https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("chilli") || n.includes("chili") || n.includes("mirchi")) return "https://images.unsplash.com/photo-1565685110871-1324fc462c84?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("cucumber") || n.includes("kheera")) return "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("cauliflower") || n.includes("gobi")) return "https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("broccoli")) return "https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("bottle gourd") || n.includes("lauki") || n.includes("calabash") || n.includes("sorekayi")) return "https://upload.wikimedia.org/wikipedia/commons/a/a2/Courge_encore_verte.jpg"
+  if (n.includes("thogari") || n.includes("thogri") || n.includes("cluster") || n.includes("guar") || n.includes("gorika") || n.includes("kothavara")) return "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG"
+  if (n === "beans" || n.includes("green bean") || n.includes("french bean") || n.includes("frasbean") || n.includes("string bean") || n.includes("bean")) return "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg"
+  if (n.includes("beetroot")) return "https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("capsicum")) return "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("pea")) return "https://images.unsplash.com/photo-1587735243615-c03f25aaff15?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("radish") || n.includes("raddish") || n.includes("mooli") || n.includes("mullangi") || n.includes("moolangi") || n.includes("daikon")) return "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg"
+  if (n.includes("spinach")) return "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("banana")) return "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("apple")) return "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("mango")) return "https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("lemon") || n.includes("lime")) return "https://images.unsplash.com/photo-1582281298055-e25b84a30b0b?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("pumpkin")) return "https://images.unsplash.com/photo-1570586437263-ab629fccc818?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("gourd")) return "https://images.unsplash.com/photo-1597362925123-77861d3fbac7?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("coriander") || n.includes("mint")) return "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("rice") || n.includes("paddy")) return "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("wheat")) return "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("maize") || n.includes("corn")) return "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=520&q=75"
+  if (n.includes("ragi") || n.includes("finger millet")) return "https://upload.wikimedia.org/wikipedia/commons/6/61/Eleusine_coracana_Manneczka_%C5%82%C4%99kowata_2020-10-03_03.jpg"
+  if (n.includes("moong") || n.includes("green gram") || n.includes("mung")) return "https://upload.wikimedia.org/wikipedia/commons/8/86/Mung_beans_%28Vigna_radiata%29.jpg"
+  if (n.includes("avare") || n.includes("hyacinth") || n.includes("field bean")) return "https://upload.wikimedia.org/wikipedia/commons/4/4d/Lablab_purpureus_257105665.jpg"
+  if (n.includes("sesame") || n.includes("til") || n.includes("gingelly") || n.includes("sesamum")) return "https://upload.wikimedia.org/wikipedia/commons/9/9e/Black_sesame.jpg"
+  return "/placeholder.png"
+}
+
 function money(value) {
   if (value == null || String(value).trim() === "") return "—"
   const amount = Number(String(value).replace(/,/g, ""))

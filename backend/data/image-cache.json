@@ -132,14 +132,12 @@
   },
   "brinjal": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1789373232964-9c5d7eeb4aa5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBwdXJwbGUlMjBicmluamFsJTIwZWdncGxhbnQlMjB2ZWdldGFibGUlMjBzb2xhbnVtJTIwbWVsb25nZW5hJTIwaGFydmVzdHxlbnwxfDB8fHwxNzkzNjA4MTI4fDA&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "A glossy purple eggplant growing on a leafy green plant",
-      "photographer": "antonio massara (Unsplash)",
-      "link": "https://unsplash.com/photos/purple-eggplant-on-green-plant-UKCI_RdFf4o?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/UKCI_RdFf4o/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBwdXJwbGUlMjBicmluamFsJTIwZWdncGxhbnQlMjB2ZWdldGFibGUlMjBzb2xhbnVtJTIwbWVsb25nZW5hJTIwaGFydmVzdHxlbnwxfDB8fHwxNzkzNjA4MTI4fDA",
-      "source": "unsplash"
+      "url": "/brinjal.jpg",
+      "alt": "Fresh purple brinjal fruit (Solanum melongena)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org"
     },
-    "savedAt": 1793608129196
+    "savedAt": 1793734913325
   },
   "bottle gourd": {
     "data": {
@@ -302,14 +300,12 @@
   },
   "pomegranate": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1541344999736-83eca272f6fc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByaXBlJTIwcG9tZWdyYW5hdGUlMjBmcnVpdCUyMHRyZWUlMjBoYXJ2ZXN0JTIwd2hvbGV8ZW58MXwwfHx8MTc5MzUzODcyNnww&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "pomegranate fruits",
-      "photographer": "Jonas Renner (Unsplash)",
-      "link": "https://unsplash.com/photos/pomegranate-fruits-LOdAL10JejI?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/LOdAL10JejI/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByaXBlJTIwcG9tZWdyYW5hdGUlMjBmcnVpdCUyMHRyZWUlMjBoYXJ2ZXN0JTIwd2hvbGV8ZW58MXwwfHx8MTc5MzUzODcyNnww",
-      "source": "unsplash"
+      "url": "/pomegranate.jpg",
+      "alt": "Fresh whole and cut pomegranate fruits with ruby arils (Punica granatum)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org"
     },
-    "savedAt": 1793538727307
+    "savedAt": 1793734913327
   },
   "wheat": {
     "data": {
@@ -371,36 +367,30 @@
   },
   "potato": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1518977676601-b53f82aba655?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByYXclMjBwb3RhdG9lcyUyMGhhcnZlc3QlMjBmYXJtfGVufDF8MHx8fDE3OTM1Mzg3NTZ8MA&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "brown potato lot",
-      "photographer": "Lars Blankers (Unsplash)",
-      "link": "https://unsplash.com/photos/brown-potato-lot-B0s3Xndk6tw?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/B0s3Xndk6tw/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByYXclMjBwb3RhdG9lcyUyMGhhcnZlc3QlMjBmYXJtfGVufDF8MHx8fDE3OTM1Mzg3NTZ8MA",
-      "source": "unsplash"
+      "url": "/potato.jpg",
+      "alt": "Fresh raw harvested potatoes (Solanum tuberosum)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org"
     },
-    "savedAt": 1793538757163
+    "savedAt": 1793728109919
   },
   "okra": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBva3JhJTIwcG9kcyUyMHJhdyUyMHZlZ2V0YWJsZSUyMGhhcnZlc3R8ZW58MXwwfHx8MTc5MzUzODc1Nnww&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "Okra vegetable in white bowl",
-      "photographer": "Neha Deshmukh (Unsplash)",
-      "link": "https://unsplash.com/photos/okra-vegetable-in-white-bowl-CoIJlCZEjnw?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/CoIJlCZEjnw/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBva3JhJTIwcG9kcyUyMHJhdyUyMHZlZ2V0YWJsZSUyMGhhcnZlc3R8ZW58MXwwfHx8MTc5MzUzODc1Nnww",
-      "source": "unsplash"
+      "url": "/ladies_finger.jpg",
+      "alt": "Fresh green okra pods (Abelmoschus esculentus)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org"
     },
-    "savedAt": 1793538757166
+    "savedAt": 1793734913331
   },
   "cabbage": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1652860213441-6622f9fec77f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmVlbiUyMGNhYmJhZ2UlMjByYXclMjBoYXJ2ZXN0fGVufDF8MHx8fDE3OTM1Mzg3NTZ8MA&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "a basket filled with cabbage next to a pile of green apples",
-      "photographer": "shilpa poonattil (Unsplash)",
-      "link": "https://unsplash.com/photos/a-basket-filled-with-cabbage-next-to-a-pile-of-green-apples-gofXEm3c_Ho?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/gofXEm3c_Ho/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmVlbiUyMGNhYmJhZ2UlMjByYXclMjBoYXJ2ZXN0fGVufDF8MHx8fDE3OTM1Mzg3NTZ8MA",
-      "source": "unsplash"
+      "url": "/cabbage.jpg",
+      "alt": "Fresh green cabbage head (Brassica oleracea)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org"
     },
-    "savedAt": 1793538757171
+    "savedAt": 1793734913329
   },
   "bengal gram": {
     "data": {
@@ -471,12 +461,12 @@
   },
   "drumstick": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Moringa_oleifera_pods_NP.JPG",
-      "alt": "Fresh green drumsticks / moringa pods (Moringa oleifera)",
-      "photographer": "Krish Dulal (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Moringa_oleifera_pods_NP.JPG"
+      "url": "/drumstick.jpg",
+      "alt": "Fresh harvested moringa / drumstick pods (Moringa oleifera)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org"
     },
-    "savedAt": 1793552191642
+    "savedAt": 1793734913310
   },
   "capsicum": {
     "data": {
@@ -617,14 +607,12 @@
   },
   "banana - green": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1762512217423-667040830c73?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB5ZWxsb3clMjBiYW5hbmElMjBidW5jaCUyMGZydWl0JTIwaGFydmVzdCUyMGZhcm18ZW58MXwwfHx8MTc5MzQ3MzI0OHww&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "Machete resting on harvested green bananas",
-      "photographer": "Shoham Avisrur (Unsplash)",
-      "link": "https://unsplash.com/photos/machete-resting-on-harvested-green-bananas-BI2k1mO1rX8?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/BI2k1mO1rX8/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB5ZWxsb3clMjBiYW5hbmElMjBidW5jaCUyMGZydWl0JTIwaGFydmVzdCUyMGZhcm18ZW58MXwwfHx8MTc5MzQ3MzI0OHww",
-      "source": "unsplash"
+      "url": "/green_banana.jpg",
+      "alt": "Fresh unripe green cooking bananas (Musa)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org"
     },
-    "savedAt": 1793608128525
+    "savedAt": 1793734913313
   },
   "ginger": {
     "data": {
@@ -634,6 +622,256 @@
       "link": "https://commons.wikimedia.org/wiki/File:Fresh_ginger_rhizome_01.jpg"
     },
     "savedAt": 1793634409275
+  },
+  "moringa": {
+    "data": {
+      "url": "/drumstick.jpg",
+      "alt": "Fresh harvested moringa pods (Moringa oleifera)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "green banana": {
+    "data": {
+      "url": "/green_banana.jpg",
+      "alt": "Fresh unripe green cooking bananas / plantains (Musa)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "raw banana": {
+    "data": {
+      "url": "/green_banana.jpg",
+      "alt": "Fresh raw green cooking bananas (Musa)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "plantain": {
+    "data": {
+      "url": "/green_banana.jpg",
+      "alt": "Fresh raw green plantains (Musa)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "mosambi": {
+    "data": {
+      "url": "/mosambi.jpg",
+      "alt": "Fresh Indian sweet lime / mosambi fruit (Citrus limetta)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org"
+    },
+    "savedAt": 1793734913315
+  },
+  "sweet lime": {
+    "data": {
+      "url": "/mosambi.jpg",
+      "alt": "Fresh Indian sweet lime / mosambi (Citrus limetta)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "coconut": {
+    "data": {
+      "url": "/coconut.jpg",
+      "alt": "Fresh whole mature coconut and cracked half (Cocos nucifera)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org"
+    },
+    "savedAt": 1793734913318
+  },
+  "copra": {
+    "data": {
+      "url": "/coconut.jpg",
+      "alt": "Mature coconut and copra kernel (Cocos nucifera)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "chikoo": {
+    "data": {
+      "url": "/chikoo.jpg",
+      "alt": "Fresh ripe sapodilla / chikoo fruit (Manilkara zapota)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org"
+    },
+    "savedAt": 1793734913320
+  },
+  "chiku": {
+    "data": {
+      "url": "/chikoo.jpg",
+      "alt": "Fresh ripe chikoo fruit (Manilkara zapota)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "sapota": {
+    "data": {
+      "url": "/chikoo.jpg",
+      "alt": "Fresh ripe sapota fruit (Manilkara zapota)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "sapodilla": {
+    "data": {
+      "url": "/chikoo.jpg",
+      "alt": "Fresh ripe sapodilla fruit (Manilkara zapota)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "amla": {
+    "data": {
+      "url": "/amla.jpg",
+      "alt": "Fresh Indian gooseberry / amla fruit (Phyllanthus emblica)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org"
+    },
+    "savedAt": 1793734913322
+  },
+  "indian gooseberry": {
+    "data": {
+      "url": "/amla.jpg",
+      "alt": "Fresh Indian gooseberry / amla (Phyllanthus emblica)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "gooseberry": {
+    "data": {
+      "url": "/amla.jpg",
+      "alt": "Fresh Indian gooseberry / amla (Phyllanthus emblica)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "jasmine": {
+    "data": {
+      "url": "/jasmine.jpg",
+      "alt": "Fresh white jasmine blossoms (Jasminum sambac)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org"
+    },
+    "savedAt": 1793734913324
+  },
+  "mogra": {
+    "data": {
+      "url": "/jasmine.jpg",
+      "alt": "Fresh white mogra / jasmine blossoms (Jasminum sambac)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "eggplant": {
+    "data": {
+      "url": "/brinjal.jpg",
+      "alt": "Fresh purple eggplant fruit (Solanum melongena)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "aubergine": {
+    "data": {
+      "url": "/brinjal.jpg",
+      "alt": "Fresh purple aubergine fruit (Solanum melongena)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "baingan": {
+    "data": {
+      "url": "/brinjal.jpg",
+      "alt": "Fresh purple baingan / brinjal fruit (Solanum melongena)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "anar": {
+    "data": {
+      "url": "/pomegranate.jpg",
+      "alt": "Fresh whole and cut anar / pomegranate fruit (Punica granatum)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://commons.wikimedia.org",
+      "source": "curated"
+    },
+    "savedAt": 1793725620508
+  },
+  "watermelon": {
+    "data": {
+      "url": "/watermelon.jpg",
+      "alt": "Fresh whole and sliced watermelon fruit (Citrullus lanatus)",
+      "photographer": "Art Rachen (Unsplash)",
+      "link": "https://unsplash.com/photos/izi5AnlbRIA"
+    },
+    "savedAt": 1793734886930
+  },
+  "guava": {
+    "data": {
+      "url": "/guava.jpg",
+      "alt": "Fresh whole and cut guava fruit (Psidium guajava)",
+      "photographer": "Muhammad Mahdi Karim (Wikimedia Commons)",
+      "link": "https://commons.wikimedia.org/wiki/File:Guava_pink_fruit.jpg"
+    },
+    "savedAt": 1793734886927
+  },
+  "papaya(raw)": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1517282009859-f000ec3b26fe?auto=format&fit=crop&w=640&q=75",
+      "alt": "Fresh papaya",
+      "photographer": "Unsplash",
+      "link": "https://unsplash.com"
+    },
+    "savedAt": 1793728109890
+  },
+  "amrood": {
+    "data": {
+      "url": "/guava.jpg",
+      "alt": "Fresh whole and cut amrood / guava fruit (Psidium guajava)",
+      "photographer": "Muhammad Mahdi Karim (Wikimedia Commons)",
+      "link": "https://commons.wikimedia.org/wiki/File:Guava_pink_fruit.jpg"
+    },
+    "savedAt": 1793734886934
+  },
+  "tarbooz": {
+    "data": {
+      "url": "/watermelon.jpg",
+      "alt": "Fresh whole and sliced tarbooz / watermelon (Citrullus lanatus)",
+      "photographer": "Art Rachen (Unsplash)",
+      "link": "https://unsplash.com/photos/izi5AnlbRIA"
+    },
+    "savedAt": 1793734886936
   },
   "amaranthus": {
     "data": {
