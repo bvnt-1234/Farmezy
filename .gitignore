@@ -11,3 +11,5 @@ backend/data/gov-raw/
 backend/data/image-audit-report.json
 backend/data/partial-mandi-sync.json
 backend/data/current-mandi-prices-backup.json
+
+scratch/

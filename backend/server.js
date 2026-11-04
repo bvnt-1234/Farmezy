@@ -558,6 +558,86 @@ const curatedCropImages = {
   tenginakayi: { url: "/coconut.jpg", alt: "Fresh mature tenginakayi / coconut (Cocos nucifera)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
   thengai: { url: "/coconut.jpg", alt: "Fresh mature thengai / coconut (Cocos nucifera)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
 
+  // Tender Coconut
+  "tender coconut": { url: "/tender_coconut.jpg", alt: "Fresh green tender coconut fruit (Cocos nucifera)", photographer: "Kilimanjaro STUDIOz (Unsplash)", link: "https://unsplash.com/photos/WmZLDvHZJfQ" },
+  "green coconut": { url: "/tender_coconut.jpg", alt: "Fresh green tender coconut fruit (Cocos nucifera)", photographer: "Kilimanjaro STUDIOz (Unsplash)", link: "https://unsplash.com/photos/WmZLDvHZJfQ" },
+  elnir: { url: "/tender_coconut.jpg", alt: "Fresh green tender coconut elnir (Cocos nucifera)", photographer: "Kilimanjaro STUDIOz (Unsplash)", link: "https://unsplash.com/photos/WmZLDvHZJfQ" },
+  elaneer: { url: "/tender_coconut.jpg", alt: "Fresh green tender coconut elaneer (Cocos nucifera)", photographer: "Kilimanjaro STUDIOz (Unsplash)", link: "https://unsplash.com/photos/WmZLDvHZJfQ" },
+  daab: { url: "/tender_coconut.jpg", alt: "Fresh green tender coconut daab (Cocos nucifera)", photographer: "Kilimanjaro STUDIOz (Unsplash)", link: "https://unsplash.com/photos/WmZLDvHZJfQ" },
+
+  // Tamarind
+  tamarind: { url: "/tamarind.jpg", alt: "Fresh harvested tamarind pods and pulp (Tamarindus indica)", photographer: "B.navez (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg" },
+  tamarinds: { url: "/tamarind.jpg", alt: "Fresh harvested tamarind pods and pulp (Tamarindus indica)", photographer: "B.navez (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg" },
+  imli: { url: "/tamarind.jpg", alt: "Fresh harvested imli / tamarind pods (Tamarindus indica)", photographer: "B.navez (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg" },
+  hunasehannu: { url: "/tamarind.jpg", alt: "Fresh hunasehannu / tamarind pods (Tamarindus indica)", photographer: "B.navez (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg" },
+  puli: { url: "/tamarind.jpg", alt: "Fresh puli / tamarind pods (Tamarindus indica)", photographer: "B.navez (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg" },
+  chintapandu: { url: "/tamarind.jpg", alt: "Fresh chintapandu / tamarind pods (Tamarindus indica)", photographer: "B.navez (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg" },
+
+  // Amaranthus
+  amaranthus: { url: "/amaranthus.jpg", alt: "Fresh green edible amaranthus leafy vegetable bunch", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+  amaranth: { url: "/amaranthus.jpg", alt: "Fresh green edible amaranth leafy vegetable bunch", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+  "red amaranthus": { url: "/amaranthus.jpg", alt: "Fresh edible red amaranthus vegetable greens", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+  "green amaranthus": { url: "/amaranthus.jpg", alt: "Fresh edible green amaranthus vegetable greens", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+  chaulai: { url: "/amaranthus.jpg", alt: "Fresh chaulai / amaranthus leafy vegetable greens", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+  dantu: { url: "/amaranthus.jpg", alt: "Fresh dantu soppu / amaranthus leafy vegetable greens", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+  thotakura: { url: "/amaranthus.jpg", alt: "Fresh thotakura / amaranthus leafy vegetable greens", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+  keerai: { url: "/amaranthus.jpg", alt: "Fresh keerai greens / amaranthus leafy vegetable", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+
+  // Ginger / Green Ginger
+  ginger: { url: "/ginger.jpg", alt: "Fresh raw ginger rhizomes isolated on clean background (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
+  "green ginger": { url: "/ginger.jpg", alt: "Fresh green ginger rhizomes isolated on clean background (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
+  "ginger green": { url: "/ginger.jpg", alt: "Fresh green ginger rhizomes isolated on clean background (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
+  adrak: { url: "/ginger.jpg", alt: "Fresh raw adrak / ginger rhizomes (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
+  shunti: { url: "/ginger.jpg", alt: "Fresh raw shunti / ginger rhizomes (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
+  inji: { url: "/ginger.jpg", alt: "Fresh raw inji / ginger rhizomes (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
+  allam: { url: "/ginger.jpg", alt: "Fresh raw allam / ginger rhizomes (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
+
+  // Commercial Flowers
+  marigold: { url: "/marigold.jpg", alt: "Fresh vibrant orange-yellow marigold blossoms (Tagetes)", photographer: "Tawseem Hakak (Unsplash)", link: "https://unsplash.com" },
+  marigolds: { url: "/marigold.jpg", alt: "Fresh vibrant orange-yellow marigold blossoms (Tagetes)", photographer: "Tawseem Hakak (Unsplash)", link: "https://unsplash.com" },
+  genda: { url: "/marigold.jpg", alt: "Fresh vibrant genda / marigold flowers (Tagetes)", photographer: "Tawseem Hakak (Unsplash)", link: "https://unsplash.com" },
+  "chendu hoovu": { url: "/marigold.jpg", alt: "Fresh vibrant chendu hoovu / marigold flowers (Tagetes)", photographer: "Tawseem Hakak (Unsplash)", link: "https://unsplash.com" },
+  "banthi puvvu": { url: "/marigold.jpg", alt: "Fresh banthi puvvu / marigold flowers (Tagetes)", photographer: "Tawseem Hakak (Unsplash)", link: "https://unsplash.com" },
+
+  rose: { url: "/rose.jpg", alt: "Fresh red rose flower bloom isolated on clean background (Rosa)", photographer: "Jerry Klein (Unsplash)", link: "https://unsplash.com" },
+  roses: { url: "/rose.jpg", alt: "Fresh red rose flower blooms isolated on clean background (Rosa)", photographer: "Jerry Klein (Unsplash)", link: "https://unsplash.com" },
+  gulab: { url: "/rose.jpg", alt: "Fresh red gulab / rose flower blooms (Rosa)", photographer: "Jerry Klein (Unsplash)", link: "https://unsplash.com" },
+  roja: { url: "/rose.jpg", alt: "Fresh roja / rose flower blooms (Rosa)", photographer: "Jerry Klein (Unsplash)", link: "https://unsplash.com" },
+  gulabi: { url: "/rose.jpg", alt: "Fresh gulabi / rose flower blooms (Rosa)", photographer: "Jerry Klein (Unsplash)", link: "https://unsplash.com" },
+
+  chrysanthemum: { url: "/chrysanthemum.jpg", alt: "Fresh chrysanthemum blossoms (Chrysanthemum)", photographer: "Unsplash", link: "https://unsplash.com" },
+  chrysanthemums: { url: "/chrysanthemum.jpg", alt: "Fresh chrysanthemum blossoms (Chrysanthemum)", photographer: "Unsplash", link: "https://unsplash.com" },
+  shevanti: { url: "/chrysanthemum.jpg", alt: "Fresh shevanti / chrysanthemum blossoms", photographer: "Unsplash", link: "https://unsplash.com" },
+  sevanthi: { url: "/chrysanthemum.jpg", alt: "Fresh sevanthi / chrysanthemum blossoms", photographer: "Unsplash", link: "https://unsplash.com" },
+  chamanti: { url: "/chrysanthemum.jpg", alt: "Fresh chamanti / chrysanthemum blossoms", photographer: "Unsplash", link: "https://unsplash.com" },
+
+  carnation: { url: "/carnation.jpg", alt: "Fresh carnation flower blossoms (Dianthus caryophyllus)", photographer: "Unsplash", link: "https://unsplash.com" },
+  carnations: { url: "/carnation.jpg", alt: "Fresh carnation flower blossoms (Dianthus caryophyllus)", photographer: "Unsplash", link: "https://unsplash.com" },
+
+  gerbera: { url: "/gerbera.jpg", alt: "Fresh colorful gerbera daisy flowers (Gerbera)", photographer: "Unsplash", link: "https://unsplash.com" },
+  gerberas: { url: "/gerbera.jpg", alt: "Fresh colorful gerbera daisy flowers (Gerbera)", photographer: "Unsplash", link: "https://unsplash.com" },
+
+  gladiolus: { url: "/gladiolus.jpg", alt: "Fresh gladiolus flower spikes blossoms", photographer: "Unsplash", link: "https://unsplash.com" },
+  gladioli: { url: "/gladiolus.jpg", alt: "Fresh gladiolus flower spikes blossoms", photographer: "Unsplash", link: "https://unsplash.com" },
+
+  lotus: { url: "/lotus.jpg", alt: "Fresh sacred pink lotus flower blossom (Nelumbo nucifera)", photographer: "Unsplash", link: "https://unsplash.com" },
+  kamal: { url: "/lotus.jpg", alt: "Fresh sacred kamal / lotus flower blossom (Nelumbo nucifera)", photographer: "Unsplash", link: "https://unsplash.com" },
+  tamara: { url: "/lotus.jpg", alt: "Fresh tamara / lotus flower blossom (Nelumbo nucifera)", photographer: "Unsplash", link: "https://unsplash.com" },
+
+  orchid: { url: "/orchid.jpg", alt: "Fresh exotic orchid flower blossoms (Orchidaceae)", photographer: "Unsplash", link: "https://unsplash.com" },
+  orchids: { url: "/orchid.jpg", alt: "Fresh exotic orchid flower blossoms (Orchidaceae)", photographer: "Unsplash", link: "https://unsplash.com" },
+
+  tulip: { url: "/tulip.jpg", alt: "Fresh tulip flower blossoms (Tulipa)", photographer: "Unsplash", link: "https://unsplash.com" },
+  tulips: { url: "/tulip.jpg", alt: "Fresh tulip flower blossoms (Tulipa)", photographer: "Unsplash", link: "https://unsplash.com" },
+
+  tuberose: { url: "/tuberose.jpg", alt: "Fresh white tuberose / rajanigandha flower spikes (Polianthes tuberosa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+  rajanigandha: { url: "/tuberose.jpg", alt: "Fresh white rajanigandha flower spikes (Polianthes tuberosa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+  sugandharaja: { url: "/tuberose.jpg", alt: "Fresh white sugandharaja flower spikes (Polianthes tuberosa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+
+  crossandra: { url: "/crossandra.jpg", alt: "Fresh bright orange crossandra / kanakambaram flowers (Crossandra infundibuliformis)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+  kanakambaram: { url: "/crossandra.jpg", alt: "Fresh kanakambaram / crossandra flowers (Crossandra infundibuliformis)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
+
+
   // Chikoo / Sapodilla (Actual sapodilla fruit)
   chikoo: { url: "/chikoo.jpg", alt: "Fresh ripe sapodilla / chikoo fruit (Manilkara zapota)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
   chiku: { url: "/chikoo.jpg", alt: "Fresh ripe chikoo fruit (Manilkara zapota)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
@@ -743,7 +823,11 @@ const curatedCropImages = {
   lemon: { url: "https://images.unsplash.com/photo-1582281298055-e25b84a30b0b?auto=format&fit=crop&w=640&q=75", alt: "Fresh lemons", photographer: "Unsplash", link: "https://unsplash.com" },
   lime: { url: "https://images.unsplash.com/photo-1582281298055-e25b84a30b0b?auto=format&fit=crop&w=640&q=75", alt: "Fresh limes", photographer: "Unsplash", link: "https://unsplash.com" },
   grapes: { url: "https://images.unsplash.com/photo-1537640538966-79f369143f8f?auto=format&fit=crop&w=640&q=75", alt: "Fresh grapes", photographer: "Unsplash", link: "https://unsplash.com" },
-  papaya: { url: "https://images.unsplash.com/photo-1517282009859-f000ec3b26fe?auto=format&fit=crop&w=640&q=75", alt: "Fresh papaya", photographer: "Unsplash", link: "https://unsplash.com" },
+  papaya: { url: "/papaya.jpg", alt: "Fresh ripe whole and cut papaya fruit with seeds (Carica papaya)", photographer: "BNC (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Carica_papaya.jpg" },
+  papayas: { url: "/papaya.jpg", alt: "Fresh ripe whole and cut papaya fruit with seeds (Carica papaya)", photographer: "BNC (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Carica_papaya.jpg" },
+  papita: { url: "/papaya.jpg", alt: "Fresh ripe whole and cut papita / papaya fruit (Carica papaya)", photographer: "BNC (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Carica_papaya.jpg" },
+  parangi: { url: "/papaya.jpg", alt: "Fresh ripe whole and cut parangi / papaya fruit (Carica papaya)", photographer: "BNC (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Carica_papaya.jpg" },
+  boppayi: { url: "/papaya.jpg", alt: "Fresh ripe whole and cut boppayi / papaya fruit (Carica papaya)", photographer: "BNC (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Carica_papaya.jpg" },
   pumpkin: { url: "https://images.unsplash.com/photo-1570586437263-ab629fccc818?auto=format&fit=crop&w=640&q=75", alt: "Fresh pumpkin", photographer: "Unsplash", link: "https://unsplash.com" },
   coriander: { url: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=640&q=75", alt: "Fresh coriander leaves", photographer: "Unsplash", link: "https://unsplash.com" },
   mint: { url: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=640&q=75", alt: "Fresh mint leaves", photographer: "Unsplash", link: "https://unsplash.com" },
@@ -751,7 +835,10 @@ const curatedCropImages = {
   rice: { url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75", alt: "Wholesale rice grains", photographer: "Unsplash", link: "https://unsplash.com" },
   paddy: { url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75", alt: "Wholesale paddy / rice", photographer: "Unsplash", link: "https://unsplash.com" },
   maize: { url: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=640&q=75", alt: "Fresh corn / maize", photographer: "Unsplash", link: "https://unsplash.com" },
-  cotton: { url: "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=640&q=75", alt: "Fresh cotton crop", photographer: "Unsplash", link: "https://unsplash.com" },
+  cotton: { url: "/cotton.jpg", alt: "Harvested white raw cotton bolls and natural fiber (Gossypium)", photographer: "Mehmet Keskin (Unsplash)", link: "https://unsplash.com/photos/CHKPpH62QNk" },
+  kapas: { url: "/cotton.jpg", alt: "Harvested white raw cotton bolls and fiber / kapas (Gossypium)", photographer: "Mehmet Keskin (Unsplash)", link: "https://unsplash.com/photos/CHKPpH62QNk" },
+  kappas: { url: "/cotton.jpg", alt: "Harvested white raw cotton bolls and fiber / kappas (Gossypium)", photographer: "Mehmet Keskin (Unsplash)", link: "https://unsplash.com/photos/CHKPpH62QNk" },
+  "raw cotton": { url: "/cotton.jpg", alt: "Harvested white raw cotton bolls and fiber (Gossypium)", photographer: "Mehmet Keskin (Unsplash)", link: "https://unsplash.com/photos/CHKPpH62QNk" },
   groundnut: { url: "https://images.unsplash.com/photo-1568283661195-266657962cfc?auto=format&fit=crop&w=640&q=75", alt: "Fresh groundnuts", photographer: "Unsplash", link: "https://unsplash.com" }
 }
 
@@ -1309,6 +1396,24 @@ async function auditAndPurgeCache() {
   const localStubs = ["/potato.jpg", "/cabbage.jpg", "/ladies_finger.jpg", "/tomato.jpg", "/onion.jpg", "/carrot.jpg", "/ginger.jpg"]
 
   for (const [key, entry] of Array.from(imageCache.entries())) {
+
+    // Evict non-local or stale entries for target curated commodities
+    const targetLocalCrops = [
+      "coconut", "tender coconut", "papaya", "tamarind", "amaranthus",
+      "ginger", "green ginger", "cotton", "jasmine", "marigold", "rose",
+      "chrysanthemum", "carnation", "gerbera", "gladiolus", "lotus",
+      "orchid", "tulip", "tuberose", "crossandra"
+    ]
+    if (targetLocalCrops.some(c => key === c || key.includes(c))) {
+      const isCuratedLocal = entry.data?.url?.startsWith("/") && !entry.data.url.includes("placeholder")
+      if (!isCuratedLocal) {
+        console.log(`Evicting non-curated / external photo for target commodity: "${key}"`)
+        imageCache.delete(key)
+        changed = true
+        continue
+      }
+    }
+
     // 1. Evict any placeholder or empty entries
     if (!entry?.data?.url || entry.data.url === "/placeholder.png") {
       imageCache.delete(key)

@@ -289,15 +289,6 @@
     },
     "savedAt": 1793537447961
   },
-  "papaya": {
-    "data": {
-      "url": "https://images.unsplash.com/photo-1517282009859-f000ec3b26fe?auto=format&fit=crop&w=640&q=75",
-      "alt": "Fresh papaya",
-      "photographer": "Unsplash",
-      "link": "https://unsplash.com"
-    },
-    "savedAt": 1793538725493
-  },
   "pomegranate": {
     "data": {
       "url": "/pomegranate.jpg",
@@ -438,15 +429,6 @@
       "source": "unsplash"
     },
     "savedAt": 1793539554654
-  },
-  "ginger(green)": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg",
-      "alt": "Fresh green ginger rhizome (Zingiber officinale)",
-      "photographer": "Sanjay Acharya (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Fresh_ginger_rhizome_01.jpg"
-    },
-    "savedAt": 1793605748508
   },
   "chilly capsicum": {
     "data": {
@@ -614,15 +596,6 @@
     },
     "savedAt": 1793734913313
   },
-  "ginger": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg",
-      "alt": "Fresh ginger rhizome (Zingiber officinale)",
-      "photographer": "Sanjay Acharya (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Fresh_ginger_rhizome_01.jpg"
-    },
-    "savedAt": 1793634409275
-  },
   "moringa": {
     "data": {
       "url": "/drumstick.jpg",
@@ -681,15 +654,6 @@
       "source": "curated"
     },
     "savedAt": 1793725620508
-  },
-  "coconut": {
-    "data": {
-      "url": "/coconut.jpg",
-      "alt": "Fresh whole mature coconut and cracked half (Cocos nucifera)",
-      "photographer": "Wikimedia Commons",
-      "link": "https://commons.wikimedia.org"
-    },
-    "savedAt": 1793734913318
   },
   "copra": {
     "data": {
@@ -769,15 +733,6 @@
     },
     "savedAt": 1793725620508
   },
-  "jasmine": {
-    "data": {
-      "url": "/jasmine.jpg",
-      "alt": "Fresh white jasmine blossoms (Jasminum sambac)",
-      "photographer": "Wikimedia Commons",
-      "link": "https://commons.wikimedia.org"
-    },
-    "savedAt": 1793734913324
-  },
   "mogra": {
     "data": {
       "url": "/jasmine.jpg",
@@ -846,15 +801,6 @@
     },
     "savedAt": 1793734886927
   },
-  "papaya(raw)": {
-    "data": {
-      "url": "https://images.unsplash.com/photo-1517282009859-f000ec3b26fe?auto=format&fit=crop&w=640&q=75",
-      "alt": "Fresh papaya",
-      "photographer": "Unsplash",
-      "link": "https://unsplash.com"
-    },
-    "savedAt": 1793728109890
-  },
   "amrood": {
     "data": {
       "url": "/guava.jpg",
@@ -872,17 +818,6 @@
       "link": "https://unsplash.com/photos/izi5AnlbRIA"
     },
     "savedAt": 1793734886936
-  },
-  "amaranthus": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/9/91/Amaranthus_tricolor0.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Amaranthus tricolor0",
-      "photographer": "Kurt Stüber [1]",
-      "license": "CC BY-SA 3.0",
-      "link": "https://commons.wikimedia.org/wiki/File:Amaranthus_tricolor0.jpg",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758309089
   },
   "arrowroot": {
     "data": {
@@ -1148,17 +1083,6 @@
     },
     "savedAt": 1793758399935
   },
-  "gingergreen": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c1/Ginger_Plant_vs.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Ginger Plant vs",
-      "photographer": "Venkatx5",
-      "license": "CC BY-SA 3.0",
-      "link": "https://commons.wikimedia.org/wiki/File:Ginger_Plant_vs.jpg",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758403478
-  },
   "goldenrod": {
     "data": {
       "url": "https://upload.wikimedia.org/wikipedia/commons/0/03/Golden_rod_-_geograph.org.uk_-_536399.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
@@ -1346,17 +1270,6 @@
     },
     "savedAt": 1793758463293
   },
-  "lotussticks": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/2/22/Lotus_18_gearstick_detail.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Lotus 18 gearstick detail",
-      "photographer": "Duke le palois",
-      "license": "Public domain",
-      "link": "https://commons.wikimedia.org/wiki/File:Lotus_18_gearstick_detail.jpg",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758464999
-  },
   "macoy": {
     "data": {
       "url": "https://upload.wikimedia.org/wikipedia/commons/b/ba/Ferdinand_Marcos_as_a_soldier.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
@@ -1510,17 +1423,6 @@
       "source": "wikimedia"
     },
     "savedAt": 1793758489381
-  },
-  "orchid": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Paphiopedilum_delenatii_Orchi_013.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Paphiopedilum delenatii Orchi 013",
-      "photographer": "Orchi",
-      "license": "CC BY-SA 3.0",
-      "link": "https://commons.wikimedia.org/wiki/File:Paphiopedilum_delenatii_Orchi_013.jpg",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758493120
   },
   "peaswet": {
     "data": {
@@ -1907,28 +1809,6 @@
     },
     "savedAt": 1793758562990
   },
-  "tamarind": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Tamarindus_indica_pods.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Tamarindus indica pods",
-      "photographer": "B.navez",
-      "license": "CC BY 2.5",
-      "link": "https://commons.wikimedia.org/wiki/File:Tamarindus_indica_pods.JPG",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758564928
-  },
-  "tamarindfruit": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2e/Tamarindus_indica_pods.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Tamarindus indica pods",
-      "photographer": "B.navez",
-      "license": "CC BY 2.5",
-      "link": "https://commons.wikimedia.org/wiki/File:Tamarindus_indica_pods.JPG",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758565254
-  },
   "tapioca": {
     "data": {
       "url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Tapioca-1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
@@ -1962,17 +1842,6 @@
     },
     "savedAt": 1793758568483
   },
-  "tendercoconut": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Tender_coconut.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Tender coconut",
-      "photographer": "w:user:PlaneMad",
-      "license": "CC BY-SA 3.0",
-      "link": "https://commons.wikimedia.org/wiki/File:Tender_coconut.jpg",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758569721
-  },
   "tobacco": {
     "data": {
       "url": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Nicotiana_tabacum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-098.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
@@ -1994,28 +1863,6 @@
       "source": "wikimedia"
     },
     "savedAt": 1793758573016
-  },
-  "tuberosedouble": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Polianthes_tuberosa_clean.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Polianthes tuberosa clean",
-      "photographer": "Wikimedia Commons",
-      "license": "Public domain",
-      "link": "https://commons.wikimedia.org/wiki/File:Polianthes_tuberosa_clean.jpg",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758575299
-  },
-  "tuberosesingle": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Polianthes_tuberosa_clean.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Polianthes tuberosa clean",
-      "photographer": "Wikimedia Commons",
-      "license": "Public domain",
-      "link": "https://commons.wikimedia.org/wiki/File:Polianthes_tuberosa_clean.jpg",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758575371
   },
   "turmericpowder": {
     "data": {
@@ -2137,5 +1984,165 @@
       "source": "wikimedia"
     },
     "savedAt": 1793758676495
+  },
+  "coconut": {
+    "url": "/coconut.jpg",
+    "alt": "Fresh whole mature coconut and cracked half (Cocos nucifera)",
+    "photographer": "Michele Wales (Unsplash)",
+    "link": "https://unsplash.com/photos/Y4JLPY9mzQA",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "tender coconut": {
+    "url": "/tender_coconut.jpg",
+    "alt": "Fresh green tender coconut fruit (Cocos nucifera)",
+    "photographer": "Kilimanjaro STUDIOz (Unsplash)",
+    "link": "https://unsplash.com/photos/WmZLDvHZJfQ",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "papaya": {
+    "url": "/papaya.jpg",
+    "alt": "Fresh ripe whole and cut papaya fruit with seeds (Carica papaya)",
+    "photographer": "BNC (Wikimedia Commons)",
+    "link": "https://commons.wikimedia.org/wiki/File:Carica_papaya.jpg",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "tamarind": {
+    "url": "/tamarind.jpg",
+    "alt": "Fresh harvested tamarind pods and pulp (Tamarindus indica)",
+    "photographer": "B.navez (Wikimedia Commons)",
+    "link": "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "amaranthus": {
+    "url": "/amaranthus.jpg",
+    "alt": "Fresh green edible amaranthus leafy vegetable bunch",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "ginger": {
+    "url": "/ginger.jpg",
+    "alt": "Fresh raw ginger rhizomes isolated on clean background (Zingiber officinale)",
+    "photographer": "Mockup Graphics (Unsplash)",
+    "link": "https://unsplash.com/photos/c94e896edbae",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "green ginger": {
+    "url": "/ginger.jpg",
+    "alt": "Fresh green ginger rhizomes isolated on clean background (Zingiber officinale)",
+    "photographer": "Mockup Graphics (Unsplash)",
+    "link": "https://unsplash.com/photos/c94e896edbae",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "cotton": {
+    "url": "/cotton.jpg",
+    "alt": "Harvested white raw cotton bolls and natural fiber (Gossypium)",
+    "photographer": "Mehmet Keskin (Unsplash)",
+    "link": "https://unsplash.com/photos/CHKPpH62QNk",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "jasmine": {
+    "url": "/jasmine.jpg",
+    "alt": "Fresh white jasmine blossoms (Jasminum sambac)",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org/wiki/File:Jasminum_sambac.jpg",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "marigold": {
+    "url": "/marigold.jpg",
+    "alt": "Fresh vibrant orange-yellow marigold blossoms (Tagetes)",
+    "photographer": "Tawseem Hakak (Unsplash)",
+    "link": "https://unsplash.com",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "rose": {
+    "url": "/rose.jpg",
+    "alt": "Fresh red rose flower bloom isolated on clean background (Rosa)",
+    "photographer": "Jerry Klein (Unsplash)",
+    "link": "https://unsplash.com",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "chrysanthemum": {
+    "url": "/chrysanthemum.jpg",
+    "alt": "Fresh chrysanthemum blossoms (Chrysanthemum)",
+    "photographer": "Unsplash",
+    "link": "https://unsplash.com",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "carnation": {
+    "url": "/carnation.jpg",
+    "alt": "Fresh carnation flower blossoms (Dianthus caryophyllus)",
+    "photographer": "Unsplash",
+    "link": "https://unsplash.com",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "gerbera": {
+    "url": "/gerbera.jpg",
+    "alt": "Fresh colorful gerbera daisy flowers (Gerbera)",
+    "photographer": "Unsplash",
+    "link": "https://unsplash.com",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "gladiolus": {
+    "url": "/gladiolus.jpg",
+    "alt": "Fresh gladiolus flower spikes blossoms",
+    "photographer": "Unsplash",
+    "link": "https://unsplash.com",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "lotus": {
+    "url": "/lotus.jpg",
+    "alt": "Fresh sacred pink lotus flower blossom (Nelumbo nucifera)",
+    "photographer": "Unsplash",
+    "link": "https://unsplash.com",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "orchid": {
+    "url": "/orchid.jpg",
+    "alt": "Fresh exotic orchid flower blossoms (Orchidaceae)",
+    "photographer": "Unsplash",
+    "link": "https://unsplash.com",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "tulip": {
+    "url": "/tulip.jpg",
+    "alt": "Fresh tulip flower blossoms (Tulipa)",
+    "photographer": "Unsplash",
+    "link": "https://unsplash.com",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "tuberose": {
+    "url": "/tuberose.jpg",
+    "alt": "Fresh white tuberose / rajanigandha flower spikes (Polianthes tuberosa)",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org",
+    "source": "curated",
+    "savedAt": 1793791785562
+  },
+  "crossandra": {
+    "url": "/crossandra.jpg",
+    "alt": "Fresh bright orange crossandra / kanakambaram flowers (Crossandra infundibuliformis)",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org",
+    "source": "curated",
+    "savedAt": 1793791785562
   }
 }
