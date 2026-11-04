@@ -1914,14 +1914,26 @@ export async function handleRequest(req, res) {
 
   // Known Indian Agricultural Hubs & Cities coordinates lookup
   const INDIAN_COORDINATES = {
+    "bengaluru rural": { lat: 13.2300, lng: 77.5600, place: "Bengaluru Rural, Karnataka" },
+    "bangalore rural": { lat: 13.2300, lng: 77.5600, place: "Bengaluru Rural, Karnataka" },
+    "doddaballapur": { lat: 13.2924, lng: 77.5433, place: "Doddaballapur, Bengaluru Rural, Karnataka" },
+    "hoskote": { lat: 13.0699, lng: 77.7981, place: "Hoskote, Bengaluru Rural, Karnataka" },
+    "devanahalli": { lat: 13.2483, lng: 77.7126, place: "Devanahalli, Bengaluru Rural, Karnataka" },
+    "nelamangala": { lat: 13.0974, lng: 77.3917, place: "Nelamangala, Bengaluru Rural, Karnataka" },
+    "bengaluru urban": { lat: 12.9716, lng: 77.5946, place: "Bengaluru Urban, Karnataka" },
+    "bangalore urban": { lat: 12.9716, lng: 77.5946, place: "Bengaluru Urban, Karnataka" },
     "bengaluru": { lat: 12.9716, lng: 77.5946, place: "Bengaluru, Karnataka" },
     "bangalore": { lat: 12.9716, lng: 77.5946, place: "Bengaluru, Karnataka" },
     "kolar": { lat: 13.1367, lng: 78.1348, place: "Kolar, Karnataka" },
+    "chikkaballapura": { lat: 13.4355, lng: 77.7275, place: "Chikkaballapura, Karnataka" },
+    "ramanagara": { lat: 12.7209, lng: 77.2799, place: "Ramanagara, Karnataka" },
     "mysuru": { lat: 12.2958, lng: 76.6394, place: "Mysuru, Karnataka" },
     "mysore": { lat: 12.2958, lng: 76.6394, place: "Mysuru, Karnataka" },
     "hubballi": { lat: 15.3647, lng: 75.1240, place: "Hubballi, Karnataka" },
     "hubli": { lat: 15.3647, lng: 75.1240, place: "Hubballi, Karnataka" },
+    "dharwad": { lat: 15.4589, lng: 75.0078, place: "Dharwad, Karnataka" },
     "belagavi": { lat: 15.8497, lng: 74.4977, place: "Belagavi, Karnataka" },
+    "belgaum": { lat: 15.8497, lng: 74.4977, place: "Belagavi, Karnataka" },
     "shimla": { lat: 31.1048, lng: 77.1734, place: "Shimla, Himachal Pradesh" },
     "pune": { lat: 18.5204, lng: 73.8567, place: "Pune, Maharashtra" },
     "nashik": { lat: 19.9975, lng: 73.7898, place: "Nashik, Maharashtra" },
@@ -1940,14 +1952,28 @@ export async function handleRequest(req, res) {
     "ahmedabad": { lat: 23.0225, lng: 72.5714, place: "Ahmedabad, Gujarat" },
     "chandigarh": { lat: 30.7333, lng: 76.7794, place: "Chandigarh, Punjab" },
     "kolkata": { lat: 22.5726, lng: 88.3639, place: "Kolkata, West Bengal" },
-    "bhopal": { lat: 23.2599, lng: 77.4126, place: "Bhopal, Madhya Pradesh" }
+    "bhopal": { lat: 23.2599, lng: 77.4126, place: "Bhopal, Madhya Pradesh" },
+    "kozhikode": { lat: 11.2588, lng: 75.7804, place: "Kozhikode, Kerala" },
+    "kochi": { lat: 9.9312, lng: 76.2673, place: "Kochi, Kerala" },
+    "ranchi": { lat: 23.3441, lng: 85.3096, place: "Ranchi, Jharkhand" },
+    "bhubaneswar": { lat: 20.2961, lng: 85.8245, place: "Bhubaneswar, Odisha" },
+    "guwahati": { lat: 26.1445, lng: 91.7362, place: "Guwahati, Assam" },
+    "dehradun": { lat: 30.3165, lng: 78.0322, place: "Dehradun, Uttarakhand" },
+    "srinagar": { lat: 34.0837, lng: 74.7973, place: "Srinagar, Jammu and Kashmir" }
   };
+
+  function formatTitleCase(str) {
+    if (!str) return "Your Area";
+    return str.split(/[\s,]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+  }
 
   function generateSeasonalWeather(placeName, lat, lng) {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const now = new Date();
     const daily = [];
+    const baseHigh = (lat && lat > 30) ? 20 : 29;
+    const baseLow = (lat && lat > 30) ? 9 : 19;
     for (let i = 0; i < 7; i++) {
       const d = new Date(now.getTime() + i * 86400000);
       const isRain = (i % 3 === 1);
@@ -1955,89 +1981,105 @@ export async function handleRequest(req, res) {
         date: d.toISOString().slice(0, 10),
         dayName: days[d.getDay()],
         dateStr: d.getDate() + ' ' + months[d.getMonth()],
-        maxTemp: Math.round((28 + Math.sin(i * 1.5) * 2) * 10) / 10,
-        minTemp: Math.round((18 + Math.cos(i * 1.5) * 2) * 10) / 10,
-        rainProb: isRain ? 40 : 15,
-        windSpeed: 12.5,
-        condition: isRain ? "Partly Cloudy with Showers" : "Clear and Sunny",
-        icon: isRain ? "🌦️" : "☀️"
+        maxTemp: Math.round((baseHigh + Math.sin(i * 1.3) * 1.5) * 10) / 10,
+        minTemp: Math.round((baseLow + Math.cos(i * 1.3) * 1.2) * 10) / 10,
+        rainProb: isRain ? 45 : 15,
+        windSpeed: 11.5,
+        condition: isRain ? "Passing Showers" : "Partly Cloudy",
+        icon: isRain ? "🌦️" : "⛅"
       });
     }
     return {
-      place: placeName,
+      place: formatTitleCase(placeName),
       latitude: lat || 12.9716,
       longitude: lng || 77.5946,
       daily,
-      source: "Open-Meteo Meteorological Service (Asia/Kolkata)"
+      source: "Agricultural Meteorological Baseline"
     };
   }
 
   // 7-Day Live Weather Forecast for any Indian location or coordinates
   if (requestUrl.pathname === "/api/weather" && req.method === "GET") {
     try {
-      let lat = Number(requestUrl.searchParams.get("lat"))
-      let lng = Number(requestUrl.searchParams.get("lng") || requestUrl.searchParams.get("lon"))
-      const placeQuery = (requestUrl.searchParams.get("place") || requestUrl.searchParams.get("q") || "").trim()
+      const rawLat = requestUrl.searchParams.get("lat");
+      const rawLng = requestUrl.searchParams.get("lng") || requestUrl.searchParams.get("lon");
+      let lat = (rawLat !== null && rawLat !== "" && !isNaN(Number(rawLat))) ? Number(rawLat) : NaN;
+      let lng = (rawLng !== null && rawLng !== "" && !isNaN(Number(rawLng))) ? Number(rawLng) : NaN;
+      const placeQuery = (requestUrl.searchParams.get("place") || requestUrl.searchParams.get("q") || "").trim();
 
-      const cacheKey = `${lat}_${lng}_${placeQuery.toLowerCase()}`
-      const cached = weatherCache.get(cacheKey)
-      if (cached && Date.now() - cached.timestamp < weatherCacheTtlMs) {
-        res.writeHead(200).end(JSON.stringify(cached.data))
-        return
-      }
+      let resolvedPlace = formatTitleCase(placeQuery) || "Your Area";
 
-      let resolvedPlace = placeQuery || "Your Location"
-
-      // Check known dictionary first
-      const normalizedQuery = placeQuery.toLowerCase().trim()
+      // 1. Check known Indian hubs dictionary
+      const normalizedQuery = placeQuery.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
       if (INDIAN_COORDINATES[normalizedQuery]) {
-        lat = INDIAN_COORDINATES[normalizedQuery].lat
-        lng = INDIAN_COORDINATES[normalizedQuery].lng
-        resolvedPlace = INDIAN_COORDINATES[normalizedQuery].place
-      }
-
-      // If lat/lng still not valid, geocode using Open-Meteo Geocoding
-      if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-        const queryName = placeQuery || "Bengaluru"
-        try {
-          const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(queryName)}&count=1&country_code=IN`
-          const geoRes = await fetch(geoUrl, {
-            headers: { "Accept": "application/json", "User-Agent": "Farmezy/2.0" },
-            signal: AbortSignal.timeout(6000)
-          })
-          if (geoRes.ok) {
-            const geoData = await geoRes.json()
-            const hit = geoData.results?.[0]
-            if (hit) {
-              lat = hit.latitude
-              lng = hit.longitude
-              resolvedPlace = `${hit.name}${hit.admin1 ? ", " + hit.admin1 : ""}`
-            } else {
-              lat = 12.9719
-              lng = 77.5937
-              resolvedPlace = queryName
-            }
-          } else {
-            lat = 12.9719
-            lng = 77.5937
+        lat = INDIAN_COORDINATES[normalizedQuery].lat;
+        lng = INDIAN_COORDINATES[normalizedQuery].lng;
+        resolvedPlace = INDIAN_COORDINATES[normalizedQuery].place;
+      } else if (normalizedQuery) {
+        for (const [k, v] of Object.entries(INDIAN_COORDINATES)) {
+          if (normalizedQuery.includes(k) || k.includes(normalizedQuery)) {
+            lat = v.lat;
+            lng = v.lng;
+            resolvedPlace = v.place;
+            break;
           }
-        } catch {
-          lat = 12.9719
-          lng = 77.5937
         }
       }
 
-      let payload = null
+      // 2. Validate coordinates are within Indian boundaries (Lat 6-38, Lng 68-98)
+      const isCoordValid = Number.isFinite(lat) && Number.isFinite(lng) && lat >= 6 && lat <= 38 && lng >= 68 && lng <= 98;
+
+      if (!isCoordValid) {
+        const queryName = placeQuery.replace(/\b(rural|urban|city|district|mandi|market)\b/gi, "").trim() || placeQuery || "Bengaluru";
+        try {
+          const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(queryName)}&count=1&country_code=IN`;
+          const geoRes = await fetch(geoUrl, {
+            headers: { "Accept": "application/json", "User-Agent": "Farmezy/2.0" },
+            signal: AbortSignal.timeout(6000)
+          });
+          if (geoRes.ok) {
+            const geoData = await geoRes.json();
+            const hit = geoData.results?.[0];
+            if (hit && Number.isFinite(hit.latitude) && Number.isFinite(hit.longitude)) {
+              lat = hit.latitude;
+              lng = hit.longitude;
+              resolvedPlace = `${hit.name}${hit.admin1 ? ", " + hit.admin1 : ""}`;
+            } else {
+              lat = 12.9719;
+              lng = 77.5937;
+              resolvedPlace = formatTitleCase(placeQuery) || "Bengaluru, Karnataka";
+            }
+          } else {
+            lat = 12.9719;
+            lng = 77.5937;
+            resolvedPlace = formatTitleCase(placeQuery) || "Bengaluru, Karnataka";
+          }
+        } catch {
+          lat = 12.9719;
+          lng = 77.5937;
+          resolvedPlace = formatTitleCase(placeQuery) || "Bengaluru, Karnataka";
+        }
+      }
+
+      // Check cache with resolved coordinates
+      const cacheKey = `${lat.toFixed(2)}_${lng.toFixed(2)}_${resolvedPlace.toLowerCase()}`;
+      const cached = weatherCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < weatherCacheTtlMs) {
+        res.writeHead(200).end(JSON.stringify(cached.data));
+        return;
+      }
+
+      let payload = null;
 
       try {
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max,windspeed_10m_max&timezone=Asia%2FKolkata`
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max,windspeed_10m_max&timezone=Asia%2FKolkata`;
         const wRes = await fetch(weatherUrl, {
           headers: { "Accept": "application/json", "User-Agent": "Farmezy/2.0" },
           signal: AbortSignal.timeout(7000)
-        })
+        });
 
         if (wRes.ok) {
-          const wData = await wRes.json()
+          const wData = await wRes.json();
           const WMO_MAP = {
             0: { label: "Clear Sky", icon: "☀️" },
             1: { label: "Mainly Clear", icon: "🌤️" },
@@ -2055,16 +2097,16 @@ export async function handleRequest(req, res) {
             81: { label: "Moderate Showers", icon: "🌧️" },
             82: { label: "Violent Showers", icon: "⛈️" },
             95: { label: "Thunderstorm", icon: "⚡" }
-          }
+          };
 
-          const daily = []
-          const times = wData.daily?.time || []
+          const daily = [];
+          const times = wData.daily?.time || [];
           for (let i = 0; i < times.length; i++) {
-            const code = wData.daily.weathercode?.[i] ?? 1
-            const info = WMO_MAP[code] || { label: "Partly Cloudy", icon: "⛅" }
-            const dObj = new Date(times[i])
-            const dayName = dObj.toLocaleDateString("en-IN", { weekday: "short" })
-            const dateStr = dObj.toLocaleDateString("en-IN", { day: "numeric", month: "short" })
+            const code = wData.daily.weathercode?.[i] ?? 1;
+            const info = WMO_MAP[code] || { label: "Partly Cloudy", icon: "⛅" };
+            const dObj = new Date(times[i]);
+            const dayName = dObj.toLocaleDateString("en-IN", { weekday: "short" });
+            const dateStr = dObj.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
             daily.push({
               date: times[i],
@@ -2076,7 +2118,7 @@ export async function handleRequest(req, res) {
               windSpeed: Math.round((wData.daily.windspeed_10m_max?.[i] ?? 10) * 10) / 10,
               condition: info.label,
               icon: info.icon
-            })
+            });
           }
 
           payload = {
@@ -2085,23 +2127,23 @@ export async function handleRequest(req, res) {
             longitude: lng,
             daily,
             source: "Open-Meteo Meteorological Service (Asia/Kolkata)"
-          }
+          };
         }
       } catch (err) {
         console.warn('Live weather fetch warning, using seasonal fallback:', err.message);
       }
 
       if (!payload) {
-        payload = generateSeasonalWeather(resolvedPlace, lat, lng)
+        payload = generateSeasonalWeather(resolvedPlace, lat, lng);
       }
 
-      weatherCache.set(cacheKey, { timestamp: Date.now(), data: payload })
-      res.writeHead(200).end(JSON.stringify(payload))
+      weatherCache.set(cacheKey, { timestamp: Date.now(), data: payload });
+      res.writeHead(200).end(JSON.stringify(payload));
     } catch (err) {
-      const fallback = generateSeasonalWeather(placeQuery || "Your Area", 12.9716, 77.5946)
-      res.writeHead(200).end(JSON.stringify(fallback))
+      const fallback = generateSeasonalWeather(placeQuery || "Your Area", 12.9716, 77.5946);
+      res.writeHead(200).end(JSON.stringify(fallback));
     }
-    return
+    return;
   }
 
   // Live Reverse Geocoding with multi-tier providers and Indian spatial fallback

@@ -129,10 +129,28 @@ const APMC_CROP_ALIASES = {
   "apple": "apple",
   "pomegranate": "pomegranate",
   "coconut": "coconut",
-  "watermelon": "karbuja(musk melon)",
+  "watermelon": "water melon",
+  "water melon": "water melon",
   "muskmelon": "karbuja(musk melon)",
+  "banana green": "banana - green",
+  "green banana": "banana - green",
+  "plantain": "banana - green",
+  "raw banana": "banana - green",
+  "kachha kela": "banana - green",
   "turmeric": "turmeric",
   "black pepper": "black pepper",
+  "chana": "bengal gram(gram)(whole)",
+  "channa": "bengal gram(gram)(whole)",
+  "bengal gram": "bengal gram(gram)(whole)",
+  "bengal gram (gram)": "bengal gram(gram)(whole)",
+  "gram": "bengal gram(gram)(whole)",
+  "chickpea": "bengal gram(gram)(whole)",
+  "chickpeas": "bengal gram(gram)(whole)",
+  "kabuli chana": "kabuli chana(chickpeas-white)",
+  "moong": "green gram (moong)(whole)",
+  "green gram": "green gram (moong)(whole)",
+  "urad": "black gram (urd beans)(whole)",
+  "black gram": "black gram (urd beans)(whole)",
   "chana dal": "bengal gram dal (chana dal)",
   "bengal gram dal": "bengal gram dal (chana dal)",
   "moong dal": "green gram dal (moong dal)",
@@ -630,6 +648,19 @@ export async function forecastPrice({ commodity = "", state = "", district = "",
   if (!baselinePrice) {
     for (const [k, v] of Object.entries(baselines)) {
       if (k === aliasedKey || k === commKey || k.startsWith(aliasedKey + "(") || k.startsWith(commKey + "(") || k.startsWith(aliasedKey + " -") || k.startsWith(commKey + " ")) {
+        baselineKey = k
+        baselinePrice = v
+        break
+      }
+    }
+  }
+
+  if (!baselinePrice) {
+    const cleanCommAlpha = commKey.replace(/[^a-z0-9]/g, "")
+    const cleanAliasedAlpha = aliasedKey.replace(/[^a-z0-9]/g, "")
+    for (const [k, v] of Object.entries(baselines)) {
+      const kAlpha = k.replace(/[^a-z0-9]/g, "")
+      if (kAlpha.startsWith(cleanAliasedAlpha) || kAlpha.startsWith(cleanCommAlpha) || kAlpha.includes(cleanAliasedAlpha) || kAlpha.includes(cleanCommAlpha)) {
         baselineKey = k
         baselinePrice = v
         break
