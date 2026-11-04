@@ -83,13 +83,13 @@ const exactVarietyMap = {
   "apple::royal delicious": { url: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=640&q=75", alt: "Apple", source: "Curated Variety Library" },
 
   // Flowers registered varieties
-  "rose(loose))::rose(loose)": { url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=640&q=75", alt: "Rose(Loose))", source: "Curated Variety Library" },
-  "rose(loose))::other": { url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=640&q=75", alt: "Rose(Loose))", source: "Curated Variety Library" },
-  "marigold(loose)::marigold(loose)": { url: "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=640&q=75", alt: "Marigold(loose)", source: "Curated Variety Library" },
-  "marigold(loose)::other": { url: "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=640&q=75", alt: "Marigold(loose)", source: "Curated Variety Library" },
-  "jasmine::jasmine": { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Jasminum_sambac_in_Kadavoor.jpg/640px-Jasminum_sambac_in_Kadavoor.jpg", alt: "Jasmine", source: "Curated Variety Library" },
-  "jasmine::juhi": { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Jasminum_sambac_in_Kadavoor.jpg/640px-Jasminum_sambac_in_Kadavoor.jpg", alt: "Jasmine", source: "Curated Variety Library" },
-  "jasmine::other": { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Jasminum_sambac_in_Kadavoor.jpg/640px-Jasminum_sambac_in_Kadavoor.jpg", alt: "Jasmine", source: "Curated Variety Library" },
+  "rose(loose))::rose(loose)": { url: "/rose.jpg", alt: "Rose(Loose))", source: "Farmzy Local Asset" },
+  "rose(loose))::other": { url: "/rose.jpg", alt: "Rose(Loose))", source: "Farmzy Local Asset" },
+  "marigold(loose)::marigold(loose)": { url: "/marigold.jpg", alt: "Marigold(loose)", source: "Farmzy Local Asset" },
+  "marigold(loose)::other": { url: "/marigold.jpg", alt: "Marigold(loose)", source: "Farmzy Local Asset" },
+  "jasmine::jasmine": { url: "/jasmine.jpg", alt: "Jasmine", source: "Farmzy Local Asset" },
+  "jasmine::juhi": { url: "/jasmine.jpg", alt: "Jasmine", source: "Farmzy Local Asset" },
+  "jasmine::other": { url: "/jasmine.jpg", alt: "Jasmine", source: "Farmzy Local Asset" },
 
   // Dry Fruits registered varieties
   "almond(badam)::almond(badam)": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Almond(Badam)", source: "Curated Variety Library" },
@@ -122,7 +122,8 @@ const curatedCommodities = {
   "potato": { url: "/potato.jpg", alt: "Potato", source: "Farmzy Local Asset" },
   "carrot": { url: "/carrot.jpg", alt: "Carrot", source: "Farmzy Local Asset" },
   "cabbage": { url: "/cabbage.jpg", alt: "Cabbage", source: "Farmzy Local Asset" },
-  "ginger(green)": { url: "/ginger.jpg", alt: "Ginger(Green)", source: "Farmzy Local Asset" },
+  "ginger(green)": { url: "/ginger_green.jpg", alt: "Ginger(Green)", source: "Farmzy Local Asset" },
+  "ginger": { url: "/ginger.jpg", alt: "Ginger", source: "Farmzy Local Asset" },
   "ginger(dry)": { url: "/ginger.jpg", alt: "Ginger(Dry)", source: "Farmzy Local Asset" },
   "bhindi(ladies finger)": { url: "/ladies_finger.jpg", alt: "Bhindi(Ladies Finger)", source: "Farmzy Local Asset" },
   "cauliflower": { url: "https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=640&q=75", alt: "Cauliflower", source: "Curated Photography" },
@@ -169,12 +170,13 @@ const curatedCommodities = {
   "mango": { url: "https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=640&q=75", alt: "Mango", source: "Curated Photography" },
   "grapes": { url: "https://images.unsplash.com/photo-1537640538966-79f369143f8f?auto=format&fit=crop&w=640&q=75", alt: "Grapes", source: "Curated Photography" },
   "orange": { url: "https://images.unsplash.com/photo-1547514701-42782101795e?auto=format&fit=crop&w=640&q=75", alt: "Orange", source: "Curated Photography" },
-  "papaya": { url: "https://images.unsplash.com/photo-1517282009859-f000ec3b26fe?auto=format&fit=crop&w=640&q=75", alt: "Papaya", source: "Curated Photography" },
+  "papaya": { url: "/papaya.jpg", alt: "Papaya", source: "Farmzy Local Asset" },
+  "tamarind": { url: "/tamarind.jpg", alt: "Tamarind", source: "Farmzy Local Asset" },
   "pomegranate": { url: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=640&q=75", alt: "Pomegranate", source: "Curated Photography" },
   "guava": { url: "https://images.unsplash.com/photo-1536511136775-27a3c3167104?auto=format&fit=crop&w=640&q=75", alt: "Guava", source: "Curated Photography" },
   "watermelon": { url: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=640&q=75", alt: "Watermelon", source: "Curated Photography" },
   "pineapple": { url: "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?auto=format&fit=crop&w=640&q=75", alt: "Pineapple", source: "Curated Photography" },
-  "tender coconut": { url: "https://images.unsplash.com/photo-1525385133512-2f3bdd039054?auto=format&fit=crop&w=640&q=75", alt: "Tender Coconut", source: "Curated Photography" },
+  "tender coconut": { url: "/tender_coconut.jpg", alt: "Tender Coconut", source: "Farmzy Local Asset" },
 
   // Pulses
   "bengal gram(gram)(whole)": { url: "https://images.unsplash.com/photo-1585996746979-373307684065?auto=format&fit=crop&w=640&q=75", alt: "Bengal Gram(Gram)(Whole)", source: "Curated Photography" },
@@ -200,14 +202,36 @@ const curatedCommodities = {
   "coriander(leaves)": { url: "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=640&q=75", alt: "Coriander(Leaves)", source: "Curated Photography" },
   "cummin seed(jeera)": { url: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=640&q=75", alt: "Cummin Seed(Jeera)", source: "Curated Photography" },
   "clove": { url: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=640&q=75", alt: "Clove", source: "Curated Photography" },
-  "coconut": { url: "https://images.unsplash.com/photo-1544378730-8b5104b18790?auto=format&fit=crop&w=640&q=75", alt: "Coconut", source: "Curated Photography" },
+  "coconut": { url: "/coconut.jpg", alt: "Coconut", source: "Farmzy Local Asset" },
 
   // Flowers
-  "rose(loose))": { url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=640&q=75", alt: "Rose(Loose))", source: "Curated Photography" },
-  "marigold(loose)": { url: "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=640&q=75", alt: "Marigold(loose)", source: "Curated Photography" },
-  "jasmine": { url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Jasminum_sambac_in_Kadavoor.jpg/640px-Jasminum_sambac_in_Kadavoor.jpg", alt: "Jasmine", source: "Curated Photography" },
+  "rose(loose))": { url: "/rose.jpg", alt: "Rose(Loose))", source: "Farmzy Local Asset" },
+  "rose(local)": { url: "/rose.jpg", alt: "Rose(Local)", source: "Farmzy Local Asset" },
+  "rose(tata)": { url: "/rose.jpg", alt: "Rose(Tata)", source: "Farmzy Local Asset" },
+  "rose": { url: "/rose.jpg", alt: "Rose", source: "Farmzy Local Asset" },
+  "marigold(loose)": { url: "/marigold.jpg", alt: "Marigold(loose)", source: "Farmzy Local Asset" },
+  "marigold(calcutta)": { url: "/marigold.jpg", alt: "Marigold(Calcutta)", source: "Farmzy Local Asset" },
+  "marigold": { url: "/marigold.jpg", alt: "Marigold", source: "Farmzy Local Asset" },
+  "jasmine": { url: "/jasmine.jpg", alt: "Jasmine", source: "Farmzy Local Asset" },
+  "kakada": { url: "/jasmine.jpg", alt: "Kakada", source: "Farmzy Local Asset" },
   "gladiolus(cut flower)": { url: "https://images.unsplash.com/photo-1508615039623-a25605d2b022?auto=format&fit=crop&w=640&q=75", alt: "Gladiolus(Cut Flower)", source: "Curated Photography" },
-  "carnation": { url: "https://images.unsplash.com/photo-1561181286-d3fee7d55364?auto=format&fit=crop&w=640&q=75", alt: "Carnation", source: "Curated Photography" },
+  "carnation": { url: "/carnation.jpg", alt: "Carnation", source: "Farmzy Local Asset" },
+  "chrysanthemum": { url: "/chrysanthemum.jpg", alt: "Chrysanthemum", source: "Farmzy Local Asset" },
+  "chrysanthemum(loose)": { url: "/chrysanthemum.jpg", alt: "Chrysanthemum(Loose)", source: "Farmzy Local Asset" },
+  "gerbera": { url: "/gerbera.jpg", alt: "Gerbera", source: "Farmzy Local Asset" },
+  "gladiolus(cut flower)": { url: "/gladiolus.jpg", alt: "Gladiolus(Cut Flower)", source: "Farmzy Local Asset" },
+  "gladiolus bulb": { url: "/gladiolus.jpg", alt: "Gladiolus Bulb", source: "Farmzy Local Asset" },
+  "lotus": { url: "/lotus.jpg", alt: "Lotus", source: "Farmzy Local Asset" },
+  "lotus sticks": { url: "/lotus.jpg", alt: "Lotus Sticks", source: "Farmzy Local Asset" },
+  "orchid": { url: "/orchid.jpg", alt: "Orchid", source: "Farmzy Local Asset" },
+  "tuberose": { url: "/tuberose.jpg", alt: "Tuberose", source: "Farmzy Local Asset" },
+  "tube rose(double)": { url: "/tuberose.jpg", alt: "Tube Rose(Double)", source: "Farmzy Local Asset" },
+  "tube rose(loose)": { url: "/tuberose.jpg", alt: "Tube Rose(Loose)", source: "Farmzy Local Asset" },
+  "tube rose(single)": { url: "/tuberose.jpg", alt: "Tube Rose(Single)", source: "Farmzy Local Asset" },
+  "tube flower": { url: "/tuberose.jpg", alt: "Tube Flower", source: "Farmzy Local Asset" },
+  "tulip": { url: "/tulip.jpg", alt: "Tulip", source: "Farmzy Local Asset" },
+  "crossandra": { url: "/crossandra.jpg", alt: "Crossandra", source: "Farmzy Local Asset" },
+  "amaranthus": { url: "/amaranthus.jpg", alt: "Amaranthus", source: "Farmzy Local Asset" },
 
   // Dry Fruits
   "almond(badam)": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Almond(Badam)", source: "Curated Photography" },
@@ -220,7 +244,7 @@ const curatedCommodities = {
   "tea": { url: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=640&q=75", alt: "Tea", source: "Curated Photography" },
 
   // Fibre Crops
-  "cotton": { url: "https://images.unsplash.com/photo-1606041008023-472dfb5e530f?auto=format&fit=crop&w=640&q=75", alt: "Cotton", source: "Curated Photography" },
+  "cotton": { url: "/cotton.jpg", alt: "Cotton", source: "Farmzy Local Asset" },
   "jute": { url: "https://images.unsplash.com/photo-1606041008023-472dfb5e530f?auto=format&fit=crop&w=640&q=75", alt: "Jute", source: "Curated Photography" },
 
   // Drug and Narcotics
