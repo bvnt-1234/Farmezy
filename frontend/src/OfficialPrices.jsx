@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import agmarknetCatalogue from "../../backend/data/agmarknet-catalogue.json"
+import {
+  resolveVarietyImage,
+  resolveCommodityImage,
+  getCategorySvgDataUri,
+  getCommoditySymbol,
+  categoryFallbackImages
+} from "./cropImageCatalog.js"
 
 const states = [
   "Andaman and Nicobar Islands","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh",
@@ -10,10 +17,10 @@ const states = [
 ]
 
 const fallbackCategories = [
-  "Vegetables", "Fruits", "Flowers", "Others", "Forest Products",
+  "Vegetables", "Fruits", "Flowers", "Forest Products",
   "Drug and Narcotics", "Pulses", "Cereals", "Spices",
-  "Medicinal and Aromatic Plants", "Oil Seeds", "Live Stock,Poultry,Fisheries",
-  "Dry Fruits", "Oils and Fats", "Fibre Crops", "Beverages"
+  "Oil Seeds", "Live Stock,Poultry,Fisheries",
+  "Dry Fruits", "Oils and Fats", "Fibre Crops", "Beverages", "Others"
 ]
 
 export default function OfficialPrices({ location, preview = false, onViewAll }) {
@@ -23,25 +30,27 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   const [filters, setFilters] = useState(() => ({
     commodity: "",
     variety: "",
-    query: "",
     category: "",
     state: defaultState,
     district: defaultDistrict,
-    market: ""
+    market: "",
+    grade: "",
+    date: ""
   }))
   const [applied, setApplied] = useState(() => ({
     commodity: "",
     variety: "",
-    query: "",
     category: "",
     state: defaultState,
     district: defaultDistrict,
-    market: ""
+    market: "",
+    grade: "",
+    date: ""
   }))
 
-  const [records, setRecords] = useState([])
-  const [total, setTotal] = useState(null)
-  const [offset, setOffset] = useState(0)
+  const [allRecords, setAllRecords] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(24)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [stateFallback, setStateFallback] = useState(false)
@@ -50,175 +59,518 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   const [isLive, setIsLive] = useState(true)
   const [sourceInfo, setSourceInfo] = useState("")
   const [dataSource, setDataSource] = useState(null)
-  const [commodityOptions, setCommodityOptions] = useState(() => {
-    if (Array.isArray(agmarknetCatalogue?.commodities)) {
-      return agmarknetCatalogue.commodities.map(c => ({
-        name: c.name,
-        category: c.category || c.group_name || "Others",
-        group_name: c.group_name || c.category || "Others",
-        id: c.id
-      }))
-    }
-    return []
-  })
   const [categories, setCategories] = useState(fallbackCategories)
-  const [varieties, setVarieties] = useState([])
   const [varietySearch, setVarietySearch] = useState("")
-  const [cropImages, setCropImages] = useState({})
+  const [viewMode, setViewMode] = useState("cards") // "cards", "grid", "table", "catalogue"
+  const [cardLimit, setCardLimit] = useState(60)
+  const [globalPriceMap, setGlobalPriceMap] = useState({})
+  const [globalCommodityPriceMap, setGlobalCommodityPriceMap] = useState({})
+  const [lastUpdated, setLastUpdated] = useState("")
+  const [availableStates, setAvailableStates] = useState(states)
+  const [historicalFallback, setHistoricalFallback] = useState(null)
+  const [availableDistricts, setAvailableDistricts] = useState([])
+  const [availableGrades, setAvailableGrades] = useState(["FAQ", "Grade A", "Grade B", "Medium", "Large", "Small", "Local"])
 
-  // Update filters if location changes on profile
+  // Quick lookup for category by commodity
+  const commodityCategoryMap = useMemo(() => {
+    const map = new Map()
+    if (Array.isArray(agmarknetCatalogue?.commodities)) {
+      agmarknetCatalogue.commodities.forEach(c => {
+        const cat = c.category || c.group_name || ""
+        const norm = String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+        if (norm) map.set(norm, cat)
+      })
+    }
+    return map
+  }, [])
+
+  function getCategoryForCommodity(commName) {
+    if (!commName) return ""
+    const norm = String(commName || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    const cat = commodityCategoryMap.get(norm)
+    if (cat) return cat
+    if (/tea|coffee|cocoa|chicory/i.test(commName)) return "Beverages"
+    if (/ashwagandha|aloe|tulsi|lemongrass|neem|senna|sonamukhi|isabgol|isabgul|psyllium|mint|pudina|mentha|amla|nelli\s*kai|muesli|safed\s*musli|mulethi|muleti|giloy|tinospora|shatavari|asparagus|stevia|kutki|coleus|karanja|pippali|ashoka|atis|harad|haritaki|myrobolan|adulsa|akarkara|bhringraj|shankhpushpi|medicinal|aromatic/i.test(commName)) return "Others"
+    if (/honey|shahad|bamboo|gond|gum|lac|tamarind|chironji|behada|harrah|wood|timber/i.test(commName)) return "Forest Products"
+    if (/marigold|rose|jasmine|chrysanthemum|shevanti|tuberose|gladiolus|carnation|gerbera/i.test(commName)) return "Flowers"
+    if (/cow|cattle|bull|calf|buffalo|goat|sheep|chicken|cock|hen|duck|fish|prawn|crab|livestock/i.test(commName)) return "Live Stock,Poultry,Fisheries"
+    if (/almond|cashew|walnut|raisin|date|pistachio|anjeer|fig/i.test(commName)) return "Dry Fruits"
+    if (/mustard\s*oil|coconut\s*oil|oil|ghee|butter|fat|dalda|palmolein/i.test(commName)) return "Oils and Fats"
+    if (/gram|chana|arhar|tur|moong|urad|masoor|lentil|pulse|pea|cowpea|rajma/i.test(commName)) return "Pulses"
+    return ""
+  }
+
+  function getPriceBadge(r) {
+    if (!r) return { label: "🏛️ Wholesale Mandi", bg: "#15803d", color: "#ffffff", verifiedText: "✓ Verified Mandi Trade", isVerified: true }
+    const pt = String(r.price_type || "").toLowerCase()
+    const st = String(r.source_type || "").toLowerCase()
+    const isStatic = Boolean(r.is_static_reference || st === "static_reference" || pt.includes("static") || pt.includes("unverified"))
+    const isHist = Boolean(r.is_historical || st === "historical" || pt.includes("historical"))
+
+    if (isStatic) {
+      return {
+        label: "📋 Reference / Unverified",
+        bg: "#64748b",
+        color: "#ffffff",
+        verifiedText: "⚠️ Unverified Reference Benchmark",
+        isVerified: false
+      }
+    }
+    if (isHist) {
+      return {
+        label: "📜 Historical Benchmark",
+        bg: "#b45309",
+        color: "#ffffff",
+        verifiedText: "🕒 Historical APMC Benchmark",
+        isVerified: false
+      }
+    }
+    if (pt.includes("tea board") || pt.includes("tea auction") || (r.source_name && r.source_name.toLowerCase().includes("tea board"))) {
+      return {
+        label: "🔨 Tea Board Public Auction Price",
+        bg: "#7c3aed",
+        color: "#ffffff",
+        verifiedText: "✓ Official Tea Board Public Auction",
+        isVerified: true
+      }
+    }
+    if (pt.includes("e-charak") || pt.includes("echarak") || (r.source_name && r.source_name.toLowerCase().includes("charak"))) {
+      return {
+        label: "🌿 e-Charak Fortnightly Benchmark",
+        bg: "#059669",
+        color: "#ffffff",
+        verifiedText: "✓ Verified NMPB e-Charak Benchmark",
+        isVerified: true
+      }
+    }
+    if (st === "auction" || pt.includes("auction")) {
+      return {
+        label: "🔨 Auction Price",
+        bg: "#9333ea",
+        color: "#ffffff",
+        verifiedText: "✓ Verified Electronic Auction",
+        isVerified: true
+      }
+    }
+    if (st === "procurement" || pt.includes("procurement") || pt.includes("msp")) {
+      return {
+        label: "📦 Government Procurement (MSP)",
+        bg: "#0284c7",
+        color: "#ffffff",
+        verifiedText: "✓ Official MSP Procurement Benchmark",
+        isVerified: true
+      }
+    }
+    if (st === "cooperative" || pt.includes("cooperative")) {
+      return {
+        label: "🤝 Cooperative Benchmark",
+        bg: "#d97706",
+        color: "#ffffff",
+        verifiedText: "✓ Cooperative Trading Rate",
+        isVerified: true
+      }
+    }
+    if (st === "farmgate" || pt.includes("farmgate") || pt.includes("farm gate")) {
+      return {
+        label: "🚜 Farmgate Benchmark",
+        bg: "#0d9488",
+        color: "#ffffff",
+        verifiedText: "✓ Farmgate Benchmark Price",
+        isVerified: true
+      }
+    }
+    if (st === "retail" || pt.includes("retail")) {
+      return {
+        label: "🛒 Retail Price",
+        bg: "#e11d48",
+        color: "#ffffff",
+        verifiedText: "✓ Retail Market Price",
+        isVerified: true
+      }
+    }
+    return {
+      label: "🏛️ Wholesale Mandi",
+      bg: "#15803d",
+      color: "#ffffff",
+      verifiedText: "✓ Verified Mandi Trade",
+      isVerified: true
+    }
+  }
+
+
+  // Only apply location override if preview is true (e.g. Home page "Prices near you")
   useEffect(() => {
-    if (location?.state && (!applied.state || applied.state === "Karnataka")) {
+    if (preview && location?.state) {
       setFilters(prev => ({ ...prev, state: location.state, district: location.district || prev.district }))
       setApplied(prev => ({ ...prev, state: location.state, district: location.district || prev.district }))
     }
-  }, [location?.state, location?.district, applied.state])
+  }, [preview, location?.state, location?.district])
 
-  const fetchPage = useCallback(async (nextOffset, append) => {
+  // Load all available official AGMARKNET mandi prices from Government backend
+  const fetchRecords = useCallback(async () => {
     setLoading(true)
     setError("")
-    if (!append) {
-      setStateFallback(false)
-      setSessionFallback(false)
-    }
+    setStateFallback(false)
+    setSessionFallback(false)
     try {
-      const params = new URLSearchParams({ limit: "150", offset: String(nextOffset) })
-      if (applied.state && applied.state !== "All India") params.set("state", applied.state.trim())
-      if (applied.district) params.set("district", applied.district.trim())
-      if (applied.commodity) params.set("commodity", applied.commodity.trim())
-      if (applied.variety) params.set("variety", applied.variety.trim())
-      if (applied.query) params.set("q", applied.query.trim())
-      if (applied.category) params.set("category", applied.category)
-      if (applied.market) params.set("market", applied.market.trim())
-
-      let response = await fetch("/api/mandi-prices?" + params.toString())
-      let payload = await readPriceResponse(response)
+      // Retrieve complete dataset from Government APMC backend service
+      const response = await fetch("/api/mandi-prices?limit=all")
+      const payload = await readPriceResponse(response)
       let rows = Array.isArray(payload.records) ? payload.records : []
 
-      if (payload.district_fallback) {
-        setStateFallback(true)
+      // If backend returned paginated subset, retrieve remaining records until all are fetched
+      const reportedTotal = Number(payload.total ?? payload.total_count ?? rows.length)
+      if (rows.length < reportedTotal) {
+        const batchSize = 1000
+        let currentOffset = rows.length
+        while (currentOffset < reportedTotal) {
+          const nextRes = await fetch(`/api/mandi-prices?limit=${batchSize}&offset=${currentOffset}`)
+          if (!nextRes.ok) break
+          const nextPayload = await readPriceResponse(nextRes)
+          const nextRows = Array.isArray(nextPayload.records) ? nextPayload.records : []
+          if (!nextRows.length) break
+          rows = rows.concat(nextRows)
+          currentOffset += nextRows.length
+        }
       }
+
+      setAllRecords(rows)
+      if (payload.historical_fallback) setHistoricalFallback(payload.historical_fallback)
+      else setHistoricalFallback(null)
+      if (payload.district_fallback) setStateFallback(true)
       if (payload.session_fallback) {
         setSessionFallback(true)
         setSessionDate(payload.session_date || "")
       }
+      if (payload.last_successful_refresh) setLastUpdated(payload.last_successful_refresh)
       setIsLive(payload.live !== false)
       setSourceInfo(payload.source || "")
-      if (!response.ok) {
-        throw new Error(payload.error || "The Government market-price service is unavailable.")
+      setDataSource({ live: payload.live !== false, source: payload.source || "Source: Government of India — AGMARKNET" })
+
+      // Generate dynamic available options from all fetched rows
+      if (rows.length > 0) {
+        const reportingStates = [...new Set(rows.map(r => r.state).filter(Boolean))].sort()
+        const reportingDistricts = [...new Set(rows.map(r => r.district).filter(Boolean))].sort()
+        const reportingGrades = [...new Set(rows.map(r => r.grade).filter(Boolean))].sort()
+        if (reportingStates.length > 0) setAvailableStates(reportingStates)
+        if (reportingDistricts.length > 0) setAvailableDistricts(reportingDistricts)
+        if (reportingGrades.length > 0) setAvailableGrades(reportingGrades)
       }
 
-      setRecords(current => append ? [...current, ...rows] : rows)
-      setTotal(Number(payload.total ?? payload.total_count ?? rows.length))
-      setDataSource({ live: payload.live !== false, source: payload.source || "AGMARKNET · Government of India" })
-      if (Array.isArray(payload.commodity_options) && payload.commodity_options.length > 0) {
-        setCommodityOptions(payload.commodity_options)
+      if (payload.price_map && typeof payload.price_map === "object") {
+        setGlobalPriceMap(payload.price_map)
+      }
+      if (payload.commodity_price_map && typeof payload.commodity_price_map === "object") {
+        setGlobalCommodityPriceMap(payload.commodity_price_map)
       }
       if (Array.isArray(payload.categories) && payload.categories.length > 0) {
         setCategories(payload.categories)
       }
-      // CRITICAL: We NEVER overwrite `varieties` with today's observed mandi rows here!
-      // The complete Government Variety Master for the selected commodity is managed exclusively
-      // by the commodity selection effect to guarantee all registered varieties remain visible.
-      setOffset(nextOffset + rows.length)
     } catch (err) {
       setError(err.message || "Could not load official mandi prices.")
-      if (!append) { setRecords([]); setTotal(null) }
+      setAllRecords([])
     } finally {
       setLoading(false)
     }
-  }, [applied])
+  }, [])
 
   useEffect(() => {
-    fetchPage(0, false)
-  }, [fetchPage])
+    fetchRecords()
+  }, [fetchRecords])
 
-  useEffect(() => {
-    const params = new URLSearchParams()
-    if (applied.category) params.set("category", applied.category)
-    const controller = new AbortController()
-    fetch("/api/commodities?" + params, { signal: controller.signal })
-      .then(response => response.ok ? response.json() : null)
-      .then(payload => {
-        if (!payload || controller.signal.aborted) return
-        if (Array.isArray(payload.commodities) && payload.commodities.length > 0) {
-          setCommodityOptions(payload.commodities)
-        }
-        if (Array.isArray(payload.categories) && payload.categories.length > 0) {
-          setCategories(payload.categories)
+
+  // Complete list of commodity options derived from official catalogue + reporting records
+  const commodityOptions = useMemo(() => {
+    const map = new Map()
+    if (Array.isArray(agmarknetCatalogue?.commodities)) {
+      agmarknetCatalogue.commodities.forEach(c => {
+        const norm = String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+        if (norm && !map.has(norm)) {
+          map.set(norm, {
+            name: c.name,
+            category: c.category || c.group_name || getCategoryForCommodity(c.name),
+            group_name: c.group_name || c.category || "General",
+            id: c.id
+          })
         }
       })
-      .catch(error => { if (error.name !== "AbortError") {} })
-    return () => controller.abort()
-  }, [applied.category])
-
-  useEffect(() => {
-    const comm = (filters.commodity || "").trim()
-    if (preview || comm.length < 2) {
-      setVarieties([])
-      setVarietySearch("")
-      return
     }
-    const controller = new AbortController()
-    const timer = setTimeout(async () => {
-      const params = new URLSearchParams({ commodity: comm })
-      try {
-        const response = await fetch("/api/varieties?" + params, { signal: controller.signal })
-        const payload = response.ok ? await response.json() : null
-        if (payload && !controller.signal.aborted) {
-          const names = Array.isArray(payload.varieties)
-            ? payload.varieties.map(item => typeof item === "string" ? item : (item.name || item.variety_name))
-            : (Array.isArray(payload.variety_names) ? payload.variety_names : [])
-          const uniqueNames = [...new Set(names.map(n => String(n).trim()).filter(Boolean))]
-            .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
-          setVarieties(uniqueNames)
-        }
-      } catch (error) {
-        if (error.name !== "AbortError") setVarieties([])
+    allRecords.forEach(r => {
+      const norm = String(r.commodity || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+      if (norm && !map.has(norm)) {
+        const cat = r.category || getCategoryForCommodity(r.commodity) || "Vegetables"
+        map.set(norm, {
+          name: r.commodity,
+          category: cat,
+          group_name: cat,
+          id: r.commodity
+        })
       }
-    }, 100)
-    return () => { clearTimeout(timer); controller.abort() }
-  }, [preview, filters.commodity])
+    })
+    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" }))
+  }, [allRecords, commodityCategoryMap])
 
-  // Distinct crop cards to showcase vegetables with photos & modal rates
-  const cropCards = [...new Map(records.filter(r => r.commodity).map(r => [r.commodity, r])).values()].slice(0, 8)
-  const cropNames = cropCards.map(record => record.commodity).join(",")
+  // Dynamic varieties for selected commodity
+  const varieties = useMemo(() => {
+    const comm = (filters.commodity || "").trim()
+    if (!comm) return []
+    const commNorm = comm.toLowerCase().replace(/[^a-z0-9]/g, "")
+    const set = new Set()
 
-  useEffect(() => {
-    if (!cropNames) return
-    let cancelled = false
-    fetch("/api/crop-images?crops=" + encodeURIComponent(cropNames))
-      .then(response => response.ok ? response.json() : null)
-      .then(payload => {
-        if (!cancelled && payload?.images) setCropImages(payload.images)
+    allRecords.forEach(r => {
+      const cn = String(r.commodity || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+      if (cn === commNorm || cn.includes(commNorm) || commNorm.includes(cn)) {
+        if (r.variety && r.variety.trim()) set.add(r.variety.trim())
+      }
+    })
+
+    const catComm = (agmarknetCatalogue?.commodities || []).find(c => {
+      const cn = String(c.name || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+      if (cn === commNorm || cn.includes(commNorm) || commNorm.includes(cn)) return true
+      if (Array.isArray(c.aliases) && c.aliases.some(a => String(a).toLowerCase().replace(/[^a-z0-9]/g, "") === commNorm)) return true
+      return false
+    })
+    if (catComm) {
+      const vList = catComm.variety_names || (catComm.varieties || []).map(v => typeof v === "string" ? v : v.name)
+      vList.forEach(v => {
+        if (v && v.trim()) set.add(v.trim())
       })
-      .catch(() => {})
-    return () => { cancelled = true }
-  }, [cropNames])
+    }
+
+    return [...set].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+  }, [filters.commodity, allRecords])
+
+  // Dynamic districts based on chosen state
+  const filteredDistricts = useMemo(() => {
+    if (!filters.state || filters.state === "All India") {
+      return availableDistricts
+    }
+    const stateLower = filters.state.toLowerCase()
+    const dists = new Set(
+      allRecords
+        .filter(r => String(r.state || "").toLowerCase() === stateLower)
+        .map(r => r.district)
+        .filter(Boolean)
+    )
+    return [...dists].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+  }, [allRecords, filters.state, availableDistricts])
+
+  // Filter all records with AND logic across all active criteria
+  const filteredRecords = useMemo(() => {
+    let result = allRecords
+
+    if (applied.category) {
+      const catLower = applied.category.toLowerCase().replace(/[^a-z0-9]/g, "")
+      result = result.filter(r => {
+        const cat = (r.category || getCategoryForCommodity(r.commodity) || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+        return cat === catLower
+      })
+    }
+
+    if (applied.commodity) {
+      const commLower = applied.commodity.toLowerCase().replace(/[^a-z0-9]/g, "")
+      result = result.filter(r => {
+        const rComm = String(r.commodity || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+        return rComm === commLower || rComm.includes(commLower) || commLower.includes(rComm)
+      })
+    }
+
+    if (applied.variety) {
+      const varLower = applied.variety.toLowerCase().replace(/[^a-z0-9]/g, "")
+      result = result.filter(r => String(r.variety || "").toLowerCase().replace(/[^a-z0-9]/g, "") === varLower)
+    }
+
+    if (applied.state && applied.state !== "All India") {
+      const stateLower = applied.state.toLowerCase()
+      result = result.filter(r => String(r.state || "").toLowerCase() === stateLower)
+    }
+
+    if (applied.district) {
+      const distLower = applied.district.toLowerCase()
+      result = result.filter(r => String(r.district || "").toLowerCase() === distLower)
+    }
+
+    if (applied.market) {
+      const mktLower = applied.market.toLowerCase().replace(/[^a-z0-9]/g, "")
+      result = result.filter(r => String(r.market || "").toLowerCase().replace(/[^a-z0-9]/g, "").includes(mktLower))
+    }
+
+    if (applied.grade && applied.grade !== "All Grades") {
+      const gradeLower = applied.grade.toLowerCase().replace(/[^a-z0-9]/g, "")
+      result = result.filter(r => String(r.grade || "").toLowerCase().replace(/[^a-z0-9]/g, "") === gradeLower)
+    }
+
+    if (applied.date) {
+      result = result.filter(r => String(r.arrival_date || "").includes(applied.date.trim()))
+    }
+
+
+
+    return result
+  }, [allRecords, applied, commodityCategoryMap])
+
+  const total = allRecords.length === 0 && loading ? null : filteredRecords.length
+
+  // Sliced records for current visible page
+  const records = useMemo(() => {
+    if (preview) {
+      return filteredRecords.slice(0, 8)
+    }
+    const offset = (currentPage - 1) * pageSize
+    return filteredRecords.slice(offset, offset + pageSize)
+  }, [filteredRecords, preview, currentPage, pageSize])
+
+  // Dynamic historical fallback when active commodity has 0 current records
+  useEffect(() => {
+    if (applied.commodity && filteredRecords.length === 0) {
+      fetch(`/api/mandi-history?commodity=${encodeURIComponent(applied.commodity)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && (data.modal_price || data.is_historical)) {
+            setHistoricalFallback(data)
+          } else {
+            setHistoricalFallback(null)
+          }
+        })
+        .catch(() => setHistoricalFallback(null))
+    } else if (filteredRecords.length > 0) {
+      setHistoricalFallback(null)
+    }
+  }, [applied.commodity, filteredRecords.length])
+
+  // Fast normalized price lookup from reported records across the entire dataset
+  const priceLookup = useMemo(() => {
+    const map = new Map()
+    allRecords.forEach(r => {
+      const c = String(r.commodity || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+      const v = String(r.variety || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+      if (c && v && !map.has(c + "::" + v)) {
+        map.set(c + "::" + v, r)
+      }
+      if (c && !map.has(c)) {
+        map.set(c, r)
+      }
+    })
+    return map
+  }, [allRecords])
+
+  // Section 7: All official catalogue commodities matching active category
+  const activeCommodities = useMemo(() => {
+    const list = Array.isArray(agmarknetCatalogue?.commodities) ? agmarknetCatalogue.commodities : []
+    return list.filter(c => {
+      const cat = (c.category || c.group_name || getCategoryForCommodity(c.name) || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+      if (applied.category) {
+        const catNorm = applied.category.toLowerCase().replace(/[^a-z0-9]/g, "")
+        const match = cat === catNorm
+        if (!match) return false
+      }
+      if (applied.commodity && String(c.name || "").toLowerCase() !== applied.commodity.toLowerCase()) return false
+      return true
+    })
+  }, [applied.category, applied.commodity, commodityCategoryMap])
+
+  // Section 6 & 8: All registered varieties from official catalogue
+  const catalogVarietyItems = useMemo(() => {
+    const items = []
+    const seenIdentities = new Set()
+    activeCommodities.forEach(c => {
+      const vNames = c.variety_names || (c.varieties || []).map(v => typeof v === "string" ? v : (v.name || v.variety_name))
+      const cat = c.category || c.group_name || getCategoryForCommodity(c.name) || ""
+      const cleanVNames = [...new Set((vNames || []).map(n => String(n || "").trim()).filter(Boolean))]
+      cleanVNames.forEach(vName => {
+        if (applied.variety && vName.toLowerCase() !== applied.variety.toLowerCase()) return
+
+        const identity = `${cat}:::${c.name}:::${vName}`
+        if (seenIdentities.has(identity)) return
+        seenIdentities.add(identity)
+
+        items.push({
+          id: `${c.id || c.name}-${vName}`,
+          identity,
+          commodity: c.name,
+          variety: vName,
+          category: cat,
+          grades: c.grades || [],
+          arrival_unit: c.arrival_unit || "Quintal",
+          price_unit: c.price_unit || "Quintal"
+        })
+      })
+    })
+    return items
+  }, [activeCommodities, applied.variety, commodityCategoryMap])
+
+  function findPrice(commName, varName) {
+    const c = String(commName || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    const v = String(varName || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    if (c && v) {
+      const key = `${c}::${v}`
+      if (globalPriceMap[key]) return globalPriceMap[key]
+      if (priceLookup.has(key)) return priceLookup.get(key)
+      return null
+    }
+    if (c) {
+      if (globalCommodityPriceMap[c]) return globalCommodityPriceMap[c]
+      if (priceLookup.has(c)) return priceLookup.get(c)
+    }
+    return null
+  }
+
+  const totalPages = Math.max(1, Math.ceil((total || 0) / (preview ? 8 : pageSize)))
 
   function submit(e) {
-    e.preventDefault()
+    if (e) e.preventDefault()
     setApplied({ ...filters })
-    setOffset(0)
+    setCurrentPage(1)
+  }
+
+  function clearAllFilters() {
+    const cleared = {
+      commodity: "",
+      variety: "",
+      category: "",
+      state: "All India",
+      district: "",
+      market: "",
+      grade: "",
+      date: ""
+    }
+    setFilters(cleared)
+    setApplied(cleared)
+    setVarietySearch("")
+    setCurrentPage(1)
+  }
+
+  function handlePageChange(newPage) {
+    if (newPage < 1 || newPage > totalPages || newPage === currentPage) return
+    setCurrentPage(newPage)
+    const el = document.getElementById("mandi-records-container") || document.querySelector(".official-result-bar")
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   function filterByCrop(cropName) {
     setFilters(prev => ({ ...prev, commodity: cropName, variety: "" }))
     setApplied(prev => ({ ...prev, commodity: cropName, variety: "" }))
     setVarietySearch("")
-    setOffset(0)
+    setCurrentPage(1)
   }
 
-  function clearCropFilter() {
-    setFilters(prev => ({ ...prev, commodity: "", variety: "" }))
-    setApplied(prev => ({ ...prev, commodity: "", variety: "" }))
-    setVarietySearch("")
-    setOffset(0)
-  }
+  const hasActiveFilters = Boolean(
+    applied.category ||
+    applied.commodity ||
+    applied.variety ||
+    (applied.state && applied.state !== "All India") ||
+    applied.district ||
+    applied.market ||
+    applied.grade ||
+    applied.date
+  )
 
   const filteredCommodities = commodityOptions.filter(item => {
     if (!filters.category) return true
-    return item.category === filters.category || item.group_name === filters.category
+    const catNorm = (filters.category || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    const itemCatNorm = (item.category || getCategoryForCommodity(item.name) || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    const itemGroupNorm = (item.group_name || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    return itemCatNorm === catNorm || itemGroupNorm === catNorm
   })
 
   const displayedVarieties = varieties.filter(name => {
@@ -240,152 +592,196 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
         </div>
         <span className="official-badge" style={!isLive ? { borderColor: "#fde047", color: "#854d0e", background: "#fefce8" } : {}}>
           <i style={{ background: isLive ? "#22c55e" : "#eab308" }} />
-          {isLive ? "GOVERNMENT OF INDIA · LIVE" : "AGMARKNET · RECENT SESSION"}
+          {isLive ? "Source: Government of India — AGMARKNET (Live)" : "Source: Government of India — AGMARKNET"}
         </span>
       </div>
 
       {!preview && (
-        <form className="official-filters" onSubmit={submit}>
-          <label>
-            Category
-            <select
-              value={filters.category}
-              onChange={e => {
-                const newCat = e.target.value
-                setFilters(prev => ({ ...prev, category: newCat, commodity: "", variety: "" }))
-                setVarietySearch("")
-              }}
-            >
-              <option value="">All categories (16 groups)</option>
-              {categories.map(name => <option key={name} value={name}>{name}</option>)}
-            </select>
-          </label>
-          <label>
-            Commodity {filteredCommodities.length > 0 ? `(${filteredCommodities.length}${filters.category ? ` in ${filters.category}` : ""})` : ""}
-            <select
-              value={filters.commodity}
-              onChange={e => {
-                const newComm = e.target.value
-                setFilters(prev => ({ ...prev, commodity: newComm, variety: "" }))
-                setVarietySearch("")
-              }}
-            >
-              <option value="">
-                {filters.category
-                  ? `All ${filters.category} (${filteredCommodities.length})`
-                  : `All commodities (609 official)`}
-              </option>
-              {filteredCommodities.map(item => (
-                <option key={item.name} value={item.name}>
-                  {item.name}
+        <form className="official-filters-expanded" onSubmit={submit}>
+          <div className="filters-row">
+            <label>
+              Category
+              <select
+                value={filters.category}
+                onChange={e => {
+                  const newCat = e.target.value
+                  setFilters(prev => ({ ...prev, category: newCat, commodity: "", variety: "" }))
+                  setVarietySearch("")
+                }}
+              >
+                <option value="">All categories (15 groups)</option>
+                {categories.map(name => <option key={name} value={name}>{name}</option>)}
+              </select>
+            </label>
+
+            <label>
+              Commodity {filteredCommodities.length > 0 ? `(${filteredCommodities.length}${filters.category ? ` in ${filters.category}` : ""})` : ""}
+              <select
+                value={filters.commodity}
+                onChange={e => {
+                  const newComm = e.target.value
+                  setFilters(prev => ({ ...prev, commodity: newComm, variety: "" }))
+                  setVarietySearch("")
+                }}
+              >
+                <option value="">
+                  {filters.category
+                    ? `All ${filters.category} (${filteredCommodities.length})`
+                    : `All commodities (${commodityOptions.length || 609} official)`}
                 </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span>Variety {varieties.length > 0 ? `(${varieties.length} registered)` : ""}</span>
-              {filters.variety && (
-                <button
-                  type="button"
-                  onClick={() => setFilters(prev => ({ ...prev, variety: "" }))}
-                  style={{ border: 0, background: "none", color: "#34794b", cursor: "pointer", fontSize: 9, padding: 0, textDecoration: "underline" }}
-                >
-                  Clear
+                {filteredCommodities.map(item => (
+                  <option key={item.name} value={item.name}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>Variety {varieties.length > 0 ? `(${varieties.length})` : ""}</span>
+                {filters.variety && (
+                  <button
+                    type="button"
+                    onClick={() => setFilters(prev => ({ ...prev, variety: "" }))}
+                    style={{ border: 0, background: "none", color: "#34794b", cursor: "pointer", fontSize: 9, padding: 0, textDecoration: "underline" }}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              {filters.commodity && varieties.length > 5 && (
+                <input
+                  type="text"
+                  value={varietySearch}
+                  onChange={e => setVarietySearch(e.target.value)}
+                  placeholder={`Search ${varieties.length} varieties...`}
+                  style={{ marginBottom: 4 }}
+                  title="Type to quickly filter the variety list below"
+                />
+              )}
+              <select
+                value={filters.variety}
+                onChange={e => setFilters(prev => ({ ...prev, variety: e.target.value }))}
+                disabled={!filters.commodity}
+              >
+                <option value="">
+                  {!filters.commodity
+                    ? "Select a commodity first"
+                    : displayedVarieties.length > 0
+                      ? (varietySearch
+                          ? `All matching (${displayedVarieties.length} of ${varieties.length})`
+                          : `All active varieties (${varieties.length})`)
+                      : (varietySearch
+                          ? `No varieties match "${varietySearch}"`
+                          : "All varieties")}
+                </option>
+                {displayedVarieties.map(name => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+                {filters.variety && !displayedVarieties.includes(filters.variety) && (
+                  <option value={filters.variety}>
+                    {filters.variety} (selected)
+                  </option>
+                )}
+              </select>
+            </label>
+
+            <label>
+              State / UT {availableStates.length > 0 && filters.state !== "All India" ? `(${availableStates.length} reporting)` : ""}
+              <select value={filters.state} onChange={e => setFilters({ ...filters, state: e.target.value, district: "" })}>
+                <option value="All India">All India ({availableStates.length} states reporting)</option>
+                {availableStates.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </label>
+
+            <label>
+              District {filteredDistricts.length > 0 ? `(${filteredDistricts.length} available)` : ""}
+              {filteredDistricts.length > 0 ? (
+                <select value={filters.district} onChange={e => setFilters({ ...filters, district: e.target.value })}>
+                  <option value="">All districts ({filteredDistricts.length} reporting)</option>
+                  {filteredDistricts.map(d => <option key={d} value={d}>{d}</option>)}
+                </select>
+              ) : (
+                <input
+                  value={filters.district}
+                  onChange={e => setFilters({ ...filters, district: e.target.value })}
+                  placeholder="All districts"
+                />
+              )}
+            </label>
+
+            <label>
+              Mandi / APMC
+              <input
+                value={filters.market}
+                onChange={e => setFilters({ ...filters, market: e.target.value })}
+                placeholder="e.g. Baripada, Alibagh..."
+              />
+            </label>
+          </div>
+
+          <div className="filters-row secondary-filters">
+            <label>
+              Grade
+              <select value={filters.grade} onChange={e => setFilters({ ...filters, grade: e.target.value })}>
+                <option value="">All Grades ({availableGrades.length})</option>
+                {availableGrades.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </label>
+
+            <label>
+              Arrival Date
+              <input
+                type="text"
+                value={filters.date}
+                onChange={e => setFilters({ ...filters, date: e.target.value })}
+                placeholder="e.g. 03/11/2026"
+              />
+            </label>
+
+            <div className="filter-actions">
+              <button type="submit" className="btn-filter-apply" disabled={loading}>
+                {loading ? "Loading…" : "Apply Filters"}
+              </button>
+              {hasActiveFilters && (
+                <button type="button" className="btn-filter-clear" onClick={clearAllFilters}>
+                  Clear All
                 </button>
               )}
             </div>
-            {filters.commodity && varieties.length > 5 && (
-              <input
-                type="text"
-                value={varietySearch}
-                onChange={e => setVarietySearch(e.target.value)}
-                placeholder={`Search among ${varieties.length} varieties...`}
-                style={{ marginBottom: 4 }}
-                title="Type to quickly filter the variety list below"
-              />
-            )}
-            <select
-              value={filters.variety}
-              onChange={e => setFilters(prev => ({ ...prev, variety: e.target.value }))}
-              disabled={!filters.commodity}
-            >
-              <option value="">
-                {!filters.commodity
-                  ? "Select a commodity first"
-                  : displayedVarieties.length > 0
-                    ? (varietySearch
-                        ? `All matching varieties (${displayedVarieties.length} of ${varieties.length})`
-                        : `All varieties (${varieties.length} Government registered)`)
-                    : (varietySearch
-                        ? `No varieties match "${varietySearch}"`
-                        : "All varieties (none registered)")}
-              </option>
-              {displayedVarieties.map(name => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-              {filters.variety && !displayedVarieties.includes(filters.variety) && (
-                <option value={filters.variety}>
-                  {filters.variety} (selected)
-                </option>
-              )}
-            </select>
-          </label>
-          <label>
-            Free-text search
-            <input
-              value={filters.query}
-              onChange={e => setFilters({ ...filters, query: e.target.value })}
-              placeholder="Commodity, variety, market..."
-            />
-          </label>
-          <label>
-            State / UT
-            <select value={filters.state} onChange={e => setFilters({ ...filters, state: e.target.value })}>
-            <option value="All India">All India</option>
-              {states.map(s => <option key={s}>{s}</option>)}
-            </select>
-          </label>
-          <label>
-            District
-            <input
-              value={filters.district}
-              onChange={e => setFilters({ ...filters, district: e.target.value })}
-              placeholder="All districts (e.g. Bengaluru)"
-            />
-          </label>
-          <label>
-            Mandi
-            <input
-              value={filters.market}
-              onChange={e => setFilters({ ...filters, market: e.target.value })}
-              placeholder="All mandis"
-            />
-          </label>
-          <button type="submit" disabled={loading}>{loading ? "Loading…" : "Apply filters"}</button>
+          </div>
         </form>
       )}
 
+      {/* Result Status Bar */}
       <div className="official-result-bar">
         <div>
           <b>
             {preview
-              ? "Latest reported commodity prices"
-              : (total === null ? "" : total.toLocaleString("en-IN") + " reported records")}
+              ? "Latest reported official mandi rates"
+              : (total === null
+                  ? "Loading records…"
+                  : `Showing records ${total === 0 ? 0 : (currentPage - 1) * pageSize + 1} – ${Math.min(currentPage * pageSize, total)} of ${total.toLocaleString("en-IN")} official mandi records`)}
           </b>
           <span>
             {applied.state || "All India"}
             {applied.district ? " · " + applied.district : ""}
             {applied.market ? " · " + applied.market : ""}
+            {applied.grade ? " · Grade: " + applied.grade : ""}
             {applied.commodity ? (
               <>
                 {" · "}
                 <b>{applied.commodity}</b>{" "}
                 <button
                   type="button"
-                  onClick={clearCropFilter}
+                  onClick={() => {
+                    setFilters(prev => ({ ...prev, commodity: "", variety: "" }))
+                    setApplied(prev => ({ ...prev, commodity: "", variety: "" }))
+                    setCurrentPage(1)
+                  }}
                   style={{ border: 0, background: "none", color: "#377b4a", cursor: "pointer", textDecoration: "underline", fontSize: 10, padding: 0 }}
                 >
                   (show all commodities)
@@ -394,96 +790,269 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
             ) : " · All commodities"}
           </span>
         </div>
-        {dataSource && (
-          <span className={dataSource.live ? "live" : "sample"} title={dataSource.source}>
-            {dataSource.live ? `LIVE · ${dataSource.source}` : dataSource.source}
-          </span>
-        )}
-        {!preview && (
-          <button onClick={() => fetchPage(0, false)} disabled={loading}>
-            ↻ Refresh
-          </button>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {dataSource && (
+            <span className={dataSource.live ? "live" : "sample"} title={dataSource.source}>
+              {dataSource.live ? `LIVE · ${dataSource.source}` : dataSource.source}
+            </span>
+          )}
+          {lastUpdated && (
+            <span style={{ fontSize: "10px", color: "#475569", background: "#f1f5f9", border: "1px solid #cbd5e1", padding: "2px 8px", borderRadius: "4px" }} title="AGMARKNET sync timestamp">
+              Last updated: {lastUpdated.slice(0, 10)}
+            </span>
+          )}
+          {!preview && (
+            <button onClick={() => fetchRecords()} disabled={loading} style={{ cursor: "pointer" }}>
+              ↻ Refresh
+            </button>
+          )}
+        </div>
       </div>
 
-      {false && (
-        <p className="official-fallback">
-          ⓘ Showing official prices from across {applied.state}. (No specific records reported today for {applied.district} mandi).
-        </p>
-      )}
-
-      {sessionFallback && (
-        <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "10px 14px", borderRadius: "8px", margin: "14px 0", fontSize: "13px", color: "#166534" }}>
-          <b>🕒 Latest Confirmed APMC Session Rates ({sessionDate || "Current"})</b>
-          <p style={{ margin: "4px 0 0 0", color: "#15803d" }}>
-            Mandis in {applied.state} publish daily morning auction sheets by 11:30 AM. Currently displaying confirmed wholesale APMC rates.
-          </p>
+      {/* View Mode Tabs (Cards View is default) */}
+      {!preview && (
+        <div className="mandi-view-tabs">
+          <button
+            type="button"
+            className={`mandi-view-tab ${viewMode === "cards" ? "active" : ""}`}
+            onClick={() => setViewMode("cards")}
+          >
+            🏷️ Mandi Price Cards ({total !== null ? total.toLocaleString("en-IN") : "…"})
+          </button>
+          <button
+            type="button"
+            className={`mandi-view-tab ${viewMode === "grid" ? "active" : ""}`}
+            onClick={() => setViewMode("grid")}
+          >
+            ▦ Compact Grid
+          </button>
+          <button
+            type="button"
+            className={`mandi-view-tab ${viewMode === "table" ? "active" : ""}`}
+            onClick={() => setViewMode("table")}
+          >
+            ▤ Table View
+          </button>
+          <button
+            type="button"
+            className={`mandi-view-tab ${viewMode === "catalogue" ? "active" : ""}`}
+            onClick={() => setViewMode("catalogue")}
+          >
+            📚 Official Catalogue Directory ({activeCommodities.length} active · 609 registered)
+          </button>
         </div>
       )}
 
       {error && (
-        <div className="official-error">
+        <div className="official-error" style={{ margin: "14px 0" }}>
           <b>Prices could not be loaded.</b>
           <p>{error}</p>
-          <span>Start the API server or check network connection. This page connects to the official Government AGMARKNET feed.</span>
+          <span>This page connects to the official Government AGMARKNET feed. Check network connection or retry.</span>
         </div>
       )}
 
-      {!error && records.length > 0 && (
-        <section className="crop-price-cards">
-          {cropCards.map(r => {
-            const image = cropImages[r.commodity]
-            return (
-              <article
-                className="crop-price-card"
-                key={r.commodity}
-                onClick={() => {
-                  if (preview) {
-                    if (onViewAll) onViewAll(r.commodity)
-                  } else {
-                    filterByCrop(r.commodity)
-                  }
-                }}
-                style={{ cursor: "pointer" }}
-                title={preview ? `View official prices for ${r.commodity}` : `Click to view all records for ${r.commodity}`}
-              >
-                <div className="crop-photo">
-                  <img
-                    src={image?.url || cropPhoto(r.commodity)}
-                    alt={image?.alt || r.commodity}
-                    onError={event => {
-                      if (event.currentTarget.src !== genericCropImage) {
-                        event.currentTarget.onerror = null;
-                        event.currentTarget.src = genericCropImage;
-                      }
-                    }}
-                  />
-                  <span>{cropSymbol(r.commodity)}</span>
+      {/* PRIMARY SECTION 1: CROP PRICE CARDS (Individual APMC Market Records) */}
+      {viewMode === "cards" && (
+        <section id="mandi-records-container" style={{ margin: "14px 0" }}>
+          {records.length > 0 ? (
+            <div className="farmer-listings" style={{ display: "grid", gap: "10px" }}>
+              {records.map((r, idx) => {
+                const categoryName = r.category || getCategoryForCommodity(r.commodity)
+                const imgInfo = resolveVarietyImage(r.commodity, r.variety, categoryName)
+                const badge = getPriceBadge(r)
+                const formattedDate = (r.arrival_date && r.arrival_date !== "Date unavailable") ? r.arrival_date : "Date unavailable"
+                const cardKey = [r.state, r.district, r.market, r.commodity, r.variety, r.grade, r.arrival_date, idx].join("-")
+
+                return (
+                  <article className="listing-card mandi-listing-card" key={cardKey}>
+                    {/* Thumbnail column with badge */}
+                    <div className="listing-photo-thumb-container">
+                      <div className="listing-photo-thumb" style={{ position: "relative" }}>
+                        <img
+                          src={imgInfo.url}
+                          alt={r.commodity}
+                          loading="lazy"
+                          onError={e => {
+                            e.currentTarget.onerror = null
+                            e.currentTarget.src = getCategorySvgDataUri(categoryName, `${r.commodity} (${r.variety})`)
+                          }}
+                        />
+                        <span className="listing-photo-badge" style={{ background: badge.bg, color: badge.color, fontWeight: "700" }}>
+                          {badge.label}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: "8px", color: "#64748b", display: "block", marginTop: "3px", textAlign: "center" }}>
+                        {imgInfo.isExact ? "Exact Match" : (imgInfo.isCategoryFallback ? "Category SVG" : "Representative")}
+                      </span>
+                    </div>
+
+                    {/* Column 2: Commodity, Variety, Category, Grade, Date */}
+                    <div>
+                      <small>OFFICIAL COMMODITY</small>
+                      <b style={{ fontSize: "14px", color: "#1e3a24", display: "block" }}>{r.commodity}</b>
+                      <span style={{ fontWeight: 600, color: "#374151", margin: "2px 0 0" }}>
+                        {r.product_type ? (
+                          <>Product / Type: <strong style={{ color: "#111827" }}>{r.variety || r.product_type}</strong></>
+                        ) : (
+                          <>Variety: <strong style={{ color: "#111827" }}>{r.variety || "Other"}</strong></>
+                        )}
+                      </span>
+                      {categoryName && (
+                        <span style={{ fontSize: "0.85em", color: "#2d6e42", fontWeight: 600, display: "inline-block", marginTop: "2px" }}>
+                          🏷️ {categoryName}
+                        </span>
+                      )}
+                      <div style={{ display: "flex", gap: "4px", flexWrap: "wrap", marginTop: "6px" }}>
+                        {r.grade && <span className="badge-grade">Grade: {r.grade}</span>}
+                        <span className="badge-packaging">📅 {formattedDate}</span>
+                      </div>
+                    </div>
+
+                    {/* Column 3: OFFICIAL MANDI PRICE (Modal prominently displayed) */}
+                    <div>
+                      <small style={{ color: badge.bg, fontWeight: "700" }}>{r.price_type ? r.price_type.toUpperCase() : badge.label.toUpperCase()}</small>
+                      <div style={{ margin: "2px 0" }}>
+                        <b style={{ fontSize: "20px", color: badge.isVerified ? "#15803d" : "#92400e", fontWeight: "800", display: "inline-block" }}>
+                          ₹{Number(r.modal_price).toLocaleString("en-IN")}
+                        </b>
+                        <span style={{ fontSize: "11px", fontWeight: "normal", color: "#64748b", marginLeft: "4px" }}>
+                          / {r.price_unit ? r.price_unit.replace(/^₹\/?/, "") : (r.unit ? r.unit.replace(/^₹\/?/, "") : "quintal")}
+                        </span>
+                      </div>
+                      <span style={{ fontSize: "10px", color: "#4b5563", fontWeight: 500 }}>
+                        Min: ₹{Number(r.min_price).toLocaleString("en-IN")} · Max: ₹{Number(r.max_price).toLocaleString("en-IN")}
+                      </span>
+                      <div style={{ marginTop: "5px" }}>
+                        <span style={{
+                          fontSize: "9px",
+                          background: badge.isVerified ? "#f0fdf4" : "#fef3c7",
+                          color: badge.isVerified ? "#166534" : "#92400e",
+                          border: `1px solid ${badge.isVerified ? "#bbf7d0" : "#fde68a"}`,
+                          padding: "2px 6px",
+                          borderRadius: "3px",
+                          fontWeight: "700",
+                          display: "inline-block"
+                        }}>
+                          {badge.verifiedText}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Column 4: Mandi / APMC Name & Geographic Location */}
+                    <div>
+                      <small>REPORTING MANDI / APMC</small>
+                      <b style={{ fontSize: "13px", color: "#1e293b", display: "block" }}>{r.market}</b>
+                      <span style={{ color: "#475569", fontWeight: 500 }}>
+                        📍 {r.district ? `${r.district}, ` : ""}{r.state}
+                      </span>
+                      <span style={{ fontSize: "10px", color: "#64748b" }}>
+                        Arrival Date: {formattedDate}
+                      </span>
+                      <span style={{ fontSize: "9px", color: "#94a3b8", display: "block", marginTop: "3px" }}>
+                        {r.source_name || "Ministry of Agriculture (Govt. of India)"}
+                      </span>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          ) : !loading && (
+            <div className="crop-no-active-records" style={{ background: "#f8fafc", border: "1px dashed #cbd5e1", borderRadius: "8px", padding: "32px 16px", textAlign: "center", color: "#64748b", margin: "16px 0" }}>
+              <p style={{ margin: 0, fontWeight: "700", fontSize: "15px", color: "#334155" }}>
+                {filters.commodity
+                  ? `No verified price available for ${filters.commodity}${filters.variety ? ` (${filters.variety})` : ""}.`
+                  : (filters.state && filters.state !== "All India"
+                      ? `No official mandi report currently available for ${filters.state} matching current filters.`
+                      : "No active official AGMARKNET mandi records found for the selected filters.")}
+              </p>
+              {historicalFallback && (
+                <div style={{ marginTop: 14, padding: "10px 16px", background: "#fef3c7", border: "1px solid #fde68a", borderRadius: 8, display: "inline-block", textAlign: "left" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 11, background: "#d97706", color: "#fff", padding: "1px 6px", borderRadius: 3, fontWeight: 700 }}>HISTORICAL BENCHMARK</span>
+                    <span style={{ fontSize: 11, color: "#92400e", fontWeight: 600 }}>Previous official session reported on {historicalFallback.arrival_date}:</span>
+                  </div>
+                  <div style={{ marginTop: 4 }}>
+                    <b style={{ fontSize: 16, color: "#78350f" }}>₹{Number(historicalFallback.modal_price).toLocaleString("en-IN")}</b>
+                    <span style={{ fontSize: 11, color: "#92400e", marginLeft: 4 }}>/ {historicalFallback.price_unit ? historicalFallback.price_unit.replace(/^₹\/?/, "") : "quintal"}</span>
+                    <span style={{ fontSize: 11, color: "#78716c", marginLeft: 8 }}>· {historicalFallback.market}, {historicalFallback.state}</span>
+                  </div>
+                  <small style={{ display: "block", fontSize: 10, color: "#b45309", marginTop: 4 }}>
+                    * Historical price preserved for agricultural trend reference. Not today's live rate.
+                  </small>
                 </div>
-                <div className="crop-card-copy">
-                  <small>{r.market || "Reported mandi"}</small>
-                  <b>{r.commodity}</b>
-                  <span>Modal <strong>{money(r.modal_price)}</strong> / quintal</span>
-                  <small>{r.district ? r.district + ", " : ""}{r.state}{r.arrival_date ? " · " + r.arrival_date : ""}</small>
-                  {image && (
-                    <a className="image-credit" href={image.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>
-                      Image: {image.photographer}
-                    </a>
-                  )}
-                </div>
-              </article>
-            )
-          })}
-          {preview && onViewAll && (
-            <button className="crop-card-more" onClick={onViewAll}>
-              View all commodity prices →
-            </button>
+              )}
+              <small style={{ display: "block", marginTop: "8px", fontSize: "12px", color: "#64748b" }}>
+                All 616 official commodities and 3,115 registered varieties remain registered in the government catalogue.
+              </small>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  style={{ marginTop: "12px", background: "#15803d", color: "#fff", border: 0, padding: "7px 16px", borderRadius: "5px", fontSize: "11px", fontWeight: "700", cursor: "pointer" }}
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
           )}
         </section>
       )}
 
-      {!preview && !error && (
-        <div className="official-table-wrap">
+      {/* SECTION 2: COMPACT GRID VIEW (Grid Cards for each record) */}
+      {viewMode === "grid" && (
+        <section id="mandi-records-container" style={{ margin: "14px 0" }}>
+          {records.length > 0 ? (
+            <div className="crop-price-cards">
+              {records.map((r, idx) => {
+                const categoryName = r.category || getCategoryForCommodity(r.commodity)
+                const imgInfo = resolveVarietyImage(r.commodity, r.variety, categoryName)
+                const cardKey = [r.state, r.district, r.market, r.commodity, r.variety, r.grade, r.arrival_date, idx].join("-")
+
+                return (
+                  <article className="crop-price-card" key={cardKey}>
+                    <div className="crop-photo">
+                      <img
+                        src={imgInfo.url}
+                        alt=""
+                        aria-hidden="true"
+                        loading="lazy"
+                        onError={event => {
+                          event.currentTarget.onerror = null
+                          event.currentTarget.src = getCategorySvgDataUri(categoryName, `${r.commodity} (${r.variety})`)
+                        }}
+                      />
+                      <span className="crop-symbol">{imgInfo.symbol}</span>
+                      <span className={imgInfo.isExact ? "crop-img-tag exact-tag" : (imgInfo.isCategoryFallback ? "crop-img-tag cat-tag" : "crop-img-tag rep-tag")}>
+                        {imgInfo.isExact ? "Exact Match" : (imgInfo.isCategoryFallback ? "Category SVG" : "Representative")}
+                      </span>
+                    </div>
+                    <div className="crop-card-copy">
+                      <small className="crop-category-tag">{categoryName || "AGMARKNET"} · {(r.arrival_date && r.arrival_date !== "Date unavailable") ? r.arrival_date : "Date unavailable"}</small>
+                      <b style={{ fontSize: "13px" }}>{r.commodity}</b>
+                      <span className="crop-commodity-sub">Variety: {r.variety || "Other"} {r.grade ? `(Grade: ${r.grade})` : ""}</span>
+                      <div className="crop-price-info">
+                        <span>Modal <strong style={{ fontSize: "14px", color: "#15803d" }}>₹{Number(r.modal_price).toLocaleString("en-IN")}</strong> / {r.price_unit ? r.price_unit.replace(/^₹\/?/, "") : (r.unit ? r.unit.replace(/^₹\/?/, "") : "quintal")}</span>
+                        <small>Min: ₹{Number(r.min_price).toLocaleString("en-IN")} · Max: ₹{Number(r.max_price).toLocaleString("en-IN")}</small>
+                        <small>{r.market} · {r.district ? r.district + ", " : ""}{r.state}</small>
+                      </div>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          ) : !loading && (
+            <div className="crop-no-active-records" style={{ background: "#f8fafc", border: "1px dashed #cbd5e1", borderRadius: "8px", padding: "32px 16px", textAlign: "center", color: "#64748b", margin: "16px 0" }}>
+              <p style={{ margin: 0, fontWeight: "700", fontSize: "14px", color: "#334155" }}>
+                No active records match the selected filters today.
+              </p>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* SECTION 3: TABLE VIEW */}
+      {viewMode === "table" && !error && (
+        <div className="official-table-wrap" style={{ margin: "14px 0" }}>
           <table className="official-table" style={{ minWidth: 1180 }}>
             <thead>
               <tr>
@@ -494,53 +1063,260 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                 <th>State</th>
                 <th>District</th>
                 <th>Market / APMC</th>
-                <th>Min ₹/quintal</th>
-                <th>Max ₹/quintal</th>
-                <th>Modal ₹/quintal</th>
+                <th>Price Type / Source</th>
+                <th>Min</th>
+                <th>Max</th>
+                <th>Modal Price / Unit</th>
               </tr>
             </thead>
             <tbody>
-              {records.map((r, i) => (
-                <tr key={[r.state, r.district, r.market, r.commodity, r.arrival_date, i].join("-")}>
-                  <td>{r.arrival_date || "—"}</td>
-                  <td>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                      <span>{cropSymbol(r.commodity)}</span>
-                      <b>{r.commodity || "—"}</b>
-                    </span>
-                  </td>
-                  <td>{r.variety || "—"}</td>
-                  <td>{r.grade || "—"}</td>
-                  <td>{r.state || "—"}</td>
-                  <td>{r.district || "—"}</td>
-                  <td>{r.market || "—"}</td>
-                  <td>{money(r.min_price)}</td>
-                  <td>{money(r.max_price)}</td>
-                  <td className="modal-price">{money(r.modal_price)}</td>
-                </tr>
-              ))}
+              {records.map((r, i) => {
+                const badge = getPriceBadge(r)
+                const formattedDate = (r.arrival_date && r.arrival_date !== "Date unavailable") ? r.arrival_date : "Date unavailable"
+                return (
+                  <tr key={[r.state, r.district, r.market, r.commodity, r.variety, r.arrival_date, i].join("-")}>
+                    <td>{formattedDate}</td>
+                    <td>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                        <span>{getCommoditySymbol(r.commodity)}</span>
+                        <b>{r.commodity || "—"}</b>
+                      </span>
+                    </td>
+                    <td>{r.variety || "—"}</td>
+                    <td>{r.grade || "—"}</td>
+                    <td>{r.state || "—"}</td>
+                    <td>{r.district || "—"}</td>
+                    <td>{r.market || "—"}</td>
+                    <td>
+                      <span style={{ fontSize: "11px", fontWeight: "700", color: badge.bg, display: "block" }}>
+                        {badge.label}
+                      </span>
+                      <small style={{ fontSize: "9px", color: "#64748b" }}>{r.source_name || "Government of India (AGMARKNET)"}</small>
+                    </td>
+                    <td>{r.min_price ? `${money(r.min_price)}` : "—"}</td>
+                    <td>{r.max_price ? `${money(r.max_price)}` : "—"}</td>
+                    <td className="modal-price" style={{ color: badge.isVerified ? "#15803d" : "#92400e", fontWeight: "700" }}>
+                      {money(r.modal_price)}
+                      <span style={{ fontSize: "10px", color: "#64748b", fontWeight: "normal", marginLeft: "3px" }}>
+                        / {r.price_unit ? r.price_unit.replace(/^₹\/?/, "") : (r.unit ? r.unit.replace(/^₹\/?/, "") : "quintal")}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
-          {!records.length && !loading && !error && (
+          {!records.length && !loading && (
             <div className="official-empty">
-              No current AGMARKNET price available.
+              No current AGMARKNET mandi price available for these filters.
             </div>
           )}
         </div>
       )}
 
-      {!preview && records.length > 0 && (total === null || offset < total) && (
-        <button className="official-more" onClick={() => fetchPage(offset, true)} disabled={loading}>
-          {loading ? "Loading…" : "Load more official records"}
+      {/* SECTION 4: OFFICIAL CATALOGUE DIRECTORY VIEW (609 commodities & 3,071 varieties) */}
+      {viewMode === "catalogue" && (
+        <section style={{ margin: "14px 0" }}>
+          <div className="catalogue-cards-header">
+            <div>
+              <h3>Official Government of India AGMARKNET Catalogue Directory</h3>
+              <p>Complete master of all 609 registered commodities and 3,071 registered varieties across 16 official categories.</p>
+            </div>
+          </div>
+          <div className="crop-price-cards">
+            {catalogVarietyItems.slice(0, cardLimit).map(item => {
+              const imgInfo = resolveVarietyImage(item.commodity, item.variety, item.category)
+              const priceRecord = findPrice(item.commodity, item.variety)
+              const commPrice = findPrice(item.commodity, "")
+              return (
+                <article
+                  className="crop-price-card"
+                  key={item.identity}
+                  onClick={() => {
+                    setFilters(prev => ({ ...prev, commodity: item.commodity, variety: item.variety }))
+                    setApplied(prev => ({ ...prev, commodity: item.commodity, variety: item.variety }))
+                    setViewMode("cards")
+                    setCurrentPage(1)
+                  }}
+                  style={{ cursor: "pointer" }}
+                  title={`Click to view all individual market records for ${item.commodity} - ${item.variety}`}
+                >
+                  <div className="crop-photo">
+                    <img
+                      src={imgInfo.url}
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                      onError={event => {
+                        event.currentTarget.onerror = null
+                        event.currentTarget.src = getCategorySvgDataUri(item.category, `${item.commodity} (${item.variety})`)
+                      }}
+                    />
+                    <span className="crop-symbol">{imgInfo.symbol}</span>
+                    <span className={imgInfo.isExact ? "crop-img-tag exact-tag" : "crop-img-tag rep-tag"}>
+                      {imgInfo.isExact ? "Exact Match" : "Representative"}
+                    </span>
+                  </div>
+                  <div className="crop-card-copy">
+                    <small className="crop-category-tag">{item.category} · AGMARKNET</small>
+                    <b style={{ fontSize: "13px" }}>{item.variety}</b>
+                    <span className="crop-commodity-sub">{item.commodity}</span>
+                    {priceRecord ? (
+                      <div className="crop-price-info">
+                        <span>Modal <strong>{money(priceRecord.modal_price)}</strong> / quintal</span>
+                        <small>Min: {money(priceRecord.min_price)} · Max: {money(priceRecord.max_price)}</small>
+                        <small>{priceRecord.market} · {priceRecord.state}</small>
+                        {priceRecord.market_count > 1 && (
+                          <small style={{ color: "#15803d", fontWeight: "600" }}>{priceRecord.market_count} reporting APMC mandis</small>
+                        )}
+                      </div>
+                    ) : commPrice ? (
+                      <div className="crop-price-info">
+                        <span>Commodity Modal <strong>{money(commPrice.modal_price)}</strong> / quintal</span>
+                        <small>{commPrice.market} · {commPrice.state}</small>
+                      </div>
+                    ) : (
+                      <div className="crop-no-price">
+                        <span className="no-price-msg" style={{ color: "#78716c", fontSize: "11px" }}>No current official price available</span>
+                        <small style={{ color: "#94a3b8", display: "block", fontSize: "9px", marginTop: "2px" }}>Registered in official Government catalogue</small>
+                      </div>
+                    )}
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+          {catalogVarietyItems.length > cardLimit && (
+            <div className="crop-show-more-bar">
+              <button
+                type="button"
+                className="crop-show-more-btn"
+                onClick={() => setCardLimit(prev => prev + 96)}
+              >
+                Load more (+96 varieties)
+              </button>
+              <button
+                type="button"
+                className="crop-show-more-btn"
+                style={{ background: "#2b633b", color: "#fff" }}
+                onClick={() => setCardLimit(5000)}
+              >
+                Show all {catalogVarietyItems.length} varieties
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* PAGINATION CONTROLS */}
+      {!preview && total > 0 && viewMode !== "catalogue" && (
+        <div className="mandi-pagination-bar">
+          <div className="mandi-pagination-info">
+            Showing records <b>{(currentPage - 1) * pageSize + 1}</b> – <b>{Math.min(currentPage * pageSize, total)}</b> of <b>{total.toLocaleString("en-IN")}</b> official records
+          </div>
+
+          <div className="mandi-pagination-controls">
+            <button
+              type="button"
+              className="pagination-btn"
+              disabled={currentPage <= 1 || loading}
+              onClick={() => handlePageChange(1)}
+              title="First page"
+            >
+              « First
+            </button>
+            <button
+              type="button"
+              className="pagination-btn"
+              disabled={currentPage <= 1 || loading}
+              onClick={() => handlePageChange(currentPage - 1)}
+              title="Previous page"
+            >
+              ‹ Prev
+            </button>
+
+            {/* Quick jump page numbers */}
+            {(() => {
+              const pages = []
+              const start = Math.max(1, currentPage - 2)
+              const end = Math.min(totalPages, currentPage + 2)
+              for (let p = start; p <= end; p++) {
+                pages.push(
+                  <button
+                    key={p}
+                    type="button"
+                    className={`pagination-btn ${p === currentPage ? "active" : ""}`}
+                    onClick={() => handlePageChange(p)}
+                    disabled={loading}
+                  >
+                    {p}
+                  </button>
+                )
+              }
+              return pages
+            })()}
+
+            <span className="pagination-current">
+              Page <b>{currentPage}</b> of <b>{totalPages}</b>
+            </span>
+
+            <button
+              type="button"
+              className="pagination-btn"
+              disabled={currentPage >= totalPages || loading}
+              onClick={() => handlePageChange(currentPage + 1)}
+              title="Next page"
+            >
+              Next ›
+            </button>
+            <button
+              type="button"
+              className="pagination-btn"
+              disabled={currentPage >= totalPages || loading}
+              onClick={() => handlePageChange(totalPages)}
+              title="Last page"
+            >
+              Last »
+            </button>
+
+            <select
+              value={pageSize}
+              onChange={e => {
+                setPageSize(Number(e.target.value))
+                setCurrentPage(1)
+              }}
+              style={{
+                marginLeft: "8px",
+                padding: "4px 8px",
+                border: "1px solid #cbd5e1",
+                borderRadius: "4px",
+                fontSize: "11px",
+                background: "#fff",
+                color: "#334155"
+              }}
+              title="Records per page"
+            >
+              <option value={24}>24 per page</option>
+              <option value={48}>48 per page</option>
+              <option value={96}>96 per page</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* Preview mode "View All" Button */}
+      {preview && onViewAll && (
+        <button className="crop-card-more" onClick={onViewAll} style={{ width: "100%", marginTop: "12px", cursor: "pointer" }}>
+          View all current market prices &amp; full AGMARKNET directory ({total !== null ? total.toLocaleString("en-IN") : "16,000+"} records) →
         </button>
       )}
 
-      <p className="official-source">
+      <p className="official-source" style={{ marginTop: "20px" }}>
         Source:{" "}
         <a href="https://www.data.gov.in/catalog/current-daily-price-various-commodities-various-markets-mandi" target="_blank" rel="noreferrer">
-          Ministry of Agriculture & Farmers Welfare · AGMARKNET on data.gov.in ↗
+          Government of India — AGMARKNET (Ministry of Agriculture &amp; Farmers Welfare · data.gov.in) ↗
         </a>{" "}
-        · Reported daily; wholesale rates are ₹ per quintal.
+        · All displayed rates are official APMC wholesale mandi transactions in ₹ per quintal.
       </p>
     </div>
   )
@@ -591,27 +1367,67 @@ const genericCropImage = "/placeholder.png"
 
 function cropPhoto(name) {
   const n = String(name || "").toLowerCase()
-  if (n.includes("ginger")) return "https://upload.wikimedia.org/wikipedia/commons/f/fb/Fresh_ginger_rhizome_01.jpg"
-  if (n.includes("bhindi") || n.includes("okra") || n.includes("lady") || n.includes("ladies")) return "/ladies_finger.jpg"
-  if (n.includes("tomato")) return "/tomato.jpg"
-  if (n.includes("onion")) return "/onion.jpg"
-  if (n.includes("potato")) return "/potato.jpg"
-  if (n.includes("carrot")) return "/carrot.jpg"
-  if (n.includes("cabbage")) return "/cabbage.jpg"
+
+  // 1. Specific Target Commodities (Clean agricultural product photography)
+  // Drumstick / Moringa: Fresh harvested individual pods (never pods hanging on tree)
+  if (n.includes("drumstick") || n.includes("moringa") || n.includes("sahjan") || n.includes("murungakkai") || n.includes("nuggekayi")) return "/drumstick.jpg"
+
+  // Green Banana / Plantain: Actual raw unripe green cooking bananas (never yellow bananas)
+  if (n.includes("green banana") || n.includes("banana - green") || n.includes("banana green") || n.includes("plantain") || n.includes("raw banana") || n.includes("vazhaikkai") || n.includes("baalekayi") || n.includes("kachha kela")) return "/green_banana.jpg"
+
+  // Mosambi / Sweet Lime: Indian sweet lime Citrus limetta (never lemon or orange)
+  if (n.includes("mosambi") || n.includes("sweet lime") || n.includes("citrus limetta") || n.includes("moushumi") || n.includes("battayi")) return "/mosambi.jpg"
+
+  // Coconut: Whole mature coconut and cut half with white meat (never coconut tree or seedling)
+  if (n.includes("coconut") || n.includes("copra") || n.includes("nariyal") || n.includes("thengai") || n.includes("tenginakayi")) return "/coconut.jpg"
+
+  // Chikoo / Sapodilla: Fresh ripe sapodilla fruit
+  if (n.includes("chikoo") || n.includes("chiku") || n.includes("sapota") || n.includes("sapodilla")) return "/chikoo.jpg"
+
+  // Amla: Fresh Indian gooseberry Phyllanthus emblica
+  if (n.includes("amla") || n.includes("gooseberry") || n.includes("nellikai") || n.includes("nelli kai") || n.includes("usirikaya")) return "/amla.jpg"
+
+  // Jasmine: Fresh white jasmine flowers / mogra blossoms (never tree, plant bush or leaves)
+  if (n.includes("jasmine") || n.includes("mogra") || n.includes("gundu malli") || n.includes("malli") || n.includes("chameli") || n.includes("mallepuvu")) return "/jasmine.jpg"
+
+  // Brinjal / Eggplant: Glossy purple brinjal fruit on clean white background (never plant leaves)
+  if (n.includes("brinjal") || n.includes("eggplant") || n.includes("aubergine") || n.includes("baingan") || n.includes("badanekai") || n.includes("kathirikai") || n.includes("vankaya")) return "/brinjal.jpg"
+
+  // Pomegranate: Fresh whole and cut pomegranate fruits with ruby arils (never tree or flower)
+  if (n.includes("pomegranate") || n.includes("anar") || n.includes("dalimbe") || n.includes("danimma") || n.includes("mathulai")) return "/pomegranate.jpg"
+
+  // Guava: Fresh guava fruit
+  if (n.includes("guava") || n.includes("amrood")) return "/guava.jpg"
+
+  // Watermelon: Fresh watermelon fruit
+  if (n.includes("watermelon") || n.includes("tarbooz")) return "/watermelon.jpg"
+
+  // Cabbage: Clean cabbage head (no baskets or plates)
+  if (n.includes("cabbage") || n.includes("patta gobhi") || n.includes("bandha gobhi") || n.includes("muttakose")) return "/cabbage.jpg"
+
+  // Okra / Ladies Finger: Clean pods on neutral background (no bowls)
+  if (n.includes("bhindi") || n.includes("okra") || n.includes("lady") || n.includes("ladies") || n.includes("bhendi") || n.includes("vendakkai") || n.includes("bendakaya")) return "/ladies_finger.jpg"
+
+  // Spices & Base Staples
+  if (n.includes("ginger") || n.includes("adrak") || n.includes("inji") || n.includes("allam") || n.includes("shunti")) return "/ginger.jpg"
+  if (n.includes("tomato") || n.includes("tamatar") || n.includes("thakkali")) return "/tomato.jpg"
+  if (n.includes("onion") || n.includes("pyaz") || n.includes("eerulli") || n.includes("vengayam")) return "/onion.jpg"
+  if (n.includes("potato") || n.includes("aloo") || n.includes("alugadde") || n.includes("urulaikizhangu")) return "/potato.jpg"
+  if (n.includes("carrot") || n.includes("gajar") || n.includes("gajjari")) return "/carrot.jpg"
+
+  // Gourds & Regional Specialties
   if (n.includes("snake") || n.includes("padaval") || n.includes("chichinda") || n.includes("pudalangai") || n.includes("potlakaya")) return "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg"
-  if (n.includes("ridgeguard") || n.includes("ridgegourd") || n.includes("tori")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Luffa_acutangula.jpg/640px-Luffa_acutangula.jpg"
+  if (n.includes("ridgeguard") || n.includes("ridgegourd") || n.includes("tori") || n.includes("turai")) return "https://upload.wikimedia.org/wikipedia/commons/5/59/Luffa_acutangula.jpg"
   if (n.includes("knol") || n.includes("knool") || n.includes("kohlrabi") || n.includes("turnip") || n.includes("ganth") || n.includes("navil")) return "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg"
-  if (n.includes("yam") || n.includes("suran") || n.includes("amphophalus")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Amorphophallus_paeoniifolius_corms_-_Kerala.jpg/640px-Amorphophallus_paeoniifolius_corms_-_Kerala.jpg"
-  if (n.includes("bengal gram") || n.includes("chana")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Bengal_Gram.jpg/640px-Bengal_Gram.jpg"
-  if (n.includes("arecanut") || n.includes("supari")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Areca_nut_in_a_basket.jpg/640px-Areca_nut_in_a_basket.jpg"
-  if (n.includes("gur") || n.includes("jaggery")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/Jaggery_blocks.jpg/640px-Jaggery_blocks.jpg"
-  if (n.includes("drumstick") || n.includes("moringa")) return "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Moringa_oleifera_pods.JPG/640px-Moringa_oleifera_pods.JPG"
+  if (n.includes("yam") || n.includes("suran") || n.includes("amphophalus")) return "https://upload.wikimedia.org/wikipedia/commons/7/7b/Amorphophallus_paeoniifolius_at_Taman_Botani_Negara_Shah_Alam.jpg"
+  if (n.includes("bengal gram") || n.includes("chana")) return "https://upload.wikimedia.org/wikipedia/commons/1/12/Cicer_arietinum_%284217744781%29.jpg"
+  if (n.includes("arecanut") || n.includes("supari")) return "https://upload.wikimedia.org/wikipedia/commons/e/e0/Areca_nut_in_a_basket.jpg"
+  if (n.includes("gur") || n.includes("jaggery")) return "https://upload.wikimedia.org/wikipedia/commons/d/dc/Jaggery_blocks.jpg"
   if (n.includes("garlic")) return "https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?auto=format&fit=crop&w=520&q=75"
   if (n.includes("chilli") || n.includes("chili") || n.includes("mirchi")) return "https://images.unsplash.com/photo-1565685110871-1324fc462c84?auto=format&fit=crop&w=520&q=75"
   if (n.includes("cucumber") || n.includes("kheera")) return "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=520&q=75"
   if (n.includes("cauliflower") || n.includes("gobi")) return "https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=520&q=75"
   if (n.includes("broccoli")) return "https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?auto=format&fit=crop&w=520&q=75"
-  if (n.includes("brinjal") || n.includes("eggplant") || n.includes("baingan")) return "https://upload.wikimedia.org/wikipedia/commons/7/76/Solanum_melongena_24_08_2012_%281%29.JPG"
   if (n.includes("bottle gourd") || n.includes("lauki") || n.includes("calabash") || n.includes("sorekayi")) return "https://upload.wikimedia.org/wikipedia/commons/a/a2/Courge_encore_verte.jpg"
   if (n.includes("thogari") || n.includes("thogri") || n.includes("cluster") || n.includes("guar") || n.includes("gorika") || n.includes("kothavara")) return "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG"
   if (n === "beans" || n.includes("green bean") || n.includes("french bean") || n.includes("frasbean") || n.includes("string bean") || n.includes("bean")) return "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg"
@@ -634,7 +1450,7 @@ function cropPhoto(name) {
   if (n.includes("moong") || n.includes("green gram") || n.includes("mung")) return "https://upload.wikimedia.org/wikipedia/commons/8/86/Mung_beans_%28Vigna_radiata%29.jpg"
   if (n.includes("avare") || n.includes("hyacinth") || n.includes("field bean")) return "https://upload.wikimedia.org/wikipedia/commons/4/4d/Lablab_purpureus_257105665.jpg"
   if (n.includes("sesame") || n.includes("til") || n.includes("gingelly") || n.includes("sesamum")) return "https://upload.wikimedia.org/wikipedia/commons/9/9e/Black_sesame.jpg"
-  return "/placeholder.png";
+  return "/placeholder.png"
 }
 
 function money(value) {

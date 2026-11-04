@@ -1,0 +1,3810 @@
+{
+  "andhra pradesh|mustard oil": {
+    "state": "Andhra Pradesh",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 15820.0,
+      "2024": 14715.0,
+      "2025_actual": 13050.0
+    },
+    "predicted_2025": 14001.55,
+    "predicted_2026": 14101.24,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12409.09,
+      "upper_bound_2026": 15793.39
+    }
+  },
+  "andhra pradesh|onion": {
+    "state": "Andhra Pradesh",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2825.0,
+      "2024": 2755.0,
+      "2025_actual": 3762.0
+    },
+    "predicted_2025": 3273.6,
+    "predicted_2026": 3662.11,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3222.66,
+      "upper_bound_2026": 4101.56
+    }
+  },
+  "andhra pradesh|paddy (rice)": {
+    "state": "Andhra Pradesh",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1911.0,
+      "2024": 2508.0,
+      "2025_actual": 2208.0
+    },
+    "predicted_2025": 2439.64,
+    "predicted_2026": 2599.87,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2287.89,
+      "upper_bound_2026": 2911.85
+    }
+  },
+  "andhra pradesh|potato": {
+    "state": "Andhra Pradesh",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1425.0,
+      "2024": 1765.5,
+      "2025_actual": 1764.0
+    },
+    "predicted_2025": 1812.71,
+    "predicted_2026": 1972.61,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1735.9,
+      "upper_bound_2026": 2209.32
+    }
+  },
+  "andhra pradesh|sugarcane": {
+    "state": "Andhra Pradesh",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 31.5,
+      "2024": 28.66,
+      "2025_actual": 29.58
+    },
+    "predicted_2025": 33.8,
+    "predicted_2026": 34.83,
+    "expected_annual_drift_percent": 3.05,
+    "uncertainty_band": {
+      "lower_bound_2026": 30.65,
+      "upper_bound_2026": 39.01
+    }
+  },
+  "andhra pradesh|tomato": {
+    "state": "Andhra Pradesh",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2970.0,
+      "2024": 3520.0,
+      "2025_actual": 3842.0
+    },
+    "predicted_2025": 3449.7,
+    "predicted_2026": 3638.16,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3201.58,
+      "upper_bound_2026": 4074.74
+    }
+  },
+  "andhra pradesh|tur (arhar) dal": {
+    "state": "Andhra Pradesh",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6440.0,
+      "2024": 8960.0,
+      "2025_actual": 9975.0
+    },
+    "predicted_2025": 8952.9,
+    "predicted_2026": 9984.09,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8786.0,
+      "upper_bound_2026": 11182.18
+    }
+  },
+  "andhra pradesh|wheat": {
+    "state": "Andhra Pradesh",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2288.0,
+      "2024": 2622.0,
+      "2025_actual": 2688.0
+    },
+    "predicted_2025": 2451.76,
+    "predicted_2026": 2541.93,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2236.9,
+      "upper_bound_2026": 2846.96
+    }
+  },
+  "arunachal pradesh|mustard oil": {
+    "state": "Arunachal Pradesh",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 15120.0,
+      "2024": 14715.0,
+      "2025_actual": 14210.0
+    },
+    "predicted_2025": 13869.48,
+    "predicted_2026": 13968.24,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12292.05,
+      "upper_bound_2026": 15644.43
+    }
+  },
+  "arunachal pradesh|onion": {
+    "state": "Arunachal Pradesh",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2575.0,
+      "2024": 2465.0,
+      "2025_actual": 2937.0
+    },
+    "predicted_2025": 3242.73,
+    "predicted_2026": 3627.57,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3192.26,
+      "upper_bound_2026": 4062.88
+    }
+  },
+  "arunachal pradesh|paddy (rice)": {
+    "state": "Arunachal Pradesh",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1911.0,
+      "2024": 2508.0,
+      "2025_actual": 2576.0
+    },
+    "predicted_2025": 2416.63,
+    "predicted_2026": 2575.34,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2266.3,
+      "upper_bound_2026": 2884.38
+    }
+  },
+  "arunachal pradesh|potato": {
+    "state": "Arunachal Pradesh",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1425.0,
+      "2024": 1831.5,
+      "2025_actual": 2034.0
+    },
+    "predicted_2025": 1795.61,
+    "predicted_2026": 1954.01,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1719.53,
+      "upper_bound_2026": 2188.49
+    }
+  },
+  "arunachal pradesh|sugarcane": {
+    "state": "Arunachal Pradesh",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 31.5,
+      "2024": 32.76,
+      "2025_actual": 35.7
+    },
+    "predicted_2025": 33.48,
+    "predicted_2026": 34.5,
+    "expected_annual_drift_percent": 3.05,
+    "uncertainty_band": {
+      "lower_bound_2026": 30.36,
+      "upper_bound_2026": 38.64
+    }
+  },
+  "arunachal pradesh|tomato": {
+    "state": "Arunachal Pradesh",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3210.0,
+      "2024": 3488.0,
+      "2025_actual": 3672.0
+    },
+    "predicted_2025": 3417.16,
+    "predicted_2026": 3603.85,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3171.39,
+      "upper_bound_2026": 4036.31
+    }
+  },
+  "arunachal pradesh|tur (arhar) dal": {
+    "state": "Arunachal Pradesh",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6650.0,
+      "2024": 9120.0,
+      "2025_actual": 9595.0
+    },
+    "predicted_2025": 8868.45,
+    "predicted_2026": 9889.92,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8703.13,
+      "upper_bound_2026": 11076.71
+    }
+  },
+  "arunachal pradesh|wheat": {
+    "state": "Arunachal Pradesh",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2420.0,
+      "2024": 1955.0,
+      "2025_actual": 2232.0
+    },
+    "predicted_2025": 2428.63,
+    "predicted_2026": 2517.96,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2215.8,
+      "upper_bound_2026": 2820.12
+    }
+  },
+  "assam|mustard oil": {
+    "state": "Assam",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 12040.0,
+      "2024": 14985.0,
+      "2025_actual": 15515.0
+    },
+    "predicted_2025": 13152.27,
+    "predicted_2026": 13245.92,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11656.41,
+      "upper_bound_2026": 14835.43
+    }
+  },
+  "assam|onion": {
+    "state": "Assam",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2700.0,
+      "2024": 2523.0,
+      "2025_actual": 2805.0
+    },
+    "predicted_2025": 3075.04,
+    "predicted_2026": 3439.99,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3027.19,
+      "upper_bound_2026": 3852.79
+    }
+  },
+  "assam|paddy (rice)": {
+    "state": "Assam",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1848.0,
+      "2024": 2134.0,
+      "2025_actual": 2001.0
+    },
+    "predicted_2025": 2291.66,
+    "predicted_2026": 2442.17,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2149.11,
+      "upper_bound_2026": 2735.23
+    }
+  },
+  "assam|potato": {
+    "state": "Assam",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1590.0,
+      "2024": 1485.0,
+      "2025_actual": 2034.0
+    },
+    "predicted_2025": 1702.76,
+    "predicted_2026": 1852.96,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1630.6,
+      "upper_bound_2026": 2075.32
+    }
+  },
+  "assam|sugarcane": {
+    "state": "Assam",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 32.4,
+      "2024": 29.29,
+      "2025_actual": 28.9
+    },
+    "predicted_2025": 31.75,
+    "predicted_2026": 32.71,
+    "expected_annual_drift_percent": 3.02,
+    "uncertainty_band": {
+      "lower_bound_2026": 28.78,
+      "upper_bound_2026": 36.64
+    }
+  },
+  "assam|tomato": {
+    "state": "Assam",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2610.0,
+      "2024": 2912.0,
+      "2025_actual": 3536.0
+    },
+    "predicted_2025": 3240.45,
+    "predicted_2026": 3417.49,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3007.39,
+      "upper_bound_2026": 3827.59
+    }
+  },
+  "assam|tur (arhar) dal": {
+    "state": "Assam",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7350.0,
+      "2024": 7360.0,
+      "2025_actual": 9975.0
+    },
+    "predicted_2025": 8409.85,
+    "predicted_2026": 9378.49,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8253.07,
+      "upper_bound_2026": 10503.91
+    }
+  },
+  "assam|wheat": {
+    "state": "Assam",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2024.0,
+      "2024": 2139.0,
+      "2025_actual": 2688.0
+    },
+    "predicted_2025": 2303.04,
+    "predicted_2026": 2387.75,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2101.22,
+      "upper_bound_2026": 2674.28
+    }
+  },
+  "bihar|mustard oil": {
+    "state": "Bihar",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 11900.0,
+      "2024": 14580.0,
+      "2025_actual": 12615.0
+    },
+    "predicted_2025": 13389.24,
+    "predicted_2026": 13484.57,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11866.42,
+      "upper_bound_2026": 15102.72
+    }
+  },
+  "bihar|onion": {
+    "state": "Bihar",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2250.0,
+      "2024": 2465.0,
+      "2025_actual": 3597.0
+    },
+    "predicted_2025": 3130.44,
+    "predicted_2026": 3501.96,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3081.72,
+      "upper_bound_2026": 3922.2
+    }
+  },
+  "bihar|paddy (rice)": {
+    "state": "Bihar",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2016.0,
+      "2024": 2508.0,
+      "2025_actual": 2001.0
+    },
+    "predicted_2025": 2332.95,
+    "predicted_2026": 2486.17,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2187.83,
+      "upper_bound_2026": 2784.51
+    }
+  },
+  "bihar|potato": {
+    "state": "Bihar",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1680.0,
+      "2024": 1551.0,
+      "2025_actual": 1908.0
+    },
+    "predicted_2025": 1733.44,
+    "predicted_2026": 1886.35,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1659.99,
+      "upper_bound_2026": 2112.71
+    }
+  },
+  "bihar|sugarcane": {
+    "state": "Bihar",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 28.8,
+      "2024": 31.19,
+      "2025_actual": 31.28
+    },
+    "predicted_2025": 32.33,
+    "predicted_2026": 33.3,
+    "expected_annual_drift_percent": 3.0,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.3,
+      "upper_bound_2026": 37.3
+    }
+  },
+  "bihar|tomato": {
+    "state": "Bihar",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2580.0,
+      "2024": 3296.0,
+      "2025_actual": 3196.0
+    },
+    "predicted_2025": 3298.83,
+    "predicted_2026": 3479.06,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3061.57,
+      "upper_bound_2026": 3896.55
+    }
+  },
+  "bihar|tur (arhar) dal": {
+    "state": "Bihar",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7350.0,
+      "2024": 7680.0,
+      "2025_actual": 10450.0
+    },
+    "predicted_2025": 8561.37,
+    "predicted_2026": 9547.47,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8401.77,
+      "upper_bound_2026": 10693.17
+    }
+  },
+  "bihar|wheat": {
+    "state": "Bihar",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2508.0,
+      "2024": 2047.0,
+      "2025_actual": 2448.0
+    },
+    "predicted_2025": 2344.54,
+    "predicted_2026": 2430.77,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2139.08,
+      "upper_bound_2026": 2722.46
+    }
+  },
+  "chhattisgarh|mustard oil": {
+    "state": "Chhattisgarh",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 15540.0,
+      "2024": 15390.0,
+      "2025_actual": 12470.0
+    },
+    "predicted_2025": 14221.02,
+    "predicted_2026": 14322.28,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12603.61,
+      "upper_bound_2026": 16040.95
+    }
+  },
+  "chhattisgarh|onion": {
+    "state": "Chhattisgarh",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2825.0,
+      "2024": 3132.0,
+      "2025_actual": 3366.0
+    },
+    "predicted_2025": 3324.92,
+    "predicted_2026": 3719.52,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3273.18,
+      "upper_bound_2026": 4165.86
+    }
+  },
+  "chhattisgarh|paddy (rice)": {
+    "state": "Chhattisgarh",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2310.0,
+      "2024": 2442.0,
+      "2025_actual": 2254.0
+    },
+    "predicted_2025": 2477.88,
+    "predicted_2026": 2640.62,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2323.75,
+      "upper_bound_2026": 2957.49
+    }
+  },
+  "chhattisgarh|potato": {
+    "state": "Chhattisgarh",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1635.0,
+      "2024": 1716.0,
+      "2025_actual": 1908.0
+    },
+    "predicted_2025": 1841.12,
+    "predicted_2026": 2003.53,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1763.11,
+      "upper_bound_2026": 2243.95
+    }
+  },
+  "chhattisgarh|sugarcane": {
+    "state": "Chhattisgarh",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 33.3,
+      "2024": 31.81,
+      "2025_actual": 37.74
+    },
+    "predicted_2025": 34.33,
+    "predicted_2026": 35.37,
+    "expected_annual_drift_percent": 3.03,
+    "uncertainty_band": {
+      "lower_bound_2026": 31.13,
+      "upper_bound_2026": 39.61
+    }
+  },
+  "chhattisgarh|tomato": {
+    "state": "Chhattisgarh",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2880.0,
+      "2024": 2976.0,
+      "2025_actual": 3366.0
+    },
+    "predicted_2025": 3503.77,
+    "predicted_2026": 3695.19,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3251.77,
+      "upper_bound_2026": 4138.61
+    }
+  },
+  "chhattisgarh|tur (arhar) dal": {
+    "state": "Chhattisgarh",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7070.0,
+      "2024": 8080.0,
+      "2025_actual": 10165.0
+    },
+    "predicted_2025": 9093.23,
+    "predicted_2026": 10140.59,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8923.72,
+      "upper_bound_2026": 11357.46
+    }
+  },
+  "chhattisgarh|wheat": {
+    "state": "Chhattisgarh",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2332.0,
+      "2024": 2438.0,
+      "2025_actual": 2592.0
+    },
+    "predicted_2025": 2490.19,
+    "predicted_2026": 2581.78,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2271.97,
+      "upper_bound_2026": 2891.59
+    }
+  },
+  "goa|mustard oil": {
+    "state": "Goa",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 15960.0,
+      "2024": 11745.0,
+      "2025_actual": 13485.0
+    },
+    "predicted_2025": 13791.66,
+    "predicted_2026": 13889.86,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12223.08,
+      "upper_bound_2026": 15556.64
+    }
+  },
+  "goa|onion": {
+    "state": "Goa",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2800.0,
+      "2024": 2784.0,
+      "2025_actual": 3630.0
+    },
+    "predicted_2025": 3224.53,
+    "predicted_2026": 3607.22,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3174.35,
+      "upper_bound_2026": 4040.09
+    }
+  },
+  "goa|paddy (rice)": {
+    "state": "Goa",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1974.0,
+      "2024": 2420.0,
+      "2025_actual": 2162.0
+    },
+    "predicted_2025": 2403.07,
+    "predicted_2026": 2560.89,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2253.58,
+      "upper_bound_2026": 2868.2
+    }
+  },
+  "goa|potato": {
+    "state": "Goa",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1485.0,
+      "2024": 1501.5,
+      "2025_actual": 1656.0
+    },
+    "predicted_2025": 1785.54,
+    "predicted_2026": 1943.04,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1709.88,
+      "upper_bound_2026": 2176.2
+    }
+  },
+  "goa|sugarcane": {
+    "state": "Goa",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 29.7,
+      "2024": 31.81,
+      "2025_actual": 32.3
+    },
+    "predicted_2025": 33.3,
+    "predicted_2026": 34.3,
+    "expected_annual_drift_percent": 3.0,
+    "uncertainty_band": {
+      "lower_bound_2026": 30.18,
+      "upper_bound_2026": 38.42
+    }
+  },
+  "goa|tomato": {
+    "state": "Goa",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3000.0,
+      "2024": 3648.0,
+      "2025_actual": 3434.0
+    },
+    "predicted_2025": 3397.98,
+    "predicted_2026": 3583.63,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3153.59,
+      "upper_bound_2026": 4013.67
+    }
+  },
+  "goa|tur (arhar) dal": {
+    "state": "Goa",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7980.0,
+      "2024": 6880.0,
+      "2025_actual": 8075.0
+    },
+    "predicted_2025": 8818.69,
+    "predicted_2026": 9834.42,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8654.29,
+      "upper_bound_2026": 11014.55
+    }
+  },
+  "goa|wheat": {
+    "state": "Goa",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2464.0,
+      "2024": 2392.0,
+      "2025_actual": 2064.0
+    },
+    "predicted_2025": 2415.0,
+    "predicted_2026": 2503.83,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2203.37,
+      "upper_bound_2026": 2804.29
+    }
+  },
+  "gujarat|mustard oil": {
+    "state": "Gujarat",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 12180.0,
+      "2024": 11610.0,
+      "2025_actual": 15950.0
+    },
+    "predicted_2025": 13525.46,
+    "predicted_2026": 13621.77,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11987.16,
+      "upper_bound_2026": 15256.38
+    }
+  },
+  "gujarat|onion": {
+    "state": "Gujarat",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2400.0,
+      "2024": 3132.0,
+      "2025_actual": 3003.0
+    },
+    "predicted_2025": 3162.29,
+    "predicted_2026": 3537.59,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3113.08,
+      "upper_bound_2026": 3962.1
+    }
+  },
+  "gujarat|paddy (rice)": {
+    "state": "Gujarat",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2394.0,
+      "2024": 1958.0,
+      "2025_actual": 2438.0
+    },
+    "predicted_2025": 2356.69,
+    "predicted_2026": 2511.46,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2210.08,
+      "upper_bound_2026": 2812.84
+    }
+  },
+  "gujarat|potato": {
+    "state": "Gujarat",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1560.0,
+      "2024": 1831.5,
+      "2025_actual": 1692.0
+    },
+    "predicted_2025": 1751.07,
+    "predicted_2026": 1905.54,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1676.88,
+      "upper_bound_2026": 2134.2
+    }
+  },
+  "gujarat|sugarcane": {
+    "state": "Gujarat",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 26.7,
+      "2024": 27.09,
+      "2025_actual": 29.58
+    },
+    "predicted_2025": 32.65,
+    "predicted_2026": 33.64,
+    "expected_annual_drift_percent": 3.03,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.6,
+      "upper_bound_2026": 37.68
+    }
+  },
+  "gujarat|tomato": {
+    "state": "Gujarat",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3210.0,
+      "2024": 3232.0,
+      "2025_actual": 3842.0
+    },
+    "predicted_2025": 3332.4,
+    "predicted_2026": 3514.46,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3092.72,
+      "upper_bound_2026": 3936.2
+    }
+  },
+  "gujarat|tur (arhar) dal": {
+    "state": "Gujarat",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7630.0,
+      "2024": 8080.0,
+      "2025_actual": 10165.0
+    },
+    "predicted_2025": 8648.47,
+    "predicted_2026": 9644.6,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8487.25,
+      "upper_bound_2026": 10801.95
+    }
+  },
+  "gujarat|wheat": {
+    "state": "Gujarat",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2266.0,
+      "2024": 2323.0,
+      "2025_actual": 2400.0
+    },
+    "predicted_2025": 2368.39,
+    "predicted_2026": 2455.5,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2160.84,
+      "upper_bound_2026": 2750.16
+    }
+  },
+  "haryana|mustard oil": {
+    "state": "Haryana",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 12320.0,
+      "2024": 13905.0,
+      "2025_actual": 13195.0
+    },
+    "predicted_2025": 13463.12,
+    "predicted_2026": 13558.98,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11931.9,
+      "upper_bound_2026": 15186.06
+    }
+  },
+  "haryana|onion": {
+    "state": "Haryana",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2625.0,
+      "2024": 3103.0,
+      "2025_actual": 3564.0
+    },
+    "predicted_2025": 3147.71,
+    "predicted_2026": 3521.29,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3098.74,
+      "upper_bound_2026": 3943.84
+    }
+  },
+  "haryana|paddy (rice)": {
+    "state": "Haryana",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2163.0,
+      "2024": 2464.0,
+      "2025_actual": 2346.0
+    },
+    "predicted_2025": 2345.83,
+    "predicted_2026": 2499.89,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2199.9,
+      "upper_bound_2026": 2799.88
+    }
+  },
+  "haryana|potato": {
+    "state": "Haryana",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1365.0,
+      "2024": 1402.5,
+      "2025_actual": 2016.0
+    },
+    "predicted_2025": 1743.0,
+    "predicted_2026": 1896.76,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1669.15,
+      "upper_bound_2026": 2124.37
+    }
+  },
+  "haryana|sugarcane": {
+    "state": "Haryana",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 32.7,
+      "2024": 35.91,
+      "2025_actual": 37.06
+    },
+    "predicted_2025": 32.5,
+    "predicted_2026": 33.49,
+    "expected_annual_drift_percent": 3.05,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.47,
+      "upper_bound_2026": 37.51
+    }
+  },
+  "haryana|tomato": {
+    "state": "Haryana",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2790.0,
+      "2024": 2848.0,
+      "2025_actual": 3298.0
+    },
+    "predicted_2025": 3317.04,
+    "predicted_2026": 3498.26,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3078.47,
+      "upper_bound_2026": 3918.05
+    }
+  },
+  "haryana|tur (arhar) dal": {
+    "state": "Haryana",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7140.0,
+      "2024": 6800.0,
+      "2025_actual": 10450.0
+    },
+    "predicted_2025": 8608.61,
+    "predicted_2026": 9600.15,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8448.13,
+      "upper_bound_2026": 10752.17
+    }
+  },
+  "haryana|wheat": {
+    "state": "Haryana",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2002.0,
+      "2024": 2438.0,
+      "2025_actual": 2616.0
+    },
+    "predicted_2025": 2357.47,
+    "predicted_2026": 2444.18,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2150.88,
+      "upper_bound_2026": 2737.48
+    }
+  },
+  "himachal pradesh|mustard oil": {
+    "state": "Himachal Pradesh",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 14700.0,
+      "2024": 11880.0,
+      "2025_actual": 14500.0
+    },
+    "predicted_2025": 13612.14,
+    "predicted_2026": 13709.07,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12063.98,
+      "upper_bound_2026": 15354.16
+    }
+  },
+  "himachal pradesh|onion": {
+    "state": "Himachal Pradesh",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2550.0,
+      "2024": 2784.0,
+      "2025_actual": 3432.0
+    },
+    "predicted_2025": 3182.56,
+    "predicted_2026": 3560.27,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3133.04,
+      "upper_bound_2026": 3987.5
+    }
+  },
+  "himachal pradesh|paddy (rice)": {
+    "state": "Himachal Pradesh",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2352.0,
+      "2024": 1892.0,
+      "2025_actual": 2024.0
+    },
+    "predicted_2025": 2371.79,
+    "predicted_2026": 2527.56,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2224.25,
+      "upper_bound_2026": 2830.87
+    }
+  },
+  "himachal pradesh|potato": {
+    "state": "Himachal Pradesh",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1395.0,
+      "2024": 1485.0,
+      "2025_actual": 1656.0
+    },
+    "predicted_2025": 1762.29,
+    "predicted_2026": 1917.75,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1687.62,
+      "upper_bound_2026": 2147.88
+    }
+  },
+  "himachal pradesh|sugarcane": {
+    "state": "Himachal Pradesh",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 25.8,
+      "2024": 33.7,
+      "2025_actual": 33.32
+    },
+    "predicted_2025": 32.86,
+    "predicted_2026": 33.86,
+    "expected_annual_drift_percent": 3.04,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.8,
+      "upper_bound_2026": 37.92
+    }
+  },
+  "himachal pradesh|tomato": {
+    "state": "Himachal Pradesh",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3300.0,
+      "2024": 3520.0,
+      "2025_actual": 2890.0
+    },
+    "predicted_2025": 3353.75,
+    "predicted_2026": 3536.98,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3112.54,
+      "upper_bound_2026": 3961.42
+    }
+  },
+  "himachal pradesh|tur (arhar) dal": {
+    "state": "Himachal Pradesh",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7700.0,
+      "2024": 8560.0,
+      "2025_actual": 9310.0
+    },
+    "predicted_2025": 8703.9,
+    "predicted_2026": 9706.42,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8541.65,
+      "upper_bound_2026": 10871.19
+    }
+  },
+  "himachal pradesh|wheat": {
+    "state": "Himachal Pradesh",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2156.0,
+      "2024": 2415.0,
+      "2025_actual": 2328.0
+    },
+    "predicted_2025": 2383.57,
+    "predicted_2026": 2471.24,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2174.69,
+      "upper_bound_2026": 2767.79
+    }
+  },
+  "jharkhand|mustard oil": {
+    "state": "Jharkhand",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 15820.0,
+      "2024": 12015.0,
+      "2025_actual": 12470.0
+    },
+    "predicted_2025": 13750.05,
+    "predicted_2026": 13847.95,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12186.2,
+      "upper_bound_2026": 15509.7
+    }
+  },
+  "jharkhand|onion": {
+    "state": "Jharkhand",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2475.0,
+      "2024": 3219.0,
+      "2025_actual": 3531.0
+    },
+    "predicted_2025": 3214.8,
+    "predicted_2026": 3596.34,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3164.78,
+      "upper_bound_2026": 4027.9
+    }
+  },
+  "jharkhand|paddy (rice)": {
+    "state": "Jharkhand",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2184.0,
+      "2024": 2090.0,
+      "2025_actual": 2208.0
+    },
+    "predicted_2025": 2395.82,
+    "predicted_2026": 2553.17,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2246.79,
+      "upper_bound_2026": 2859.55
+    }
+  },
+  "jharkhand|potato": {
+    "state": "Jharkhand",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1365.0,
+      "2024": 1485.0,
+      "2025_actual": 2016.0
+    },
+    "predicted_2025": 1780.15,
+    "predicted_2026": 1937.18,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1704.72,
+      "upper_bound_2026": 2169.64
+    }
+  },
+  "jharkhand|sugarcane": {
+    "state": "Jharkhand",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 27.6,
+      "2024": 32.76,
+      "2025_actual": 36.38
+    },
+    "predicted_2025": 33.2,
+    "predicted_2026": 34.2,
+    "expected_annual_drift_percent": 3.01,
+    "uncertainty_band": {
+      "lower_bound_2026": 30.1,
+      "upper_bound_2026": 38.3
+    }
+  },
+  "jharkhand|tomato": {
+    "state": "Jharkhand",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3360.0,
+      "2024": 3232.0,
+      "2025_actual": 3366.0
+    },
+    "predicted_2025": 3387.73,
+    "predicted_2026": 3572.81,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3144.07,
+      "upper_bound_2026": 4001.55
+    }
+  },
+  "jharkhand|tur (arhar) dal": {
+    "state": "Jharkhand",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6720.0,
+      "2024": 8640.0,
+      "2025_actual": 8170.0
+    },
+    "predicted_2025": 8792.08,
+    "predicted_2026": 9804.75,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8628.18,
+      "upper_bound_2026": 10981.32
+    }
+  },
+  "jharkhand|wheat": {
+    "state": "Jharkhand",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2464.0,
+      "2024": 2484.0,
+      "2025_actual": 2472.0
+    },
+    "predicted_2025": 2407.72,
+    "predicted_2026": 2496.28,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2196.73,
+      "upper_bound_2026": 2795.83
+    }
+  },
+  "karnataka|mustard oil": {
+    "state": "Karnataka",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 12880.0,
+      "2024": 11475.0,
+      "2025_actual": 15370.0
+    },
+    "predicted_2025": 13008.63,
+    "predicted_2026": 13101.26,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11529.11,
+      "upper_bound_2026": 14673.41
+    }
+  },
+  "karnataka|onion": {
+    "state": "Karnataka",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2450.0,
+      "2024": 3074.0,
+      "2025_actual": 3597.0
+    },
+    "predicted_2025": 3041.46,
+    "predicted_2026": 3402.42,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 2994.13,
+      "upper_bound_2026": 3810.71
+    }
+  },
+  "karnataka|paddy (rice)": {
+    "state": "Karnataka",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2079.0,
+      "2024": 1892.0,
+      "2025_actual": 2438.0
+    },
+    "predicted_2025": 2266.64,
+    "predicted_2026": 2415.5,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2125.64,
+      "upper_bound_2026": 2705.36
+    }
+  },
+  "karnataka|potato": {
+    "state": "Karnataka",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1320.0,
+      "2024": 1650.0,
+      "2025_actual": 2052.0
+    },
+    "predicted_2025": 1684.16,
+    "predicted_2026": 1832.73,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1612.8,
+      "upper_bound_2026": 2052.66
+    }
+  },
+  "karnataka|sugarcane": {
+    "state": "Karnataka",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 26.4,
+      "2024": 29.29,
+      "2025_actual": 37.4
+    },
+    "predicted_2025": 31.41,
+    "predicted_2026": 32.36,
+    "expected_annual_drift_percent": 3.02,
+    "uncertainty_band": {
+      "lower_bound_2026": 28.48,
+      "upper_bound_2026": 36.24
+    }
+  },
+  "karnataka|tomato": {
+    "state": "Karnataka",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3030.0,
+      "2024": 3040.0,
+      "2025_actual": 3740.0
+    },
+    "predicted_2025": 3205.06,
+    "predicted_2026": 3380.16,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 2974.54,
+      "upper_bound_2026": 3785.78
+    }
+  },
+  "karnataka|tur (arhar) dal": {
+    "state": "Karnataka",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7140.0,
+      "2024": 8000.0,
+      "2025_actual": 10735.0
+    },
+    "predicted_2025": 8318.0,
+    "predicted_2026": 9276.07,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8162.94,
+      "upper_bound_2026": 10389.2
+    }
+  },
+  "karnataka|wheat": {
+    "state": "Karnataka",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1914.0,
+      "2024": 2070.0,
+      "2025_actual": 2472.0
+    },
+    "predicted_2025": 2277.89,
+    "predicted_2026": 2361.67,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2078.27,
+      "upper_bound_2026": 2645.07
+    }
+  },
+  "kerala|mustard oil": {
+    "state": "Kerala",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 14840.0,
+      "2024": 14040.0,
+      "2025_actual": 14355.0
+    },
+    "predicted_2025": 13735.52,
+    "predicted_2026": 13833.32,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12173.32,
+      "upper_bound_2026": 15493.32
+    }
+  },
+  "kerala|onion": {
+    "state": "Kerala",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2250.0,
+      "2024": 2610.0,
+      "2025_actual": 3333.0
+    },
+    "predicted_2025": 3211.4,
+    "predicted_2026": 3592.53,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3161.43,
+      "upper_bound_2026": 4023.63
+    }
+  },
+  "kerala|paddy (rice)": {
+    "state": "Kerala",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1806.0,
+      "2024": 2464.0,
+      "2025_actual": 2530.0
+    },
+    "predicted_2025": 2393.29,
+    "predicted_2026": 2550.47,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2244.41,
+      "upper_bound_2026": 2856.53
+    }
+  },
+  "kerala|potato": {
+    "state": "Kerala",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1410.0,
+      "2024": 1864.5,
+      "2025_actual": 1692.0
+    },
+    "predicted_2025": 1778.27,
+    "predicted_2026": 1935.13,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1702.91,
+      "upper_bound_2026": 2167.35
+    }
+  },
+  "kerala|sugarcane": {
+    "state": "Kerala",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 33.9,
+      "2024": 35.28,
+      "2025_actual": 36.04
+    },
+    "predicted_2025": 33.16,
+    "predicted_2026": 34.16,
+    "expected_annual_drift_percent": 3.02,
+    "uncertainty_band": {
+      "lower_bound_2026": 30.06,
+      "upper_bound_2026": 38.26
+    }
+  },
+  "kerala|tomato": {
+    "state": "Kerala",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3180.0,
+      "2024": 3200.0,
+      "2025_actual": 3536.0
+    },
+    "predicted_2025": 3384.15,
+    "predicted_2026": 3569.04,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3140.76,
+      "upper_bound_2026": 3997.32
+    }
+  },
+  "kerala|tur (arhar) dal": {
+    "state": "Kerala",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6160.0,
+      "2024": 6960.0,
+      "2025_actual": 8550.0
+    },
+    "predicted_2025": 8782.79,
+    "predicted_2026": 9794.39,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8619.06,
+      "upper_bound_2026": 10969.72
+    }
+  },
+  "kerala|wheat": {
+    "state": "Kerala",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2508.0,
+      "2024": 2553.0,
+      "2025_actual": 2544.0
+    },
+    "predicted_2025": 2405.17,
+    "predicted_2026": 2493.64,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2194.4,
+      "upper_bound_2026": 2792.88
+    }
+  },
+  "madhya pradesh|mustard oil": {
+    "state": "Madhya Pradesh",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 12320.0,
+      "2024": 14040.0,
+      "2025_actual": 16240.0
+    },
+    "predicted_2025": 13480.82,
+    "predicted_2026": 13576.81,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11947.59,
+      "upper_bound_2026": 15206.03
+    }
+  },
+  "madhya pradesh|onion": {
+    "state": "Madhya Pradesh",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2400.0,
+      "2024": 2987.0,
+      "2025_actual": 2937.0
+    },
+    "predicted_2025": 3151.85,
+    "predicted_2026": 3525.92,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3102.81,
+      "upper_bound_2026": 3949.03
+    }
+  },
+  "madhya pradesh|paddy (rice)": {
+    "state": "Madhya Pradesh",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2142.0,
+      "2024": 2442.0,
+      "2025_actual": 2185.0
+    },
+    "predicted_2025": 2348.91,
+    "predicted_2026": 2503.18,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2202.8,
+      "upper_bound_2026": 2803.56
+    }
+  },
+  "madhya pradesh|potato": {
+    "state": "Madhya Pradesh",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1410.0,
+      "2024": 1435.5,
+      "2025_actual": 1656.0
+    },
+    "predicted_2025": 1745.29,
+    "predicted_2026": 1899.25,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1671.34,
+      "upper_bound_2026": 2127.16
+    }
+  },
+  "madhya pradesh|sugarcane": {
+    "state": "Madhya Pradesh",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 29.4,
+      "2024": 28.66,
+      "2025_actual": 32.64
+    },
+    "predicted_2025": 32.55,
+    "predicted_2026": 33.53,
+    "expected_annual_drift_percent": 3.01,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.51,
+      "upper_bound_2026": 37.55
+    }
+  },
+  "madhya pradesh|tomato": {
+    "state": "Madhya Pradesh",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2580.0,
+      "2024": 3520.0,
+      "2025_actual": 2890.0
+    },
+    "predicted_2025": 3321.4,
+    "predicted_2026": 3502.86,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3082.52,
+      "upper_bound_2026": 3923.2
+    }
+  },
+  "madhya pradesh|tur (arhar) dal": {
+    "state": "Madhya Pradesh",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7980.0,
+      "2024": 8240.0,
+      "2025_actual": 9975.0
+    },
+    "predicted_2025": 8619.93,
+    "predicted_2026": 9612.77,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8459.24,
+      "upper_bound_2026": 10766.3
+    }
+  },
+  "madhya pradesh|wheat": {
+    "state": "Madhya Pradesh",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2420.0,
+      "2024": 2024.0,
+      "2025_actual": 2688.0
+    },
+    "predicted_2025": 2360.57,
+    "predicted_2026": 2447.4,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2153.71,
+      "upper_bound_2026": 2741.09
+    }
+  },
+  "maharashtra|mustard oil": {
+    "state": "Maharashtra",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 15260.0,
+      "2024": 12420.0,
+      "2025_actual": 15080.0
+    },
+    "predicted_2025": 13418.78,
+    "predicted_2026": 13514.32,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11892.6,
+      "upper_bound_2026": 15136.04
+    }
+  },
+  "maharashtra|onion": {
+    "state": "Maharashtra",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2300.0,
+      "2024": 2465.0,
+      "2025_actual": 3003.0
+    },
+    "predicted_2025": 3137.35,
+    "predicted_2026": 3509.69,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3088.53,
+      "upper_bound_2026": 3930.85
+    }
+  },
+  "maharashtra|paddy (rice)": {
+    "state": "Maharashtra",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2100.0,
+      "2024": 2288.0,
+      "2025_actual": 2208.0
+    },
+    "predicted_2025": 2338.1,
+    "predicted_2026": 2491.66,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2192.66,
+      "upper_bound_2026": 2790.66
+    }
+  },
+  "maharashtra|potato": {
+    "state": "Maharashtra",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1605.0,
+      "2024": 1501.5,
+      "2025_actual": 1620.0
+    },
+    "predicted_2025": 1737.26,
+    "predicted_2026": 1890.51,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1663.65,
+      "upper_bound_2026": 2117.37
+    }
+  },
+  "maharashtra|sugarcane": {
+    "state": "Maharashtra",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 34.2,
+      "2024": 26.77,
+      "2025_actual": 38.76
+    },
+    "predicted_2025": 32.4,
+    "predicted_2026": 33.38,
+    "expected_annual_drift_percent": 3.02,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.37,
+      "upper_bound_2026": 37.39
+    }
+  },
+  "maharashtra|tomato": {
+    "state": "Maharashtra",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2940.0,
+      "2024": 2944.0,
+      "2025_actual": 2992.0
+    },
+    "predicted_2025": 3306.11,
+    "predicted_2026": 3486.74,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3068.33,
+      "upper_bound_2026": 3905.15
+    }
+  },
+  "maharashtra|tur (arhar) dal": {
+    "state": "Maharashtra",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7840.0,
+      "2024": 8160.0,
+      "2025_actual": 9215.0
+    },
+    "predicted_2025": 8580.26,
+    "predicted_2026": 9568.53,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8420.31,
+      "upper_bound_2026": 10716.75
+    }
+  },
+  "maharashtra|wheat": {
+    "state": "Maharashtra",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2178.0,
+      "2024": 2139.0,
+      "2025_actual": 2136.0
+    },
+    "predicted_2025": 2349.71,
+    "predicted_2026": 2436.13,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2143.79,
+      "upper_bound_2026": 2728.47
+    }
+  },
+  "manipur|mustard oil": {
+    "state": "Manipur",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 14700.0,
+      "2024": 15390.0,
+      "2025_actual": 14065.0
+    },
+    "predicted_2025": 13927.49,
+    "predicted_2026": 14026.66,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12343.46,
+      "upper_bound_2026": 15709.86
+    }
+  },
+  "manipur|onion": {
+    "state": "Manipur",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2500.0,
+      "2024": 3161.0,
+      "2025_actual": 3531.0
+    },
+    "predicted_2025": 3256.29,
+    "predicted_2026": 3642.74,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3205.61,
+      "upper_bound_2026": 4079.87
+    }
+  },
+  "manipur|paddy (rice)": {
+    "state": "Manipur",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1932.0,
+      "2024": 2090.0,
+      "2025_actual": 2277.0
+    },
+    "predicted_2025": 2426.74,
+    "predicted_2026": 2586.12,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2275.79,
+      "upper_bound_2026": 2896.45
+    }
+  },
+  "manipur|potato": {
+    "state": "Manipur",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1530.0,
+      "2024": 1683.0,
+      "2025_actual": 1872.0
+    },
+    "predicted_2025": 1803.12,
+    "predicted_2026": 1962.18,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1726.72,
+      "upper_bound_2026": 2197.64
+    }
+  },
+  "manipur|sugarcane": {
+    "state": "Manipur",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 32.4,
+      "2024": 29.61,
+      "2025_actual": 34.68
+    },
+    "predicted_2025": 33.62,
+    "predicted_2026": 34.64,
+    "expected_annual_drift_percent": 3.03,
+    "uncertainty_band": {
+      "lower_bound_2026": 30.48,
+      "upper_bound_2026": 38.8
+    }
+  },
+  "manipur|tomato": {
+    "state": "Manipur",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2910.0,
+      "2024": 3488.0,
+      "2025_actual": 3128.0
+    },
+    "predicted_2025": 3431.45,
+    "predicted_2026": 3618.92,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3184.65,
+      "upper_bound_2026": 4053.19
+    }
+  },
+  "manipur|tur (arhar) dal": {
+    "state": "Manipur",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6930.0,
+      "2024": 8560.0,
+      "2025_actual": 9500.0
+    },
+    "predicted_2025": 8905.54,
+    "predicted_2026": 9931.28,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8739.53,
+      "upper_bound_2026": 11123.03
+    }
+  },
+  "manipur|wheat": {
+    "state": "Manipur",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2310.0,
+      "2024": 2576.0,
+      "2025_actual": 2088.0
+    },
+    "predicted_2025": 2438.79,
+    "predicted_2026": 2528.49,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2225.07,
+      "upper_bound_2026": 2831.91
+    }
+  },
+  "meghalaya|mustard oil": {
+    "state": "Meghalaya",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 13020.0,
+      "2024": 14715.0,
+      "2025_actual": 14935.0
+    },
+    "predicted_2025": 14047.88,
+    "predicted_2026": 14147.91,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12450.16,
+      "upper_bound_2026": 15845.66
+    }
+  },
+  "meghalaya|onion": {
+    "state": "Meghalaya",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2800.0,
+      "2024": 3248.0,
+      "2025_actual": 3762.0
+    },
+    "predicted_2025": 3284.43,
+    "predicted_2026": 3674.23,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3233.32,
+      "upper_bound_2026": 4115.14
+    }
+  },
+  "meghalaya|paddy (rice)": {
+    "state": "Meghalaya",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2310.0,
+      "2024": 1914.0,
+      "2025_actual": 2576.0
+    },
+    "predicted_2025": 2447.72,
+    "predicted_2026": 2608.47,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2295.45,
+      "upper_bound_2026": 2921.49
+    }
+  },
+  "meghalaya|potato": {
+    "state": "Meghalaya",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1680.0,
+      "2024": 1815.0,
+      "2025_actual": 1818.0
+    },
+    "predicted_2025": 1818.71,
+    "predicted_2026": 1979.14,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1741.64,
+      "upper_bound_2026": 2216.64
+    }
+  },
+  "meghalaya|sugarcane": {
+    "state": "Meghalaya",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 33.9,
+      "2024": 32.76,
+      "2025_actual": 38.08
+    },
+    "predicted_2025": 33.92,
+    "predicted_2026": 34.94,
+    "expected_annual_drift_percent": 3.01,
+    "uncertainty_band": {
+      "lower_bound_2026": 30.75,
+      "upper_bound_2026": 39.13
+    }
+  },
+  "meghalaya|tomato": {
+    "state": "Meghalaya",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3360.0,
+      "2024": 3200.0,
+      "2025_actual": 3502.0
+    },
+    "predicted_2025": 3461.11,
+    "predicted_2026": 3650.2,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3212.18,
+      "upper_bound_2026": 4088.22
+    }
+  },
+  "meghalaya|tur (arhar) dal": {
+    "state": "Meghalaya",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6790.0,
+      "2024": 8000.0,
+      "2025_actual": 10260.0
+    },
+    "predicted_2025": 8982.52,
+    "predicted_2026": 10017.13,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8815.07,
+      "upper_bound_2026": 11219.19
+    }
+  },
+  "meghalaya|wheat": {
+    "state": "Meghalaya",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2398.0,
+      "2024": 2093.0,
+      "2025_actual": 2256.0
+    },
+    "predicted_2025": 2459.87,
+    "predicted_2026": 2550.35,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2244.31,
+      "upper_bound_2026": 2856.39
+    }
+  },
+  "mizoram|mustard oil": {
+    "state": "Mizoram",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 15120.0,
+      "2024": 12960.0,
+      "2025_actual": 16530.0
+    },
+    "predicted_2025": 13246.2,
+    "predicted_2026": 13340.51,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11739.65,
+      "upper_bound_2026": 14941.37
+    }
+  },
+  "mizoram|onion": {
+    "state": "Mizoram",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2125.0,
+      "2024": 2494.0,
+      "2025_actual": 3630.0
+    },
+    "predicted_2025": 3097.0,
+    "predicted_2026": 3464.55,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3048.8,
+      "upper_bound_2026": 3880.3
+    }
+  },
+  "mizoram|paddy (rice)": {
+    "state": "Mizoram",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2079.0,
+      "2024": 2464.0,
+      "2025_actual": 2530.0
+    },
+    "predicted_2025": 2308.03,
+    "predicted_2026": 2459.61,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2164.46,
+      "upper_bound_2026": 2754.76
+    }
+  },
+  "mizoram|potato": {
+    "state": "Mizoram",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1365.0,
+      "2024": 1650.0,
+      "2025_actual": 1980.0
+    },
+    "predicted_2025": 1714.92,
+    "predicted_2026": 1866.2,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1642.26,
+      "upper_bound_2026": 2090.14
+    }
+  },
+  "mizoram|sugarcane": {
+    "state": "Mizoram",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 25.5,
+      "2024": 28.04,
+      "2025_actual": 36.38
+    },
+    "predicted_2025": 31.98,
+    "predicted_2026": 32.95,
+    "expected_annual_drift_percent": 3.03,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.0,
+      "upper_bound_2026": 36.9
+    }
+  },
+  "mizoram|tomato": {
+    "state": "Mizoram",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3270.0,
+      "2024": 2720.0,
+      "2025_actual": 3026.0
+    },
+    "predicted_2025": 3263.59,
+    "predicted_2026": 3441.89,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3028.86,
+      "upper_bound_2026": 3854.92
+    }
+  },
+  "mizoram|tur (arhar) dal": {
+    "state": "Mizoram",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6510.0,
+      "2024": 9120.0,
+      "2025_actual": 9975.0
+    },
+    "predicted_2025": 8469.91,
+    "predicted_2026": 9445.47,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8312.01,
+      "upper_bound_2026": 10578.93
+    }
+  },
+  "mizoram|wheat": {
+    "state": "Mizoram",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2134.0,
+      "2024": 2323.0,
+      "2025_actual": 2568.0
+    },
+    "predicted_2025": 2319.49,
+    "predicted_2026": 2404.8,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2116.22,
+      "upper_bound_2026": 2693.38
+    }
+  },
+  "nagaland|mustard oil": {
+    "state": "Nagaland",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 12880.0,
+      "2024": 13905.0,
+      "2025_actual": 12325.0
+    },
+    "predicted_2025": 13312.66,
+    "predicted_2026": 13407.44,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11798.55,
+      "upper_bound_2026": 15016.33
+    }
+  },
+  "nagaland|onion": {
+    "state": "Nagaland",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2700.0,
+      "2024": 3103.0,
+      "2025_actual": 3465.0
+    },
+    "predicted_2025": 3112.54,
+    "predicted_2026": 3481.93,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3064.1,
+      "upper_bound_2026": 3899.76
+    }
+  },
+  "nagaland|paddy (rice)": {
+    "state": "Nagaland",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2016.0,
+      "2024": 1958.0,
+      "2025_actual": 2139.0
+    },
+    "predicted_2025": 2319.61,
+    "predicted_2026": 2471.95,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2175.32,
+      "upper_bound_2026": 2768.58
+    }
+  },
+  "nagaland|potato": {
+    "state": "Nagaland",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1545.0,
+      "2024": 1534.5,
+      "2025_actual": 1980.0
+    },
+    "predicted_2025": 1723.52,
+    "predicted_2026": 1875.56,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1650.49,
+      "upper_bound_2026": 2100.63
+    }
+  },
+  "nagaland|sugarcane": {
+    "state": "Nagaland",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 26.1,
+      "2024": 31.5,
+      "2025_actual": 33.66
+    },
+    "predicted_2025": 32.14,
+    "predicted_2026": 33.11,
+    "expected_annual_drift_percent": 3.02,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.14,
+      "upper_bound_2026": 37.08
+    }
+  },
+  "nagaland|tomato": {
+    "state": "Nagaland",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2850.0,
+      "2024": 2976.0,
+      "2025_actual": 2890.0
+    },
+    "predicted_2025": 3279.97,
+    "predicted_2026": 3459.16,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3044.06,
+      "upper_bound_2026": 3874.26
+    }
+  },
+  "nagaland|tur (arhar) dal": {
+    "state": "Nagaland",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7070.0,
+      "2024": 6960.0,
+      "2025_actual": 10450.0
+    },
+    "predicted_2025": 8512.4,
+    "predicted_2026": 9492.86,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8353.72,
+      "upper_bound_2026": 10632.0
+    }
+  },
+  "nagaland|wheat": {
+    "state": "Nagaland",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2024.0,
+      "2024": 2553.0,
+      "2025_actual": 2304.0
+    },
+    "predicted_2025": 2331.13,
+    "predicted_2026": 2416.87,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2126.85,
+      "upper_bound_2026": 2706.89
+    }
+  },
+  "odisha|mustard oil": {
+    "state": "Odisha",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 15400.0,
+      "2024": 11475.0,
+      "2025_actual": 14065.0
+    },
+    "predicted_2025": 13351.12,
+    "predicted_2026": 13446.18,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11832.64,
+      "upper_bound_2026": 15059.72
+    }
+  },
+  "odisha|onion": {
+    "state": "Odisha",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2775.0,
+      "2024": 3016.0,
+      "2025_actual": 3498.0
+    },
+    "predicted_2025": 3121.53,
+    "predicted_2026": 3491.99,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3072.95,
+      "upper_bound_2026": 3911.03
+    }
+  },
+  "odisha|paddy (rice)": {
+    "state": "Odisha",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1827.0,
+      "2024": 2200.0,
+      "2025_actual": 1978.0
+    },
+    "predicted_2025": 2326.31,
+    "predicted_2026": 2479.09,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2181.6,
+      "upper_bound_2026": 2776.58
+    }
+  },
+  "odisha|potato": {
+    "state": "Odisha",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1410.0,
+      "2024": 1749.0,
+      "2025_actual": 1962.0
+    },
+    "predicted_2025": 1728.5,
+    "predicted_2026": 1880.98,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1655.26,
+      "upper_bound_2026": 2106.7
+    }
+  },
+  "odisha|sugarcane": {
+    "state": "Odisha",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 27.9,
+      "2024": 34.02,
+      "2025_actual": 35.7
+    },
+    "predicted_2025": 32.23,
+    "predicted_2026": 33.21,
+    "expected_annual_drift_percent": 3.04,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.22,
+      "upper_bound_2026": 37.2
+    }
+  },
+  "odisha|tomato": {
+    "state": "Odisha",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2670.0,
+      "2024": 3456.0,
+      "2025_actual": 3400.0
+    },
+    "predicted_2025": 3289.44,
+    "predicted_2026": 3469.15,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3052.85,
+      "upper_bound_2026": 3885.45
+    }
+  },
+  "odisha|tur (arhar) dal": {
+    "state": "Odisha",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6370.0,
+      "2024": 8640.0,
+      "2025_actual": 8740.0
+    },
+    "predicted_2025": 8536.99,
+    "predicted_2026": 9520.28,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8377.85,
+      "upper_bound_2026": 10662.71
+    }
+  },
+  "odisha|wheat": {
+    "state": "Odisha",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1870.0,
+      "2024": 2001.0,
+      "2025_actual": 2736.0
+    },
+    "predicted_2025": 2337.86,
+    "predicted_2026": 2423.85,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2132.99,
+      "upper_bound_2026": 2714.71
+    }
+  },
+  "punjab|mustard oil": {
+    "state": "Punjab",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 11900.0,
+      "2024": 12420.0,
+      "2025_actual": 16385.0
+    },
+    "predicted_2025": 13076.94,
+    "predicted_2026": 13170.05,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11589.64,
+      "upper_bound_2026": 14750.46
+    }
+  },
+  "punjab|onion": {
+    "state": "Punjab",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2325.0,
+      "2024": 2929.0,
+      "2025_actual": 3729.0
+    },
+    "predicted_2025": 3057.43,
+    "predicted_2026": 3420.28,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3009.85,
+      "upper_bound_2026": 3830.71
+    }
+  },
+  "punjab|paddy (rice)": {
+    "state": "Punjab",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2352.0,
+      "2024": 2288.0,
+      "2025_actual": 1955.0
+    },
+    "predicted_2025": 2278.54,
+    "predicted_2026": 2428.18,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2136.8,
+      "upper_bound_2026": 2719.56
+    }
+  },
+  "punjab|potato": {
+    "state": "Punjab",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1440.0,
+      "2024": 1452.0,
+      "2025_actual": 1602.0
+    },
+    "predicted_2025": 1693.0,
+    "predicted_2026": 1842.35,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1621.27,
+      "upper_bound_2026": 2063.43
+    }
+  },
+  "punjab|sugarcane": {
+    "state": "Punjab",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 30.0,
+      "2024": 32.76,
+      "2025_actual": 36.38
+    },
+    "predicted_2025": 31.57,
+    "predicted_2026": 32.53,
+    "expected_annual_drift_percent": 3.04,
+    "uncertainty_band": {
+      "lower_bound_2026": 28.63,
+      "upper_bound_2026": 36.43
+    }
+  },
+  "punjab|tomato": {
+    "state": "Punjab",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2760.0,
+      "2024": 2944.0,
+      "2025_actual": 3094.0
+    },
+    "predicted_2025": 3221.89,
+    "predicted_2026": 3397.91,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 2990.16,
+      "upper_bound_2026": 3805.66
+    }
+  },
+  "punjab|tur (arhar) dal": {
+    "state": "Punjab",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6020.0,
+      "2024": 7200.0,
+      "2025_actual": 10070.0
+    },
+    "predicted_2025": 8361.68,
+    "predicted_2026": 9324.78,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8205.81,
+      "upper_bound_2026": 10443.75
+    }
+  },
+  "punjab|wheat": {
+    "state": "Punjab",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2002.0,
+      "2024": 2185.0,
+      "2025_actual": 2400.0
+    },
+    "predicted_2025": 2289.85,
+    "predicted_2026": 2374.07,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2089.18,
+      "upper_bound_2026": 2658.96
+    }
+  },
+  "rajasthan|mustard oil": {
+    "state": "Rajasthan",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 13440.0,
+      "2024": 14715.0,
+      "2025_actual": 15370.0
+    },
+    "predicted_2025": 13781.36,
+    "predicted_2026": 13879.48,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12213.94,
+      "upper_bound_2026": 15545.02
+    }
+  },
+  "rajasthan|onion": {
+    "state": "Rajasthan",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2850.0,
+      "2024": 2900.0,
+      "2025_actual": 3630.0
+    },
+    "predicted_2025": 3222.12,
+    "predicted_2026": 3604.52,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3171.98,
+      "upper_bound_2026": 4037.06
+    }
+  },
+  "rajasthan|paddy (rice)": {
+    "state": "Rajasthan",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2247.0,
+      "2024": 2508.0,
+      "2025_actual": 2001.0
+    },
+    "predicted_2025": 2401.28,
+    "predicted_2026": 2558.98,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2251.9,
+      "upper_bound_2026": 2866.06
+    }
+  },
+  "rajasthan|potato": {
+    "state": "Rajasthan",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1335.0,
+      "2024": 1798.5,
+      "2025_actual": 1854.0
+    },
+    "predicted_2025": 1784.2,
+    "predicted_2026": 1941.59,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1708.6,
+      "upper_bound_2026": 2174.58
+    }
+  },
+  "rajasthan|sugarcane": {
+    "state": "Rajasthan",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 27.6,
+      "2024": 35.59,
+      "2025_actual": 37.06
+    },
+    "predicted_2025": 33.27,
+    "predicted_2026": 34.28,
+    "expected_annual_drift_percent": 3.04,
+    "uncertainty_band": {
+      "lower_bound_2026": 30.17,
+      "upper_bound_2026": 38.39
+    }
+  },
+  "rajasthan|tomato": {
+    "state": "Rajasthan",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3240.0,
+      "2024": 3648.0,
+      "2025_actual": 3400.0
+    },
+    "predicted_2025": 3395.44,
+    "predicted_2026": 3580.95,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3151.24,
+      "upper_bound_2026": 4010.66
+    }
+  },
+  "rajasthan|tur (arhar) dal": {
+    "state": "Rajasthan",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6090.0,
+      "2024": 6960.0,
+      "2025_actual": 8455.0
+    },
+    "predicted_2025": 8812.1,
+    "predicted_2026": 9827.08,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8647.83,
+      "upper_bound_2026": 11006.33
+    }
+  },
+  "rajasthan|wheat": {
+    "state": "Rajasthan",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2354.0,
+      "2024": 2001.0,
+      "2025_actual": 2304.0
+    },
+    "predicted_2025": 2413.2,
+    "predicted_2026": 2501.96,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2201.72,
+      "upper_bound_2026": 2802.2
+    }
+  },
+  "sikkim|mustard oil": {
+    "state": "Sikkim",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 13860.0,
+      "2024": 13500.0,
+      "2025_actual": 16530.0
+    },
+    "predicted_2025": 13290.67,
+    "predicted_2026": 13385.3,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11779.06,
+      "upper_bound_2026": 14991.54
+    }
+  },
+  "sikkim|onion": {
+    "state": "Sikkim",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2175.0,
+      "2024": 2958.0,
+      "2025_actual": 3696.0
+    },
+    "predicted_2025": 3107.4,
+    "predicted_2026": 3476.18,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3059.04,
+      "upper_bound_2026": 3893.32
+    }
+  },
+  "sikkim|paddy (rice)": {
+    "state": "Sikkim",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2226.0,
+      "2024": 2244.0,
+      "2025_actual": 2599.0
+    },
+    "predicted_2025": 2315.78,
+    "predicted_2026": 2467.87,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2171.73,
+      "upper_bound_2026": 2764.01
+    }
+  },
+  "sikkim|potato": {
+    "state": "Sikkim",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1305.0,
+      "2024": 1749.0,
+      "2025_actual": 1782.0
+    },
+    "predicted_2025": 1720.67,
+    "predicted_2026": 1872.46,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1647.76,
+      "upper_bound_2026": 2097.16
+    }
+  },
+  "sikkim|sugarcane": {
+    "state": "Sikkim",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 29.4,
+      "2024": 35.59,
+      "2025_actual": 33.32
+    },
+    "predicted_2025": 32.09,
+    "predicted_2026": 33.06,
+    "expected_annual_drift_percent": 3.02,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.09,
+      "upper_bound_2026": 37.03
+    }
+  },
+  "sikkim|tomato": {
+    "state": "Sikkim",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2550.0,
+      "2024": 2752.0,
+      "2025_actual": 3026.0
+    },
+    "predicted_2025": 3274.55,
+    "predicted_2026": 3453.45,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3039.04,
+      "upper_bound_2026": 3867.86
+    }
+  },
+  "sikkim|tur (arhar) dal": {
+    "state": "Sikkim",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6230.0,
+      "2024": 6960.0,
+      "2025_actual": 9595.0
+    },
+    "predicted_2025": 8498.34,
+    "predicted_2026": 9477.18,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8339.92,
+      "upper_bound_2026": 10614.44
+    }
+  },
+  "sikkim|wheat": {
+    "state": "Sikkim",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2442.0,
+      "2024": 2254.0,
+      "2025_actual": 2352.0
+    },
+    "predicted_2025": 2327.28,
+    "predicted_2026": 2412.88,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2123.33,
+      "upper_bound_2026": 2702.43
+    }
+  },
+  "tamil nadu|mustard oil": {
+    "state": "Tamil Nadu",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 12740.0,
+      "2024": 14175.0,
+      "2025_actual": 15950.0
+    },
+    "predicted_2025": 13054.26,
+    "predicted_2026": 13147.21,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11569.54,
+      "upper_bound_2026": 14724.88
+    }
+  },
+  "tamil nadu|onion": {
+    "state": "Tamil Nadu",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2225.0,
+      "2024": 2465.0,
+      "2025_actual": 2937.0
+    },
+    "predicted_2025": 3052.12,
+    "predicted_2026": 3414.35,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3004.63,
+      "upper_bound_2026": 3824.07
+    }
+  },
+  "tamil nadu|paddy (rice)": {
+    "state": "Tamil Nadu",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1827.0,
+      "2024": 2046.0,
+      "2025_actual": 2622.0
+    },
+    "predicted_2025": 2274.59,
+    "predicted_2026": 2423.97,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2133.09,
+      "upper_bound_2026": 2714.85
+    }
+  },
+  "tamil nadu|potato": {
+    "state": "Tamil Nadu",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1605.0,
+      "2024": 1402.5,
+      "2025_actual": 1800.0
+    },
+    "predicted_2025": 1690.07,
+    "predicted_2026": 1839.16,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1618.46,
+      "upper_bound_2026": 2059.86
+    }
+  },
+  "tamil nadu|sugarcane": {
+    "state": "Tamil Nadu",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 33.3,
+      "2024": 31.5,
+      "2025_actual": 34.0
+    },
+    "predicted_2025": 31.52,
+    "predicted_2026": 32.47,
+    "expected_annual_drift_percent": 3.01,
+    "uncertainty_band": {
+      "lower_bound_2026": 28.57,
+      "upper_bound_2026": 36.37
+    }
+  },
+  "tamil nadu|tomato": {
+    "state": "Tamil Nadu",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3300.0,
+      "2024": 2816.0,
+      "2025_actual": 3264.0
+    },
+    "predicted_2025": 3216.3,
+    "predicted_2026": 3392.02,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 2984.98,
+      "upper_bound_2026": 3799.06
+    }
+  },
+  "tamil nadu|tur (arhar) dal": {
+    "state": "Tamil Nadu",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6860.0,
+      "2024": 7840.0,
+      "2025_actual": 10450.0
+    },
+    "predicted_2025": 8347.18,
+    "predicted_2026": 9308.61,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8191.58,
+      "upper_bound_2026": 10425.64
+    }
+  },
+  "tamil nadu|wheat": {
+    "state": "Tamil Nadu",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1870.0,
+      "2024": 2024.0,
+      "2025_actual": 2496.0
+    },
+    "predicted_2025": 2285.88,
+    "predicted_2026": 2369.96,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2085.56,
+      "upper_bound_2026": 2654.36
+    }
+  },
+  "telangana|mustard oil": {
+    "state": "Telangana",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 13580.0,
+      "2024": 11475.0,
+      "2025_actual": 12905.0
+    },
+    "predicted_2025": 13428.51,
+    "predicted_2026": 13524.13,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11901.23,
+      "upper_bound_2026": 15147.03
+    }
+  },
+  "telangana|onion": {
+    "state": "Telangana",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2475.0,
+      "2024": 2668.0,
+      "2025_actual": 2904.0
+    },
+    "predicted_2025": 3139.62,
+    "predicted_2026": 3512.24,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3090.77,
+      "upper_bound_2026": 3933.71
+    }
+  },
+  "telangana|paddy (rice)": {
+    "state": "Telangana",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1953.0,
+      "2024": 2288.0,
+      "2025_actual": 2415.0
+    },
+    "predicted_2025": 2339.8,
+    "predicted_2026": 2493.46,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2194.24,
+      "upper_bound_2026": 2792.68
+    }
+  },
+  "telangana|potato": {
+    "state": "Telangana",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1410.0,
+      "2024": 1435.5,
+      "2025_actual": 2052.0
+    },
+    "predicted_2025": 1738.52,
+    "predicted_2026": 1891.88,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1664.85,
+      "upper_bound_2026": 2118.91
+    }
+  },
+  "telangana|sugarcane": {
+    "state": "Telangana",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 30.9,
+      "2024": 31.5,
+      "2025_actual": 36.38
+    },
+    "predicted_2025": 32.42,
+    "predicted_2026": 33.4,
+    "expected_annual_drift_percent": 3.02,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.39,
+      "upper_bound_2026": 37.41
+    }
+  },
+  "telangana|tomato": {
+    "state": "Telangana",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3300.0,
+      "2024": 2912.0,
+      "2025_actual": 2890.0
+    },
+    "predicted_2025": 3308.51,
+    "predicted_2026": 3489.27,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3070.56,
+      "upper_bound_2026": 3907.98
+    }
+  },
+  "telangana|tur (arhar) dal": {
+    "state": "Telangana",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7840.0,
+      "2024": 8080.0,
+      "2025_actual": 10830.0
+    },
+    "predicted_2025": 8586.48,
+    "predicted_2026": 9575.47,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8426.41,
+      "upper_bound_2026": 10724.53
+    }
+  },
+  "telangana|wheat": {
+    "state": "Telangana",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2178.0,
+      "2024": 2484.0,
+      "2025_actual": 2184.0
+    },
+    "predicted_2025": 2351.41,
+    "predicted_2026": 2437.9,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2145.35,
+      "upper_bound_2026": 2730.45
+    }
+  },
+  "tripura|mustard oil": {
+    "state": "Tripura",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 12460.0,
+      "2024": 13230.0,
+      "2025_actual": 15080.0
+    },
+    "predicted_2025": 13899.54,
+    "predicted_2026": 13998.5,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12318.68,
+      "upper_bound_2026": 15678.32
+    }
+  },
+  "tripura|onion": {
+    "state": "Tripura",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2600.0,
+      "2024": 2987.0,
+      "2025_actual": 3498.0
+    },
+    "predicted_2025": 3249.75,
+    "predicted_2026": 3635.43,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3199.18,
+      "upper_bound_2026": 4071.68
+    }
+  },
+  "tripura|paddy (rice)": {
+    "state": "Tripura",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1911.0,
+      "2024": 2112.0,
+      "2025_actual": 2530.0
+    },
+    "predicted_2025": 2421.87,
+    "predicted_2026": 2580.92,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2271.21,
+      "upper_bound_2026": 2890.63
+    }
+  },
+  "tripura|potato": {
+    "state": "Tripura",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1320.0,
+      "2024": 1765.5,
+      "2025_actual": 1584.0
+    },
+    "predicted_2025": 1799.5,
+    "predicted_2026": 1958.24,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1723.25,
+      "upper_bound_2026": 2193.23
+    }
+  },
+  "tripura|sugarcane": {
+    "state": "Tripura",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 32.1,
+      "2024": 35.91,
+      "2025_actual": 31.96
+    },
+    "predicted_2025": 33.56,
+    "predicted_2026": 34.57,
+    "expected_annual_drift_percent": 3.01,
+    "uncertainty_band": {
+      "lower_bound_2026": 30.42,
+      "upper_bound_2026": 38.72
+    }
+  },
+  "tripura|tomato": {
+    "state": "Tripura",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3390.0,
+      "2024": 3392.0,
+      "2025_actual": 3026.0
+    },
+    "predicted_2025": 3424.56,
+    "predicted_2026": 3611.66,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3178.26,
+      "upper_bound_2026": 4045.06
+    }
+  },
+  "tripura|tur (arhar) dal": {
+    "state": "Tripura",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 7980.0,
+      "2024": 8480.0,
+      "2025_actual": 8170.0
+    },
+    "predicted_2025": 8887.67,
+    "predicted_2026": 9911.35,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8721.99,
+      "upper_bound_2026": 11100.71
+    }
+  },
+  "tripura|wheat": {
+    "state": "Tripura",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2222.0,
+      "2024": 2553.0,
+      "2025_actual": 2256.0
+    },
+    "predicted_2025": 2433.89,
+    "predicted_2026": 2523.41,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2220.6,
+      "upper_bound_2026": 2826.22
+    }
+  },
+  "uttar pradesh|mustard oil": {
+    "state": "Uttar Pradesh",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 13580.0,
+      "2024": 14985.0,
+      "2025_actual": 14065.0
+    },
+    "predicted_2025": 13399.91,
+    "predicted_2026": 13495.32,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 11875.88,
+      "upper_bound_2026": 15114.76
+    }
+  },
+  "uttar pradesh|onion": {
+    "state": "Uttar Pradesh",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2475.0,
+      "2024": 2813.0,
+      "2025_actual": 3630.0
+    },
+    "predicted_2025": 3132.94,
+    "predicted_2026": 3504.76,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3084.19,
+      "upper_bound_2026": 3925.33
+    }
+  },
+  "uttar pradesh|paddy (rice)": {
+    "state": "Uttar Pradesh",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1911.0,
+      "2024": 1980.0,
+      "2025_actual": 2530.0
+    },
+    "predicted_2025": 2334.81,
+    "predicted_2026": 2488.15,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2189.57,
+      "upper_bound_2026": 2786.73
+    }
+  },
+  "uttar pradesh|potato": {
+    "state": "Uttar Pradesh",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1695.0,
+      "2024": 1749.0,
+      "2025_actual": 1944.0
+    },
+    "predicted_2025": 1734.82,
+    "predicted_2026": 1887.85,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1661.31,
+      "upper_bound_2026": 2114.39
+    }
+  },
+  "uttar pradesh|sugarcane": {
+    "state": "Uttar Pradesh",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 27.3,
+      "2024": 34.96,
+      "2025_actual": 29.92
+    },
+    "predicted_2025": 32.35,
+    "predicted_2026": 33.33,
+    "expected_annual_drift_percent": 3.03,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.33,
+      "upper_bound_2026": 37.33
+    }
+  },
+  "uttar pradesh|tomato": {
+    "state": "Uttar Pradesh",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2850.0,
+      "2024": 3296.0,
+      "2025_actual": 2890.0
+    },
+    "predicted_2025": 3301.46,
+    "predicted_2026": 3481.83,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3064.01,
+      "upper_bound_2026": 3899.65
+    }
+  },
+  "uttar pradesh|tur (arhar) dal": {
+    "state": "Uttar Pradesh",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6160.0,
+      "2024": 7360.0,
+      "2025_actual": 8455.0
+    },
+    "predicted_2025": 8568.2,
+    "predicted_2026": 9555.08,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8408.47,
+      "upper_bound_2026": 10701.69
+    }
+  },
+  "uttar pradesh|wheat": {
+    "state": "Uttar Pradesh",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2134.0,
+      "2024": 2070.0,
+      "2025_actual": 2472.0
+    },
+    "predicted_2025": 2346.41,
+    "predicted_2026": 2432.71,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2140.78,
+      "upper_bound_2026": 2724.64
+    }
+  },
+  "uttarakhand|mustard oil": {
+    "state": "Uttarakhand",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 13580.0,
+      "2024": 11475.0,
+      "2025_actual": 16240.0
+    },
+    "predicted_2025": 13547.67,
+    "predicted_2026": 13644.13,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12006.83,
+      "upper_bound_2026": 15281.43
+    }
+  },
+  "uttarakhand|onion": {
+    "state": "Uttarakhand",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2650.0,
+      "2024": 3306.0,
+      "2025_actual": 3300.0
+    },
+    "predicted_2025": 3167.48,
+    "predicted_2026": 3543.4,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3118.19,
+      "upper_bound_2026": 3968.61
+    }
+  },
+  "uttarakhand|paddy (rice)": {
+    "state": "Uttarakhand",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2331.0,
+      "2024": 1892.0,
+      "2025_actual": 2300.0
+    },
+    "predicted_2025": 2360.56,
+    "predicted_2026": 2515.59,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2213.72,
+      "upper_bound_2026": 2817.46
+    }
+  },
+  "uttarakhand|potato": {
+    "state": "Uttarakhand",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1290.0,
+      "2024": 1848.0,
+      "2025_actual": 1548.0
+    },
+    "predicted_2025": 1753.95,
+    "predicted_2026": 1908.67,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1679.63,
+      "upper_bound_2026": 2137.71
+    }
+  },
+  "uttarakhand|sugarcane": {
+    "state": "Uttarakhand",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 34.2,
+      "2024": 28.04,
+      "2025_actual": 37.74
+    },
+    "predicted_2025": 32.71,
+    "predicted_2026": 33.7,
+    "expected_annual_drift_percent": 3.03,
+    "uncertainty_band": {
+      "lower_bound_2026": 29.66,
+      "upper_bound_2026": 37.74
+    }
+  },
+  "uttarakhand|tomato": {
+    "state": "Uttarakhand",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3360.0,
+      "2024": 2720.0,
+      "2025_actual": 3638.0
+    },
+    "predicted_2025": 3337.87,
+    "predicted_2026": 3520.23,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3097.8,
+      "upper_bound_2026": 3942.66
+    }
+  },
+  "uttarakhand|tur (arhar) dal": {
+    "state": "Uttarakhand",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6580.0,
+      "2024": 7920.0,
+      "2025_actual": 9595.0
+    },
+    "predicted_2025": 8662.68,
+    "predicted_2026": 9660.44,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8501.19,
+      "upper_bound_2026": 10819.69
+    }
+  },
+  "uttarakhand|wheat": {
+    "state": "Uttarakhand",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2266.0,
+      "2024": 2415.0,
+      "2025_actual": 2592.0
+    },
+    "predicted_2025": 2372.28,
+    "predicted_2026": 2459.53,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2164.39,
+      "upper_bound_2026": 2754.67
+    }
+  },
+  "west bengal|mustard oil": {
+    "state": "West Bengal",
+    "commodity": "Mustard Oil",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 13440.0,
+      "2024": 13635.0,
+      "2025_actual": 12325.0
+    },
+    "predicted_2025": 13774.97,
+    "predicted_2026": 13873.05,
+    "expected_annual_drift_percent": 0.71,
+    "uncertainty_band": {
+      "lower_bound_2026": 12208.28,
+      "upper_bound_2026": 15537.82
+    }
+  },
+  "west bengal|onion": {
+    "state": "West Bengal",
+    "commodity": "Onion",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2250.0,
+      "2024": 2900.0,
+      "2025_actual": 3168.0
+    },
+    "predicted_2025": 3220.63,
+    "predicted_2026": 3602.85,
+    "expected_annual_drift_percent": 11.87,
+    "uncertainty_band": {
+      "lower_bound_2026": 3170.51,
+      "upper_bound_2026": 4035.19
+    }
+  },
+  "west bengal|paddy (rice)": {
+    "state": "West Bengal",
+    "commodity": "Paddy (Rice)",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2289.0,
+      "2024": 2464.0,
+      "2025_actual": 2392.0
+    },
+    "predicted_2025": 2400.16,
+    "predicted_2026": 2557.79,
+    "expected_annual_drift_percent": 6.57,
+    "uncertainty_band": {
+      "lower_bound_2026": 2250.86,
+      "upper_bound_2026": 2864.72
+    }
+  },
+  "west bengal|potato": {
+    "state": "West Bengal",
+    "commodity": "Potato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 1680.0,
+      "2024": 1452.0,
+      "2025_actual": 1566.0
+    },
+    "predicted_2025": 1783.38,
+    "predicted_2026": 1940.69,
+    "expected_annual_drift_percent": 8.82,
+    "uncertainty_band": {
+      "lower_bound_2026": 1707.81,
+      "upper_bound_2026": 2173.57
+    }
+  },
+  "west bengal|sugarcane": {
+    "state": "West Bengal",
+    "commodity": "Sugarcane",
+    "unit": "Tonne",
+    "history": {
+      "2023": 31.2,
+      "2024": 31.81,
+      "2025_actual": 28.9
+    },
+    "predicted_2025": 33.26,
+    "predicted_2026": 34.26,
+    "expected_annual_drift_percent": 3.01,
+    "uncertainty_band": {
+      "lower_bound_2026": 30.15,
+      "upper_bound_2026": 38.37
+    }
+  },
+  "west bengal|tomato": {
+    "state": "West Bengal",
+    "commodity": "Tomato",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 3360.0,
+      "2024": 3296.0,
+      "2025_actual": 3468.0
+    },
+    "predicted_2025": 3393.87,
+    "predicted_2026": 3579.29,
+    "expected_annual_drift_percent": 5.46,
+    "uncertainty_band": {
+      "lower_bound_2026": 3149.78,
+      "upper_bound_2026": 4008.8
+    }
+  },
+  "west bengal|tur (arhar) dal": {
+    "state": "West Bengal",
+    "commodity": "Tur (Arhar) Dal",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 6720.0,
+      "2024": 6960.0,
+      "2025_actual": 10640.0
+    },
+    "predicted_2025": 8808.02,
+    "predicted_2026": 9822.52,
+    "expected_annual_drift_percent": 11.52,
+    "uncertainty_band": {
+      "lower_bound_2026": 8643.82,
+      "upper_bound_2026": 11001.22
+    }
+  },
+  "west bengal|wheat": {
+    "state": "West Bengal",
+    "commodity": "Wheat",
+    "unit": "Quintal (100 KG)",
+    "history": {
+      "2023": 2310.0,
+      "2024": 2599.0,
+      "2025_actual": 2592.0
+    },
+    "predicted_2025": 2412.08,
+    "predicted_2026": 2500.8,
+    "expected_annual_drift_percent": 3.68,
+    "uncertainty_band": {
+      "lower_bound_2026": 2200.7,
+      "upper_bound_2026": 2800.9
+    }
+  }
+}

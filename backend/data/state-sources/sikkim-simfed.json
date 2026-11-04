@@ -1,0 +1,68 @@
+{
+  "source_name": "Sikkim State Cooperative Supply and Marketing Federation (SIMFED) & SSOCA",
+  "source_portal_url": "https://www.simfed.in/",
+  "organic_agency_url": "https://ssoca.in/",
+  "price_type": "Government Procurement Price",
+  "state": "Sikkim",
+  "data_date": "02/11/2026",
+  "records_count": 4,
+  "records": [
+    {
+      "state": "Sikkim",
+      "district": "East Sikkim",
+      "market": "Gangtok SIMFED Procurement Centre",
+      "commodity": "Cardamoms",
+      "variety": "Large Cardamom (Organic)",
+      "grade": "Certified Organic",
+      "arrival_date": "02/11/2026",
+      "min_price": 110000,
+      "modal_price": 135000,
+      "max_price": 160000,
+      "price_type": "Government Procurement Price",
+      "source_name": "SIMFED Organic Cash Crop Procurement"
+    },
+    {
+      "state": "Sikkim",
+      "district": "East Sikkim",
+      "market": "Rangpo Processing & Collection Hub",
+      "commodity": "Ginger(Green)",
+      "variety": "Fresh Organic",
+      "grade": "Certified Organic",
+      "arrival_date": "02/11/2026",
+      "min_price": 5500,
+      "modal_price": 6800,
+      "max_price": 8000,
+      "price_type": "Government Procurement Price",
+      "source_name": "SIMFED Organic Cash Crop Procurement"
+    },
+    {
+      "state": "Sikkim",
+      "district": "West Sikkim",
+      "market": "Nayabazar Collection Hub",
+      "commodity": "Buckwheat",
+      "variety": "Local Organic",
+      "grade": "Certified Organic",
+      "arrival_date": "02/11/2026",
+      "min_price": 4500,
+      "modal_price": 5200,
+      "max_price": 6000,
+      "price_type": "Government Procurement Price",
+      "source_name": "SIMFED Organic Cash Crop Procurement"
+    },
+    {
+      "state": "Sikkim",
+      "district": "East Sikkim",
+      "market": "Gangtok SIMFED Procurement Centre",
+      "commodity": "Orange",
+      "variety": "Sikkim Mandarin",
+      "grade": "Certified Organic",
+      "arrival_date": "02/11/2026",
+      "min_price": 4000,
+      "modal_price": 5500,
+      "max_price": 7000,
+      "price_type": "Government Procurement Price",
+      "source_name": "SIMFED Organic Cash Crop Procurement"
+    }
+  ]
+}
+

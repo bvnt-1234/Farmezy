@@ -1,0 +1,68 @@
+{
+  "source_name": "North Eastern Regional Agricultural Marketing Corporation (NERAMAC) & APSAMB",
+  "source_portal_url": "https://neramac.com/",
+  "department_portal_url": "https://agri.arunachal.gov.in/",
+  "price_type": "Regional Primary Market Price",
+  "state": "Arunachal Pradesh",
+  "data_date": "02/11/2026",
+  "records_count": 4,
+  "records": [
+    {
+      "state": "Arunachal Pradesh",
+      "district": "East Siang",
+      "market": "Pasighat Market Yard",
+      "commodity": "Ginger(Green)",
+      "variety": "Fresh / Organic",
+      "grade": "FAQ",
+      "arrival_date": "02/11/2026",
+      "min_price": 5000,
+      "modal_price": 6000,
+      "max_price": 6800,
+      "price_type": "Regional Primary Market Price",
+      "source_name": "NERAMAC / APSAMB Primary Market Rates"
+    },
+    {
+      "state": "Arunachal Pradesh",
+      "district": "Lower Subansiri",
+      "market": "Ziro Primary Collection Centre",
+      "commodity": "Kiwi",
+      "variety": "Arunachal Organic",
+      "grade": "Grade A",
+      "arrival_date": "02/11/2026",
+      "min_price": 8000,
+      "modal_price": 11000,
+      "max_price": 14000,
+      "price_type": "Regional Primary Market Price",
+      "source_name": "NERAMAC Kiwi Mission / FPO Rates"
+    },
+    {
+      "state": "Arunachal Pradesh",
+      "district": "East Siang",
+      "market": "Pasighat Market Yard",
+      "commodity": "Orange",
+      "variety": "Mandarin",
+      "grade": "FAQ",
+      "arrival_date": "02/11/2026",
+      "min_price": 3500,
+      "modal_price": 4500,
+      "max_price": 5500,
+      "price_type": "Regional Primary Market Price",
+      "source_name": "NERAMAC / APSAMB Primary Market Rates"
+    },
+    {
+      "state": "Arunachal Pradesh",
+      "district": "Anjaw",
+      "market": "Tezu Market Yard",
+      "commodity": "Cardamoms",
+      "variety": "Large Cardamom",
+      "grade": "Local",
+      "arrival_date": "02/11/2026",
+      "min_price": 95000,
+      "modal_price": 115000,
+      "max_price": 135000,
+      "price_type": "Regional Primary Market Price",
+      "source_name": "NERAMAC Spice Procurement"
+    }
+  ]
+}
+

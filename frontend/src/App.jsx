@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import OfficialPrices from "./OfficialPrices.jsx"
 import { supabase, isSupabaseConfigured } from "./supabase.js"
 import commodityMaster from "../../backend/data/commodity-master.json"
@@ -382,10 +382,8 @@ export const MARKETPLACE_CATEGORIES = [
   "Fibre Crops",
   "Drug and Narcotics",
   "Forest Products",
-  "Medicinal and Aromatic Plants",
   "Live Stock,Poultry,Fisheries",
-  "Oils and Fats",
-  "Others"
+  "Oils and Fats"
 ]
 
 export const INDIAN_STATES = [
@@ -407,12 +405,15 @@ const CROP_CATEGORIES = [
   ["Dry Fruits", /almond|cashew|walnut|raisin|date|pistachio|anjeer|fig/i],
   ["Fibre Crops", /cotton|jute|hemp/i],
   ["Drug and Narcotics", /sugarcane|tobacco|arecanut/i],
-  ["Beverages", /coffee|tea|cocoa/i],
-  ["Flowers", /marigold|rose|jasmine|chrysanthemum|tuberose|gladiolus/i]
+  ["Beverages", /coffee|tea|cocoa|chicory/i],
+  ["Flowers", /marigold|rose|jasmine|chrysanthemum|shevanti|tuberose|gladiolus|carnation|gerbera/i],
+  ["Forest Products", /honey|shahad|bamboo|gond|gum|lac|tamarind|chironji|behada|harrah|wood|timber/i],
+  ["Live Stock,Poultry,Fisheries", /cow|cattle|bull|calf|buffalo|goat|sheep|chicken|cock|hen|duck|fish|prawn|crab|livestock/i],
+  ["Oils and Fats", /oil|ghee|butter|fat|dalda|palmolein/i]
 ]
 
 export function getCategoryForCrop(crop) {
-  if (!crop) return "Others"
+  if (!crop) return ""
   const clean = String(crop).trim()
   if (Array.isArray(agmarknetCatalogue?.commodities)) {
     const norm = clean.toLowerCase().replace(/[^a-z0-9]/g, "")
@@ -420,6 +421,7 @@ export function getCategoryForCrop(crop) {
       if (String(c.name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) return true
       if (c.agmarknet_name && String(c.agmarknet_name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) return true
       if (c.display_name && String(c.display_name).toLowerCase().replace(/[^a-z0-9]/g, "") === norm) return true
+      if (Array.isArray(c.aliases) && c.aliases.some(a => String(a).toLowerCase().replace(/[^a-z0-9]/g, "") === norm)) return true
       return false
     })
     if (found && (found.category || found.group_name)) {
@@ -427,7 +429,7 @@ export function getCategoryForCrop(crop) {
     }
   }
   const match = CROP_CATEGORIES.find(([, regex]) => regex.test(clean))
-  return match ? match[0] : "Others"
+  return match ? match[0] : ""
 }
 
 export function isListingExpired(dateStr) {
@@ -764,7 +766,21 @@ function App() {
   const [chat, setChat] = useState(false)
   const [msg, setMsg] = useState("")
   const [chatLoading, setChatLoading] = useState(false)
-  const [messages, setMessages] = useState(["Namaste 👋 I can help you check official mandi prices, find a mandi, or understand how Farmezy works."])
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      sender: "bot",
+      text: "Namaste! 🙏 I am your **Farmezy Smart Assistant**.\n\nHere is how I can help you:\n• **Mandi Prices**: Ask for any crop price in your area or across India (e.g. *Tomato price*, *Onion in Nashik*, *Garlic in Mandsaur*)\n• **7-Day Weather**: Ask for upcoming rainfall and temperatures (e.g. *Weather forecast*, *Weather in Shimla*, *Will it rain in Pune?*)\n• **Farming Q&A**: Ask about fertilizers, pest management, storage, or how to sell on Farmezy.",
+      time: "Just now"
+    }
+  ])
+  const chatMessagesEndRef = useRef(null)
+
+  useEffect(() => {
+    if (chat) {
+      chatMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [messages, chat, chatLoading])
   const [showRoleAuthModal, setShowRoleAuthModal] = useState(false)
   const [roleAuthError, setRoleAuthError] = useState("")
   const [roleAuthLoading, setRoleAuthLoading] = useState(false)
@@ -1420,6 +1436,10 @@ function App() {
     ? (selectedFormCommodityObj.variety_names || (selectedFormCommodityObj.varieties || []).map(v => typeof v === "string" ? v : v.name)).filter(Boolean)
     : []
 
+  const registeredFormGrades = selectedFormCommodityObj?.grades?.length
+    ? selectedFormCommodityObj.grades
+    : ["FAQ", "Grade A", "Grade B", "Grade C", "Local", "Export Quality", "Premium"]
+
   const displayedFormVarieties = registeredFormVarieties.filter(v => {
     if (!formVarietySearch.trim()) return true
     const q = formVarietySearch.toLowerCase().replace(/[^a-z0-9]/g, "")
@@ -1432,11 +1452,6 @@ function App() {
     const q = browseVarietySearch.toLowerCase().replace(/[^a-z0-9]/g, "")
     return v.toLowerCase().replace(/[^a-z0-9]/g, "").includes(q)
   })
-
-  const registeredFormGrades = selectedFormCommodityObj?.grades?.length
-    ? selectedFormCommodityObj.grades
-    : ["FAQ", "Grade A", "Grade B", "Grade C", "Local", "Export Quality", "Premium"]
-
   const clearFilters = () => {
     setBrowseSearch("")
     setBrowseCategory("All Categories")
@@ -1749,7 +1764,6 @@ function App() {
     [t("home"), "Home", "⌂"],
     [t("prices"), "Prices", "↗"],
     ...(role === "Farmer" ? [[t("outlook"), "Forecast", "◷"]] : []),
-    [t("mandi"), "Mandi", "⌖"],
     ...(role === "Farmer" ? [[t("sell"), "Sell", "+"]] : [[t("browse"), "Browse", "🧺"]]),
     ...(role === "Farmer" ? [[t("requests"), "Requests", "✓"]] : [[t("myRequests"), "Orders", "▣"]])
   ]
@@ -1757,11 +1771,40 @@ function App() {
   const askPrice = async question => {
     const text = question.trim()
     if (!text) return
-    setMessages(current => [...current, text])
+    const nowTime = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    const userMsg = {
+      id: "u_" + Date.now(),
+      sender: "user",
+      text,
+      time: nowTime
+    }
+    setMessages(current => [...current, userMsg])
     setChatLoading(true)
-    const reply = await getOfficialPriceAnswer(text, profile)
-    setMessages(current => [...current, reply])
-    setChatLoading(false)
+
+    try {
+      const reply = await getAssistantAnswer(text, profile, formLocation)
+      const botMsg = {
+        id: "b_" + (Date.now() + 1),
+        sender: "bot",
+        text: reply.text || "",
+        weatherData: reply.weatherData || null,
+        priceData: reply.priceData || null,
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      }
+      setMessages(current => [...current, botMsg])
+    } catch (err) {
+      setMessages(current => [
+        ...current,
+        {
+          id: "b_" + (Date.now() + 1),
+          sender: "bot",
+          text: "I ran into a temporary issue retrieving data: " + (err.message || "Please try again."),
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        }
+      ])
+    } finally {
+      setChatLoading(false)
+    }
   }
 
   const updateOrder = async (id, status) => {
@@ -2894,19 +2937,8 @@ function App() {
 
           {page === "Forecast" && (
             <>
-              <Title eyebrow="PRICE FORECAST" title="Predict the next mandi price." sub="Farmezy trains on official AGMARKNET observations collected from the Government of India feed. No sample prices are used." />
+              <Title eyebrow="MARKET OUTLOOK" title="Predict upcoming mandi prices." sub="Analyze short-term price momentum and 7-day upcoming daily forecasts for major crops and APMC mandis across India." />
               <PriceForecast location={profile} onPrices={() => setPage("Prices")} />
-            </>
-          )}
-
-          {page === "Mandi" && (
-            <>
-              <Title eyebrow="INDIA-WIDE MARKET DATA" title="Explore reported mandis." sub="Filter the Government of India daily market-price feed by commodity, state, district, and mandi." />
-              <section className="panel no-demo">
-                <h3>Official mandi reports</h3>
-                <p>Compare wholesale prices reported by AGMARKNET for all mandis in your district and state.</p>
-                <button className="link" onClick={() => setPage("Prices")}>Browse official prices →</button>
-              </section>
             </>
           )}
 
@@ -3215,9 +3247,13 @@ function App() {
                                       : `-- Select official registered variety (${registeredFormVarieties.length} available) --`)
                                   : `-- No varieties match "${formVarietySearch}" --`}
                               </option>
-                              {displayedFormVarieties.map(v => (
-                                <option key={v} value={v}>{v}</option>
-                              ))}
+                              {displayedFormVarieties.map(v => {
+                                const varObj = selectedFormCommodityObj?.varieties?.find(item => (typeof item === 'string' ? item : item.name) === v)
+                                const typeTag = varObj?.variety_type === 'breed' ? ' (Breed)' : (varObj?.variety_type === 'species' ? ' (Species)' : (varObj?.variety_type === 'product_type' ? ' (Product Type)' : (varObj?.variety_type === 'grade' ? ' (Grade)' : '')))
+                                return (
+                                  <option key={v} value={v}>{v}{typeTag}</option>
+                                )
+                              })}
                               {formVariety && formVariety !== "__custom__" && !displayedFormVarieties.includes(formVariety) && (
                                 <option value={formVariety}>{formVariety} (selected)</option>
                               )}
@@ -3235,12 +3271,19 @@ function App() {
                             )}
                           </div>
                         ) : (
-                          <input
-                            type="text"
-                            placeholder="e.g. Local, Hybrid, Desi..."
-                            value={formVariety}
-                            onChange={e => setFormVariety(e.target.value)}
-                          />
+                          <div className="variety-manual-entry">
+                            {formCrop && (
+                              <small style={{ display: "block", color: "#64748b", fontSize: "11px", marginBottom: "4px" }}>
+                                ℹ️ No verified variety information available. Please describe your harvest variety or type below:
+                              </small>
+                            )}
+                            <input
+                              type="text"
+                              placeholder="e.g. Local, Hybrid, Desi..."
+                              value={formVariety}
+                              onChange={e => setFormVariety(e.target.value)}
+                            />
+                          </div>
                         )}
                       </label>
 
@@ -3852,32 +3895,171 @@ function App() {
 
       {chat && (
         <div className="chat-box">
-          <header>
-            <div>
-              <b>✳ &nbsp; Farmezy assistant</b>
-              <small>Official prices + marketplace help</small>
+          <header style={{ padding: "14px 16px", background: "linear-gradient(135deg, #eef7ec 0%, #f6faf4 100%)", borderBottom: "1px solid #e2ebe0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "18px" }}>🌾</span>
+              <div>
+                <b style={{ fontSize: "13px", color: "#1e3822", display: "block" }}>Farmezy Smart Assistant</b>
+                <div style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "10px", color: "#45724b" }}>
+                  <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#22c55e", display: "inline-block" }}></span>
+                  Online • Mandi Rates, 7-Day Weather & Advice
+                </div>
+              </div>
             </div>
-            <button onClick={() => setChat(false)}>×</button>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <button
+                type="button"
+                title="Clear chat"
+                onClick={() => setMessages([
+                  {
+                    id: 1,
+                    sender: "bot",
+                    text: "Namaste! 🙏 Chat history cleared. How can I assist you with mandi prices, weather forecasts, or crop advice today?",
+                    time: "Just now"
+                  }
+                ])}
+                style={{ border: 0, background: "none", fontSize: "13px", cursor: "pointer", color: "#687a6c", padding: "4px" }}
+              >
+                🗑️
+              </button>
+              <button
+                type="button"
+                onClick={() => setChat(false)}
+                aria-label="Close chat"
+                style={{ border: 0, background: "none", fontSize: "18px", cursor: "pointer", color: "#4f6353", padding: "2px 6px" }}
+              >
+                ×
+              </button>
+            </div>
           </header>
-          <div className="chat-messages">
-            <div className="chat-intro">
-              <b>Hi {profile?.name || "there"} 👋</b>
-              <span>Ask me about mandi prices, crops, or finding a market.</span>
+
+          <div className="chat-messages" style={{ padding: "14px", flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "10px", background: "#fcfdfc" }}>
+            <div className="chat-intro" style={{ background: "#f1f7ef", border: "1px solid #e1ebe0", borderRadius: "12px", padding: "11px 13px", display: "flex", flexDirection: "column", gap: "4px", marginBottom: "4px" }}>
+              <b style={{ fontSize: "12px", color: "#26432b" }}>Hi {profile?.name || "Farmer / Partner"} 👋</b>
+              <span style={{ fontSize: "10px", color: "#637765", lineHeight: "1.5" }}>
+                Ask me about today's prices in your area (e.g. <i>"Tomato price"</i>), 7-day weather (<i>"Weather forecast"</i>), or prices anywhere in India (<i>"Onion in Nashik"</i>).
+              </span>
             </div>
-            {messages.map((m, i) => (
-              <p className={i % 2 ? "user-message" : "assistant-message"} key={i}>{m}</p>
-            ))}
-            {chatLoading && <p className="assistant-message typing">Checking official data…</p>}
-            <div className="chat-actions">
-              <button onClick={() => askPrice("What is today's ginger price?")}>🫚 Ginger price</button>
-              <button onClick={() => askPrice("What is today's tomato price?")}>🍅 Tomato price</button>
-              <button onClick={() => askPrice("What is today's onion price?")}>🧅 Onion price</button>
-              <button onClick={() => setPage("Prices")}>📊 All vegetable prices</button>
-            </div>
+
+            {messages.map((m) => {
+              const isUser = m.sender === "user"
+              return (
+                <div
+                  key={m.id}
+                  style={{
+                    display: "flex",
+                    justifyContent: isUser ? "flex-end" : "flex-start",
+                    alignItems: "flex-start",
+                    gap: "8px",
+                    width: "100%",
+                    margin: "4px 0"
+                  }}
+                >
+                  {!isUser && (
+                    <div style={{
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "50%",
+                      background: "#e8f4e6",
+                      color: "#2b703e",
+                      display: "grid",
+                      placeItems: "center",
+                      fontSize: "14px",
+                      flexShrink: 0,
+                      border: "1px solid #d3e7d0",
+                      marginTop: "2px"
+                    }}>
+                      🌾
+                    </div>
+                  )}
+
+                  <div style={{
+                    background: isUser ? "linear-gradient(135deg, #2e7d32 0%, #1e5e23 100%)" : "#ffffff",
+                    color: isUser ? "#ffffff" : "#1f2937",
+                    border: isUser ? "none" : "1px solid #e1e8dd",
+                    borderRadius: isUser ? "16px 16px 3px 16px" : "16px 16px 16px 3px",
+                    padding: "10px 13px",
+                    maxWidth: isUser ? "78%" : "84%",
+                    boxShadow: isUser ? "0 2px 6px rgba(46,125,50,0.22)" : "0 2px 7px rgba(0,0,0,0.04)",
+                    fontSize: "11.5px",
+                    lineHeight: "1.5",
+                    wordBreak: "break-word"
+                  }}>
+                    {isUser ? (
+                      <div>{m.text}</div>
+                    ) : (
+                      <>
+                        {formatBotMessage(m.text)}
+                        {m.weatherData && renderWeatherPreview(m.weatherData)}
+                      </>
+                    )}
+                    <div style={{
+                      fontSize: "8.5px",
+                      color: isUser ? "#bbf7d0" : "#9ca3af",
+                      textAlign: isUser ? "right" : "left",
+                      marginTop: "4px"
+                    }}>
+                      {m.time}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+
+            {chatLoading && (
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", margin: "4px 0" }}>
+                <div style={{
+                  width: "28px",
+                  height: "28px",
+                  borderRadius: "50%",
+                  background: "#e8f4e6",
+                  color: "#2b703e",
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: "14px",
+                  flexShrink: 0
+                }}>
+                  🌾
+                </div>
+                <div style={{
+                  background: "#ffffff",
+                  border: "1px solid #e1e8dd",
+                  borderRadius: "16px 16px 16px 3px",
+                  padding: "8px 12px",
+                  fontSize: "11px",
+                  color: "#5f7263",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}>
+                  <span>Fetching live data…</span>
+                </div>
+              </div>
+            )}
+            <div ref={chatMessagesEndRef} />
           </div>
-          <form onSubmit={send}>
-            <input value={msg} onChange={e => setMsg(e.target.value)} placeholder="Try: ginger price in Karnataka…" />
-            <button disabled={chatLoading} aria-label="Send">{chatLoading ? "…" : "↑"}</button>
+
+          {/* Quick Action Suggestion Chips */}
+          <div className="chat-actions" style={{ display: "flex", gap: "6px", flexWrap: "wrap", overflowX: "auto", padding: "6px 10px 4px", background: "#f8faf7", borderTop: "1px solid #edf2eb" }}>
+            <button type="button" onClick={() => askPrice("What is today's ginger price in my area?")}>🫚 Ginger in my area</button>
+            <button type="button" onClick={() => askPrice("What is today's tomato price in my area?")}>🍅 Tomato in my area</button>
+            <button type="button" onClick={() => askPrice("What is today's onion price in my area?")}>🧅 Onion in my area</button>
+            <button type="button" onClick={() => askPrice("What is the 7-day weather forecast?")}>⛅ 7-Day Weather</button>
+            <button type="button" onClick={() => askPrice("What is today's garlic price in Mandsaur?")}>🧄 Garlic in Mandsaur</button>
+            <button type="button" onClick={() => askPrice("How to control tomato blight pest?")}>🌱 Pest control</button>
+            <button type="button" onClick={() => setPage("Prices")}>📊 Mandi table</button>
+          </div>
+
+          <form onSubmit={send} style={{ display: "flex", alignItems: "center", gap: "8px", background: "#ffffff", padding: "10px 12px", borderTop: "1px solid #ebeee9" }}>
+            <input
+              value={msg}
+              onChange={e => setMsg(e.target.value)}
+              placeholder="Ask: crop price, 7-day weather, or farming advice..."
+              style={{ flex: 1, border: "1px solid #dce5da", borderRadius: "20px", padding: "9px 14px", fontSize: "11.5px", outline: "none", background: "#f9fbf9" }}
+            />
+            <button disabled={chatLoading} aria-label="Send message" style={{ width: "34px", height: "34px", borderRadius: "50%", border: 0, background: "#2e7d32", color: "#ffffff", fontSize: "14px", fontWeight: 700, display: "grid", placeItems: "center", cursor: "pointer" }}>
+              {chatLoading ? "…" : "↑"}
+            </button>
           </form>
         </div>
       )}
@@ -4228,54 +4410,231 @@ function Title({ eyebrow, title, sub }) {
   )
 }
 
-// Build comprehensive chatbot commodity matcher from the complete 609 AGMARKNET catalogue:
-// 1. All 609 official AGMARKNET catalogue commodities, display names and trade aliases
-// 2. Secondary layer: Multilingual & regional aliases from commodity-master.json
-const commodityAliases = (() => {
-  const map = new Map()
+// =========================================================================
+// STATE TO DISTRICT MAPPING FOR DYNAMIC DROPDOWNS & LOCALIZED CHAT INTELLIGENCE
+// =========================================================================
+const STATE_DISTRICTS_MAP = {
+  "Karnataka": [
+    "Bengaluru Urban", "Bengaluru Rural", "Kolar", "Chikkaballapura", "Ramanagara", 
+    "Belagavi", "Mysuru", "Mandya", "Tumakuru", "Hassan", "Shivamogga", "Davanagere", 
+    "Ballari", "Haveri", "Dharwad", "Kalaburagi", "Vijayapura", "Raichur", "Udupi", 
+    "Dakshina Kannada", "Bagalkote", "Chitradurga", "Gadag", "Koppal", "Yadgir", 
+    "Kodagu", "Chamarajanagar", "Chikkamagaluru", "Uttara Kannada"
+  ],
+  "Maharashtra": [
+    "Pune", "Nashik", "Ahmednagar", "Nagpur", "Solapur", "Kolhapur", "Chhatrapati Sambhajinagar", 
+    "Jalgaon", "Satara", "Sangli", "Amravati", "Nanded", "Latur", "Dhule", "Buldhana", 
+    "Akola", "Yavatmal", "Dharashiv", "Thane", "Palghar", "Raigad", "Ratnagiri", 
+    "Sindhudurg", "Jalna", "Parbhani", "Beed", "Wardha", "Chandrapur"
+  ],
+  "Andhra Pradesh": [
+    "Chittoor", "Anantapur", "Kurnool", "Guntur", "Krishna", "East Godavari", "West Godavari", 
+    "Visakhapatnam", "Prakasam", "Nellore", "YSR Kadapa", "Srikakulam", "Vizianagaram"
+  ],
+  "Telangana": [
+    "Hyderabad", "Ranga Reddy", "Medchal", "Warangal", "Nizamabad", "Karimnagar", 
+    "Khammam", "Mahabubnagar", "Medak", "Nalgonda", "Adilabad", "Suryapet"
+  ],
+  "Tamil Nadu": [
+    "Coimbatore", "Madurai", "Salem", "Tiruchirappalli", "Erode", "Tirunelveli", "Thanjavur", 
+    "Dindigul", "Vellore", "Dharmapuri", "Krishnagiri", "Theni", "Cuddalore", "Villupuram", 
+    "Kanchipuram", "Tiruvallur", "Tiruppur", "Namakkal"
+  ],
+  "Uttar Pradesh": [
+    "Lucknow", "Kanpur Nagar", "Agra", "Varanasi", "Prayagraj", "Meerut", "Bareilly", 
+    "Aligarh", "Moradabad", "Saharanpur", "Gorakhpur", "Jhansi", "Mathura", "Muzaffarnagar", 
+    "Ayodhya", "Barabanki", "Sitapur", "Hardoi"
+  ],
+  "Punjab": [
+    "Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Hoshiarpur", "SAS Nagar (Mohali)", 
+    "Firozpur", "Sangrur", "Fazilka", "Mansa", "Gurdaspur", "Moga", "Kapurthala", "Fatehgarh Sahib"
+  ],
+  "Haryana": [
+    "Karnal", "Ambala", "Hisar", "Rohtak", "Panipat", "Sonipat", "Sirsa", "Kurukshetra", 
+    "Jind", "Yamunanagar", "Faridabad", "Gurugram", "Bhiwani", "Fatehabad", "Kaithal"
+  ],
+  "Madhya Pradesh": [
+    "Indore", "Bhopal", "Jabalpur", "Gwalior", "Ujjain", "Sagar", "Dewas", "Satna", 
+    "Ratlam", "Rewa", "Khargone", "Mandsaur", "Neemuch", "Chhindwara", "Sehore", "Narmadapuram"
+  ],
+  "Gujarat": [
+    "Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Junagadh", 
+    "Gandhinagar", "Anand", "Mehsana", "Sabarkantha", "Banaskantha", "Kutch", "Amreli", "Bharuch"
+  ],
+  "Rajasthan": [
+    "Jaipur", "Jodhpur", "Kota", "Bikaner", "Ajmer", "Udaipur", "Bhilwara", "Alwar", 
+    "Sri Ganganagar", "Bharatpur", "Sikar", "Pali", "Nagaur", "Hanumangarh", "Chittorgarh"
+  ],
+  "Kerala": [
+    "Ernakulam", "Thiruvananthapuram", "Kozhikode", "Thrissur", "Kollam", "Palakkad", 
+    "Alappuzha", "Kannur", "Kottayam", "Malappuram", "Idukki", "Wayanad", "Kasaragod", "Pathanamthitta"
+  ],
+  "Bihar": [
+    "Patna", "Gaya", "Muzaffarpur", "Bhagalpur", "Purnia", "Darbhanga", "Bihar Sharif", 
+    "Arrah", "Begusarai", "Katihar", "Samastipur", "Vaishali", "Siwan", "Saran"
+  ],
+  "West Bengal": [
+    "Kolkata", "North 24 Parganas", "South 24 Parganas", "Howrah", "Hooghly", "Purba Medinipur", 
+    "Paschim Medinipur", "Burdwan", "Nadia", "Murshidabad", "Malda", "Darjeeling", "Jalpaiguri"
+  ],
+  "Himachal Pradesh": [
+    "Shimla", "Kullu", "Mandi", "Kangra", "Solan", "Sirmaur", "Chamba", "Hamirpur", "Una", "Bilaspur"
+  ],
+  "Uttarakhand": [
+    "Dehradun", "Haridwar", "Nainital", "Udham Singh Nagar", "Pauri Garhwal", "Tehri Garhwal", "Almora"
+  ],
+  "Odisha": [
+    "Khurda", "Cuttack", "Ganjam", "Balasore", "Bhadrak", "Puri", "Sambalpur", "Bargarh", "Angul", "Mayurbhanj"
+  ],
+  "Assam": [
+    "Kamrup", "Kamrup Metropolitan", "Nagaon", "Sonitpur", "Dibrugarh", "Cachar", "Barpeta", "Dhubri"
+  ],
+  "Chhattisgarh": [
+    "Raipur", "Durg", "Bilaspur", "Rajnandgaon", "Korba", "Raigarh", "Janjgir-Champa", "Bastar"
+  ],
+  "Jharkhand": [
+    "Ranchi", "East Singhbhum", "Dhanbad", "Bokaro", "Hazaribagh", "Palamu", "Deoghar", "Giridih"
+  ]
+};
 
-  // First add all 609 AGMARKNET commodities and their official aliases
-  for (const item of agmarknetCatalogue?.commodities || []) {
-    const canonicalName = item.name
-    const key = canonicalName.toLowerCase()
-    const aliasSet = new Set([key])
-    if (item.agmarknet_name) aliasSet.add(item.agmarknet_name.toLowerCase())
-    if (item.display_name) aliasSet.add(item.display_name.toLowerCase())
-    if (Array.isArray(item.aliases)) {
-      for (const a of item.aliases) aliasSet.add(String(a).toLowerCase())
+// Flattened lookup array of all Indian districts sorted longest-first
+const ALL_DISTRICTS_LOOKUP = (() => {
+  const list = [];
+  for (const [st, dists] of Object.entries(STATE_DISTRICTS_MAP)) {
+    for (const d of dists) {
+      list.push({ district: d, state: st, lower: d.toLowerCase() });
     }
-    map.set(key, {
+  }
+  return list.sort((a, b) => b.lower.length - a.lower.length);
+})();
+
+// Primary Indian Agricultural Commodity & Multilingual Synonym Master
+const CANONICAL_COMMODITIES = [
+  // Spices & Condiments
+  { name: "Ginger", aliases: ["ginger", "fresh ginger", "dry ginger", "green ginger", "adrak", "inji", "shunti", "allam", "aale", "ginger green"] },
+  { name: "Garlic", aliases: ["garlic", "lehsun", "lahsun", "bellulli", "poondu", "vellulli", "lasun"] },
+  { name: "Turmeric", aliases: ["turmeric", "haldi", "arishina", "manjal", "pasupu", "hardi"] },
+  { name: "Chilli", aliases: ["chilli", "chili", "green chilli", "dry chilli", "red chilli", "mirchi", "hari mirchi", "lal mirchi", "milagai", "menasinakai", "mirapakaya", "marcha", "chillies"] },
+  { name: "Black Pepper", aliases: ["black pepper", "pepper", "kali mirch", "kare menasu", "kurumulaku", "milagu", "miri"] },
+  { name: "Cardamom", aliases: ["cardamom", "elaichi", "elakki", "elakkai", "yelakulu"] },
+  { name: "Cumin", aliases: ["cumin", "jeera", "jeerige", "seeragam", "jeelakarra"] },
+  { name: "Coriander", aliases: ["coriander", "dhaniya", "kothambari", "kothamalli", "kothimira"] },
+  { name: "Fenugreek", aliases: ["fenugreek", "methi", "menthya", "vendhayam", "menthulu"] },
+
+  // Vegetables
+  { name: "Tomato", aliases: ["tomato", "tomatoes", "tamatar", "thakkali", "tamata", "tamate"] },
+  { name: "Onion", aliases: ["onion", "onions", "pyaz", "kanda", "vengayam", "eerulli", "ullipaya", "dungri"] },
+  { name: "Potato", aliases: ["potato", "potatoes", "aloo", "alu", "batata", "urulaikizhangu", "alugadde", "bangaladumpa"] },
+  { name: "Brinjal", aliases: ["brinjal", "eggplant", "aubergine", "baingan", "kathirikai", "badanekai", "vankaya", "vangi"] },
+  { name: "Bhindi", aliases: ["bhindi", "okra", "ladies finger", "lady finger", "ladiesfinger", "bhendi", "vendakkai", "bendakaya"] },
+  { name: "Cabbage", aliases: ["cabbage", "patta gobhi", "bandha gobhi", "muttakose", "kobi"] },
+  { name: "Cauliflower", aliases: ["cauliflower", "phool gobhi", "gobi", "gobhi", "cauli", "hoo kosu"] },
+  { name: "Carrot", aliases: ["carrot", "gajar", "gajjari"] },
+  { name: "Capsicum", aliases: ["capsicum", "bell pepper", "shimla mirch", "doddamenasinakayi", "kuda milagai"] },
+  { name: "Beetroot", aliases: ["beetroot", "beet"] },
+  { name: "Radish", aliases: ["radish", "mooli", "mullangi"] },
+  { name: "Cucumber", aliases: ["cucumber", "kheera", "kakdi", "southekayi", "vellarikka", "dosakaya"] },
+  { name: "Bottle Gourd", aliases: ["bottle gourd", "lauki", "ghiya", "doodhi", "sorekayi", "sorakaya", "suraikkai"] },
+  { name: "Bitter Gourd", aliases: ["bitter gourd", "karela", "hagalakayi", "pavakkai", "kakarakaya", "karle"] },
+  { name: "Ridge Gourd", aliases: ["ridge gourd", "tori", "turai", "hirekayi", "peerkangai", "beerakaya"] },
+  { name: "Snake Gourd", aliases: ["snake gourd", "chichinda", "padavalakai", "pudalangai", "potlakaya"] },
+  { name: "Drumstick", aliases: ["drumstick", "moringa", "sahjan", "murungakkai", "nuggekayi", "munagakaya", "shevaga"] },
+  { name: "French Beans", aliases: ["beans", "french beans", "green beans", "frasbean", "huralikayi"] },
+  { name: "Cluster Beans", aliases: ["cluster beans", "guar", "gawar", "gorikayi", "kothavara", "goruchikkudu"] },
+  { name: "Green Peas", aliases: ["peas", "green peas", "matar", "batani", "pattani"] },
+  { name: "Spinach", aliases: ["spinach", "palak", "pasalai", "palakura"] },
+  { name: "Elephant Yam", aliases: ["yam", "elephant yam", "suran", "jimikand", "suvarna gedde", "chenai"] },
+
+  // Fruits
+  { name: "Apple", aliases: ["apple", "apples", "seb", "sebu", "aapple"] },
+  { name: "Banana", aliases: ["banana", "bananas", "kela", "baale", "vazhaipazham", "arati pandu", "green banana", "plantain", "raw banana", "kachha kela", "vazhaikkai", "baalekayi"] },
+  { name: "Mango", aliases: ["mango", "mangoes", "aam", "mavu", "manga", "mamidikaya", "kairi"] },
+  { name: "Pomegranate", aliases: ["pomegranate", "anar", "dalimbe", "danimma", "mathulai", "dalimb"] },
+  { name: "Watermelon", aliases: ["watermelon", "water melon", "tarbooz", "tarbuj", "kallangadi", "darboos"] },
+  { name: "Muskmelon", aliases: ["muskmelon", "musk melon", "kharbooza", "kharbuja", "chibuda"] },
+  { name: "Papaya", aliases: ["papaya", "papita", "pappali", "boppayi", "parangi"] },
+  { name: "Guava", aliases: ["guava", "amrood", "perakka", "koyyapazham", "sebe", "jamakaya"] },
+  { name: "Orange", aliases: ["orange", "santra", "kithale", "kamala orange"] },
+  { name: "Mosambi", aliases: ["mosambi", "sweet lime", "moushumi", "battayi"] },
+  { name: "Chikoo", aliases: ["chikoo", "chiku", "sapota", "sapodilla"] },
+  { name: "Grapes", aliases: ["grapes", "angoor", "drakshi", "thiratchai", "draksha"] },
+  { name: "Pineapple", aliases: ["pineapple", "ananas", "anasa pandu"] },
+  { name: "Amla", aliases: ["amla", "gooseberry", "nelli kai", "nellikai", "usirikaya"] },
+  { name: "Coconut", aliases: ["coconut", "nariyal", "thengai", "tenginakayi", "kobbari", "copra"] },
+
+  // Grains & Cereals
+  { name: "Wheat", aliases: ["wheat", "gehun", "gehu", "godhi", "godhumai", "godhumalu"] },
+  { name: "Paddy (Rice)", aliases: ["rice", "paddy", "chawal", "dhan", "bhatta", "arisi", "akki", "vari", "nellu"] },
+  { name: "Maize", aliases: ["maize", "corn", "makka", "bhutta", "musukina jola", "cholam", "mokka jonna"] },
+  { name: "Bajra", aliases: ["bajra", "pearl millet", "sajje", "kambu", "sajjalu"] },
+  { name: "Jowar", aliases: ["jowar", "sorghum", "jola", "cholam", "jonnalu"] },
+  { name: "Ragi", aliases: ["ragi", "finger millet", "mandua", "kezhvaragu"] },
+  { name: "Barley", aliases: ["barley", "jau"] },
+
+  // Pulses & Legumes
+  { name: "Bengal Gram (Gram)", aliases: ["chana", "channa", "bengal gram", "gram", "chickpea", "chickpeas", "kadale", "konda kadalai", "senagalu", "chana dal", "kabuli chana"] },
+  { name: "Tur (Arhar) Dal", aliases: ["tur", "tur dal", "toor", "toor dal", "arhar", "arhar dal", "red gram", "pigeon pea", "thogari", "thuvaram paruppu", "kandi pappu"] },
+  { name: "Green Gram (Moong)", aliases: ["moong", "mung", "green gram", "hesaru", "pasi payaru", "pesalu", "moong dal"] },
+  { name: "Black Gram (Urad)", aliases: ["urad", "black gram", "uddu", "ulunthu", "minumulu", "urad dal"] },
+  { name: "Soyabean", aliases: ["soyabean", "soybean", "soya"] },
+  { name: "Groundnut", aliases: ["groundnut", "peanut", "peanuts", "moongfali", "shenga", "kadale kayi", "verkkadalai", "verusenaga"] },
+  { name: "Mustard", aliases: ["mustard", "sarson", "rai", "sasive", "kadugu", "aavalu", "mustard oil"] },
+
+  // Commercial / Cash Crops
+  { name: "Cotton", aliases: ["cotton", "kapas", "hathi", "paruthi", "paththi"] },
+  { name: "Sugarcane", aliases: ["sugarcane", "ganna", "kabbu", "karumbu", "cheruku"] },
+  { name: "Jaggery", aliases: ["jaggery", "gur", "bella", "vellam", "bellam", "gud"] },
+  { name: "Arecanut", aliases: ["arecanut", "supari", "adike", "paakku", "vakka"] }
+];
+
+// Build comprehensive chatbot commodity matcher from AGMARKNET catalogue
+const commodityAliases = (() => {
+  const map = new Map();
+
+  for (const item of agmarknetCatalogue?.commodities || []) {
+    const canonicalName = item.name;
+    const cleanKey = canonicalName.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim();
+    const aliasSet = new Set([cleanKey]);
+    if (item.agmarknet_name) aliasSet.add(item.agmarknet_name.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim());
+    if (item.display_name) aliasSet.add(item.display_name.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim());
+    if (Array.isArray(item.aliases)) {
+      for (const a of item.aliases) {
+        const cleanA = String(a).toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim();
+        if (cleanA) aliasSet.add(cleanA);
+      }
+    }
+    map.set(canonicalName.toLowerCase(), {
       name: canonicalName,
-      aliases: Array.from(aliasSet)
-    })
+      aliases: Array.from(aliasSet).filter(Boolean)
+    });
   }
 
-  // Secondary layer: augment with multilingual & trade aliases from commodity-master.json
   for (const item of commodityMaster || []) {
     const target = (agmarknetCatalogue?.commodities || []).find(
       c => c.name.toLowerCase() === item.commodity.toLowerCase() ||
-           c.name.toLowerCase().replace(/[^a-z0-9]/g, "") === item.commodity.toLowerCase().replace(/[^a-z0-9]/g, "") ||
-           (item.agmarknet_name && c.name.toLowerCase() === item.agmarknet_name.toLowerCase())
-    )
-    const targetName = target ? target.name : item.commodity
-    const key = targetName.toLowerCase()
-    const existing = map.get(key) || { name: targetName, aliases: [key] }
-    const combinedAliases = new Set(existing.aliases)
-    combinedAliases.add(item.commodity.toLowerCase())
-    if (item.agmarknet_name) combinedAliases.add(item.agmarknet_name.toLowerCase())
+           c.name.toLowerCase().replace(/[^a-z0-9]/g, '') === item.commodity.toLowerCase().replace(/[^a-z0-9]/g, '')
+    );
+    const targetName = target ? target.name : item.commodity;
+    const key = targetName.toLowerCase();
+    const existing = map.get(key) || { name: targetName, aliases: [] };
+    const combined = new Set(existing.aliases);
+    combined.add(item.commodity.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim());
     if (Array.isArray(item.aliases)) {
-      for (const a of item.aliases) combinedAliases.add(String(a).toLowerCase())
+      for (const a of item.aliases) {
+        const cleanA = String(a).toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim();
+        if (cleanA) combined.add(cleanA);
+      }
     }
-    existing.aliases = Array.from(combinedAliases)
-    map.set(key, existing)
+    existing.aliases = Array.from(combined).filter(Boolean);
+    map.set(key, existing);
   }
 
   return Array.from(map.values()).sort((a, b) => {
-    const maxA = Math.max(...a.aliases.map(x => x.length))
-    const maxB = Math.max(...b.aliases.map(x => x.length))
-    return maxB - maxA
-  })
-})()
+    const maxA = Math.max(...a.aliases.map(x => x.length));
+    const maxB = Math.max(...b.aliases.map(x => x.length));
+    return maxB - maxA;
+  });
+})();
 
 const stateAliases = [
   { name: "Andhra Pradesh", aliases: ["andhra pradesh", "andhrapradesh", "andhra", "ap"] },
@@ -4293,122 +4652,681 @@ const stateAliases = [
   { name: "West Bengal", aliases: ["west bengal", "bengal", "wb"] },
   { name: "Kerala", aliases: ["kerala", "kl"] },
   { name: "Bihar", aliases: ["bihar"] },
-  { name: "Odisha", aliases: ["odisha", "orissa"] }
-]
+  { name: "Odisha", aliases: ["odisha", "orissa"] },
+  { name: "Himachal Pradesh", aliases: ["himachal pradesh", "himachal", "hp"] },
+  { name: "Uttarakhand", aliases: ["uttarakhand", "uk"] },
+  { name: "Assam", aliases: ["assam"] },
+  { name: "Chhattisgarh", aliases: ["chhattisgarh", "cg"] },
+  { name: "Jharkhand", aliases: ["jharkhand", "jh"] }
+];
 
 function findCommodity(message) {
-  const clean = " " + message.toLowerCase().replace(/[^a-z0-9]/g, " ") + " "
-  for (const item of commodityAliases) {
+  const clean = " " + message.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ") + " ";
+
+  // 1. Primary check against canonical agricultural commodities and synonyms
+  for (const item of CANONICAL_COMMODITIES) {
     for (const alias of item.aliases) {
-      if (clean.includes(" " + alias + " ")) return item.name
+      if (clean.includes(" " + alias + " ")) return item.name;
     }
   }
-  return null
+
+  // 2. Secondary check against all 600+ AGMARKNET catalogue commodities
+  for (const item of commodityAliases) {
+    for (const alias of item.aliases) {
+      if (alias && alias.length >= 3 && clean.includes(" " + alias + " ")) return item.name;
+    }
+  }
+
+  // 3. Heuristic Extraction: e.g. "todays ginger price", "rate of apple", "garlic rate"
+  const cropHeuristics = [
+    /(?:todays?|today|current|live|wholesale|market)\s+([a-z]{3,15})\s+(?:price|rate|bhav|cost|mandi)/i,
+    /(?:price|rate|bhav|cost)\s+of\s+([a-z]{3,15})/i,
+    /([a-z]{3,15})\s+(?:price|rate|bhav|cost)\s+(?:in|at|for|today|near)/i,
+    /([a-z]{3,15})\s+(?:price|rate|bhav|cost)$/i
+  ];
+  for (const regex of cropHeuristics) {
+    const match = message.match(regex);
+    if (match && match[1]) {
+      const word = match[1].toLowerCase().trim();
+      const stopWords = ["what", "show", "tell", "give", "check", "find", "need", "best", "good", "some", "this", "that", "area", "place", "mandi", "market", "weather", "today"];
+      if (!stopWords.includes(word)) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+    }
+  }
+
+  return null;
 }
 
 function findVariety(message, commodityName) {
-  if (!commodityName) return null
-  const clean = " " + message.toLowerCase().replace(/[^a-z0-9]/g, " ") + " "
+  if (!commodityName) return null;
+  const clean = " " + message.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ") + " ";
   const cmdt = (agmarknetCatalogue?.commodities || []).find(
     c => c.name.toLowerCase() === commodityName.toLowerCase() ||
          (c.agmarknet_name && c.agmarknet_name.toLowerCase() === commodityName.toLowerCase())
-  )
-  if (!cmdt || !Array.isArray(cmdt.varieties)) return null
+  );
+  if (!cmdt || !Array.isArray(cmdt.varieties)) return null;
   for (const v of cmdt.varieties) {
-    const vName = typeof v === "string" ? v : v.name
-    if (!vName || vName.length < 3 || /^(other|general|local|faq|standard|normal)$/i.test(vName)) continue
-    const vClean = vName.toLowerCase().replace(/[^a-z0-9]/g, " ")
+    const vName = typeof v === "string" ? v : v.name;
+    if (!vName || vName.length < 3 || /^(other|general|local|faq|standard|normal)$/i.test(vName)) continue;
+    const vClean = vName.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ").trim();
     if (clean.includes(" " + vClean + " ")) {
-      return vName
+      return vName;
     }
   }
-  return null
+  return null;
 }
 
 function findState(message) {
-  const clean = " " + message.toLowerCase().replace(/[^a-z0-9]/g, " ") + " "
+  const clean = " " + message.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ") + " ";
   for (const item of stateAliases) {
     for (const alias of item.aliases) {
-      if (clean.includes(" " + alias + " ")) return item.name
+      if (clean.includes(" " + alias + " ")) return item.name;
     }
   }
-  return null
+  return null;
 }
 
 function findDistrict(message) {
-  const clean = " " + message.toLowerCase().replace(/[^a-z0-9]/g, " ") + " "
-  const commonDistricts = [
-    "bengaluru", "bangalore", "chittoor", "kolar", "ramanagara", "mysuru", "mysore",
-    "belagavi", "hubli", "dharwad", "mumbai", "pune", "nashik", "aurangabad",
-    "nagpur", "chennai", "coimbatore", "madurai", "hyderabad", "warangal", "guntur",
-    "krishna", "visakhapatnam", "vijayawada", "agra", "lucknow", "kanpur", "varanasi",
-    "jaipur", "jodhpur", "ahmedabad", "surat", "patna", "kolkata"
-  ]
-  for (const d of commonDistricts) {
-    if (clean.includes(" " + d + " ")) {
-      if (d === "bangalore") return "Bengaluru"
-      if (d === "mysore") return "Mysuru"
-      return d.charAt(0).toUpperCase() + d.slice(1)
+  const clean = " " + message.toLowerCase().replace(/[^a-z0-9]/g, " ").replace(/\s+/g, " ") + " ";
+
+  // Special colloquial aliases with exact spatial mapping
+  if (clean.includes(" bangalore rural ") || clean.includes(" bengaluru rural ")) return { district: "Bengaluru Rural", state: "Karnataka" };
+  if (clean.includes(" doddaballapur ") || clean.includes(" hoskote ") || clean.includes(" devanahalli ") || clean.includes(" nelamangala ")) return { district: "Bengaluru Rural", state: "Karnataka" };
+  if (clean.includes(" bangalore urban ") || clean.includes(" bengaluru urban ")) return { district: "Bengaluru Urban", state: "Karnataka" };
+  if (clean.includes(" bangalore ") || clean.includes(" bengaluru ")) return { district: "Bengaluru", state: "Karnataka" };
+  if (clean.includes(" mysore ")) return { district: "Mysuru", state: "Karnataka" };
+  if (clean.includes(" belgaum ")) return { district: "Belagavi", state: "Karnataka" };
+  if (clean.includes(" hubli ") || clean.includes(" hubballi ")) return { district: "Hubballi", state: "Karnataka" };
+
+  for (const item of ALL_DISTRICTS_LOOKUP) {
+    if (clean.includes(" " + item.lower + " ")) {
+      return { district: item.district, state: item.state };
     }
   }
-  return null
+  return null;
 }
 
-async function getOfficialPriceAnswer(question, profile) {
-  const q = question.toLowerCase().trim()
-  if (/^(hi|hello|hey|namaste|vanakkam|namaskara)\b/.test(q)) {
-    return "Namaste! 🙏 I can give you real-time official Government APMC wholesale prices for any vegetable, fruit, or grain across any Indian state or district. Ask me e.g. 'today tomato price in andhra' or 'ginger in bengaluru'."
-  }
-  if (/how.*(sell|list)|list.*crop|sell.*crop/.test(q)) {
-    return "To sell on Farmezy: open List your harvest → take a live photo of your crop with camera → add variety, quantity, price, and pickup location → save it. Your crop will be listed instantly so buyers can request it."
-  }
-  if (/how.*(buy|request)|request.*crop|buy.*crop/.test(q)) {
-    return "To buy on Farmezy: open Browse produce → browse available crops with photos & distances → click Buy / Request or contact the farmer directly via Phone or WhatsApp."
-  }
+function formatBotMessage(text) {
+  if (!text) return null;
+  const lines = text.split("\n");
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          return <div key={idx} style={{ height: "4px" }} />;
+        }
 
-  const commodity = findCommodity(question)
-  const variety = findVariety(question, commodity)
-  const queryState = findState(question)
-  const queryDistrict = findDistrict(question)
+        // Parse bold **text**
+        const parts = [];
+        let lastIdx = 0;
+        const boldRegex = /\*\*(.*?)\*\*/g;
+        let match;
+        while ((match = boldRegex.exec(line)) !== null) {
+          if (match.index > lastIdx) {
+            parts.push(line.substring(lastIdx, match.index));
+          }
+          parts.push(<strong key={match.index} style={{ color: "#1b3821", fontWeight: 700 }}>{match[1]}</strong>);
+          lastIdx = match.index + match[0].length;
+        }
+        if (lastIdx < line.length) {
+          parts.push(line.substring(lastIdx));
+        }
 
-  const state = queryState || profile?.state || "All India"
-  const district = queryDistrict || (queryState ? "" : (profile?.district || ""))
+        const isBullet = trimmed.startsWith("•") || trimmed.startsWith("-");
+        return (
+          <div
+            key={idx}
+            style={{
+              paddingLeft: isBullet ? "12px" : "0",
+              textIndent: isBullet ? "-12px" : "0",
+              lineHeight: "1.45"
+            }}
+          >
+            {parts}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
-  const params = new URLSearchParams({ limit: "50" })
-  if (state && state !== "All India") params.set("state", state)
-  if (commodity) params.set("commodity", commodity)
-  if (variety) params.set("variety", variety)
-  if (district) params.set("district", district)
+function renderWeatherPreview(daily) {
+  if (!daily || !daily.length) return null;
+  return (
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(68px, 1fr))",
+      gap: "6px",
+      marginTop: "8px",
+      background: "#f4f7f3",
+      padding: "8px",
+      borderRadius: "10px",
+      border: "1px solid #e2ebd0"
+    }}>
+      {daily.slice(0, 7).map((d, i) => (
+        <div key={i} style={{
+          background: "#ffffff",
+          borderRadius: "8px",
+          padding: "6px 4px",
+          textAlign: "center",
+          border: "1px solid #e5ebe2",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "2px"
+        }}>
+          <span style={{ fontSize: "10px", fontWeight: "700", color: "#4b5563" }}>{d.dayName}</span>
+          <span style={{ fontSize: "8.5px", color: "#9ca3af" }}>{d.dateStr}</span>
+          <span style={{ fontSize: "15px", margin: "2px 0" }}>{d.icon}</span>
+          <span style={{ fontSize: "10px", fontWeight: "700", color: "#1f2937" }}>{d.maxTemp}°</span>
+          <span style={{ fontSize: "9px", color: "#6b7280" }}>{d.minTemp}°</span>
+          {d.rainProb > 0 && (
+            <span style={{
+              fontSize: "8px",
+              fontWeight: "600",
+              background: d.rainProb >= 50 ? "#dbeafe" : "#f1f5f9",
+              color: d.rainProb >= 50 ? "#1d4ed8" : "#475569",
+              padding: "1px 4px",
+              borderRadius: "4px",
+              marginTop: "2px"
+            }}>
+              🌧️{d.rainProb}%
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
-  try {
-    const response = await fetch("/api/mandi-prices?" + params)
-    const data = await response.json()
-    if (!response.ok) throw new Error(data.error || "Official prices service is unavailable.")
-    const rows = Array.isArray(data.records) ? data.records : []
-    if (!rows.length) {
-      return `No current AGMARKNET price available for ${variety ? variety + " " : ""}${commodity || "this commodity"}${district ? " in " + district : ""}${state && state !== "All India" ? ", " + state : ""}. This crop/variety is officially recognized in the Government AGMARKNET catalogue, but no APMC market reported active trading arrivals today.`
+// =========================================================================
+// SMART ASSISTANT CORE ENGINE (PRICES, WEATHER, AGRONOMIC Q&A)
+// =========================================================================
+async function getAssistantAnswer(question, profile, formLocation) {
+  const q = String(question || "").trim();
+  const qLower = q.toLowerCase();
+
+  // User's default detected / registered location
+  const userDistrict = (profile?.district || formLocation?.district || "").trim();
+  const userState = (profile?.state || formLocation?.state || "Karnataka").trim();
+  const userCity = (profile?.city || formLocation?.city || userDistrict || "Bengaluru").trim();
+  const userPlaceLabel = userDistrict ? userDistrict + ", " + userState : (userCity ? userCity + ", " + userState : userState);
+
+  // -------------------------------------------------------------
+  // 1. WEATHER & CLIMATE INTENT
+  // -------------------------------------------------------------
+  const isWeatherQuery = /\b(weather|forecast|rain|rainfall|temperature|temp|mausam|climate|monsoon|humidity|wind)\b/i.test(qLower) &&
+    !/\b(price|rate|cost|bhav|market price|mandi|wholesale)\b/i.test(qLower);
+
+  if (isWeatherQuery) {
+    let queryPlace = "";
+    const distInfo = findDistrict(q);
+    const detectedDist = distInfo?.district || "";
+    const detectedState = distInfo?.state || findState(q) || "";
+
+    const prepMatch = q.match(/\b(?:in|at|for|of|near)\s+([a-zA-Z\s]{3,30})/i);
+    if (prepMatch && prepMatch[1]) {
+      const candidate = prepMatch[1].replace(/\b(for|next|the|coming|days|day|week|today|tomorrow|weather|climate|forecast|rain|temperature)\b/gi, "").trim();
+      if (candidate.length >= 3) {
+        queryPlace = candidate;
+      }
     }
-    const record = rows[0]
-    return `Latest reported ${record.commodity}${record.variety ? " (" + record.variety + ")" : ""} wholesale price: ₹${Number(record.modal_price).toLocaleString("en-IN")} per quintal (₹${(Number(record.modal_price) / 100).toFixed(1)}/kg) at ${record.market} APMC, ${record.district}, ${record.state} (Arrival date: ${record.arrival_date || "today"}).`
-  } catch (error) {
-    return "I couldn't retrieve the official price right now. " + error.message
+
+    if (!queryPlace) {
+      if (detectedDist) queryPlace = detectedDist;
+      else if (detectedState) queryPlace = detectedState;
+    }
+
+    const isSpecificPlace = Boolean(queryPlace);
+    const targetPlace = isSpecificPlace ? queryPlace : (userDistrict || userCity || userState || "Bengaluru");
+    const latParam = (!isSpecificPlace && profile?.latitude && profile?.longitude) ? "&lat=" + profile.latitude + "&lng=" + profile.longitude : "";
+
+    try {
+      const res = await fetch("/api/weather?place=" + encodeURIComponent(targetPlace) + latParam);
+      const wData = await res.json();
+      if (!res.ok) throw new Error(wData.error || "Weather data unavailable.");
+
+      const daily = Array.isArray(wData.daily) ? wData.daily : [];
+      if (!daily.length) {
+        return { text: "Unable to retrieve 7-day weather for " + targetPlace + ". Please try again." };
+      }
+
+      const highRainDay = daily.find(d => d.rainProb >= 60);
+      const hotDay = daily.find(d => d.maxTemp >= 35);
+      const coolDay = daily.find(d => d.minTemp <= 14);
+
+      let advisory = "🌱 **Agronomic Advisory**: Favorable weather projected for standard intercultural operations, weeding, and farm maintenance.";
+      if (highRainDay) {
+        advisory = "⚠️ **Farming Advisory**: High chance of rain on **" + highRainDay.dayName + " (" + highRainDay.rainProb + "%)**. Avoid spraying foliar pesticides or fertilizers, and ensure field drainage channels are cleared.";
+      } else if (hotDay) {
+        advisory = "☀️ **Farming Advisory**: Peak temperatures reaching **" + hotDay.maxTemp + "°C**. Schedule drip or basin irrigation in the early morning or evening to reduce soil moisture evaporation.";
+      } else if (coolDay) {
+        advisory = "❄️ **Farming Advisory**: Night temperatures dipping to **" + coolDay.minTemp + "°C**. Light evening irrigation recommended to protect sensitive vegetable blossoms from cold shock.";
+      }
+
+      let summaryText = isSpecificPlace
+        ? "⛅ **Next 7-Day Weather Forecast — " + wData.place + "**\n\n"
+        : "📍 Showing 7-day weather for your location: **" + (wData.place || userPlaceLabel) + "**\n\n";
+
+      for (const d of daily) {
+        const rainBadge = d.rainProb > 0 ? " | 🌧️ " + d.rainProb + "% rain" : " | 💧 Dry";
+        summaryText += "• **" + d.dayName + " (" + d.dateStr + ")**: " + d.icon + " " + d.condition + " — High " + d.maxTemp + "°C / Low " + d.minTemp + "°C" + rainBadge + "\n";
+      }
+
+      summaryText += "\n" + advisory;
+      if (!isSpecificPlace) {
+        summaryText += "\n\n💡 *Tip: Ask 'Weather in Shimla' or 'Rain in Pune' to check other areas.*";
+      }
+
+      return {
+        text: summaryText,
+        weatherData: daily,
+        place: wData.place
+      };
+    } catch (err) {
+      return { text: "Could not fetch weather report for " + targetPlace + ": " + err.message };
+    }
   }
+
+  // -------------------------------------------------------------
+  // 2. COMMODITY PRICE INTENT
+  // -------------------------------------------------------------
+  const detectedCommodity = findCommodity(q);
+  const isExplicitPriceQuery = /\b(price|prices|rate|rates|cost|bhav|market price|mandi rate|wholesale|today price|todays price)\b/i.test(qLower);
+
+  if (detectedCommodity || isExplicitPriceQuery) {
+    // If user explicitly asked for price but NO crop could be identified
+    if (!detectedCommodity) {
+      return {
+        text: "Which crop's price would you like to check? 🌾\n\n" +
+          "You can ask for live mandi rates of any crop across India, for example:\n" +
+          "• **'Ginger price in Bengaluru Rural'**\n" +
+          "• **'Tomato rate today'**\n" +
+          "• **'Onion price in Nashik'**\n" +
+          "• **'Garlic in Mandsaur'**\n" +
+          "• **'Green Chilli rate in Pune'**\n\n" +
+          "💡 *Farmezy provides real-time mandi prices for over 180+ commodities including Ginger, Garlic, Tomato, Onion, Potato, Chilli, Apple, Banana, Mango, Wheat, Rice, and Pulses.*"
+      };
+    }
+
+    const targetCrop = detectedCommodity;
+    const distInfo = findDistrict(q);
+    const detectedDist = distInfo?.district || "";
+    const detectedState = distInfo?.state || findState(q) || "";
+
+    let queryPlace = "";
+    const prepMatch = q.match(/\b(?:in|at|for|of|near)\s+([a-zA-Z\s]{3,30})/i);
+    if (prepMatch && prepMatch[1]) {
+      const candidate = prepMatch[1].replace(/\b(for|next|the|coming|days|day|week|today|tomorrow|price|prices|rate|rates|bhav|wholesale|mandi)\b/gi, "").trim();
+      if (candidate.length >= 3) {
+        queryPlace = candidate;
+      }
+    }
+
+    const isSpecificPlace = Boolean(detectedDist || detectedState || queryPlace);
+    const targetState = detectedState || (isSpecificPlace ? queryPlace : userState);
+    const targetDistrict = detectedDist || (isSpecificPlace ? (detectedDist || "") : userDistrict);
+
+    try {
+      const params = new URLSearchParams({
+        commodity: targetCrop,
+        state: targetState || "Karnataka",
+        district: targetDistrict || "",
+        days: "7"
+      });
+
+      const res = await fetch("/api/price-forecast?" + params.toString());
+      const data = await res.json();
+      if (!res.ok) {
+        return {
+          text: "We couldn't retrieve active mandi rates for **" + targetCrop + "** in " + (targetDistrict ? targetDistrict + ", " : "") + targetState + ".\n\n" +
+            "💡 *Tip: Try asking for popular commodities like Ginger, Garlic, Tomato, Onion, Potato, Green Chilli, Banana, Apple, Wheat, or Chana.*"
+        };
+      }
+
+      const currentPrice = data.currentPrice;
+      const pricePerKg = data.currentPricePerKg;
+      const unit = data.unit || "Quintal (100 KG)";
+      const mandiLabel = data.lastObserved?.label || (data.state + " APMC Mandi");
+      const arrivalDate = data.lastObserved?.date || "04/11/2026";
+      const trend = data.weeklySummary?.trend || "Stable";
+      const recommendation = data.weeklySummary?.recommendedAction || "";
+
+      let priceText = "";
+      if (!isSpecificPlace && userPlaceLabel) {
+        priceText += "📍 **Prices for your location: " + userPlaceLabel + "**\n\n";
+      } else {
+        priceText += "📍 **" + data.commodity + " Wholesale Price in " + (data.district ? data.district + ", " : "") + data.state + "**\n\n";
+      }
+
+      priceText += "• **Current Wholesale Rate**: **₹" + Number(currentPrice).toLocaleString("en-IN") + "/" + unit + "** (approx. **₹" + pricePerKg + "/kg**)\n";
+      priceText += "• **Reporting Market**: " + mandiLabel + " (" + arrivalDate + ")\n";
+      priceText += "• **7-Day Trend Outlook**: " + trend + "\n";
+      if (recommendation) {
+        priceText += "• **Selling Strategy**: " + recommendation + "\n";
+      }
+
+      if (!isSpecificPlace) {
+        priceText += "\n💡 *Tip: You can also ask for prices in any other place (e.g. 'Ginger in Bengaluru Rural', 'Tomato in Pune', or 'Garlic in Mandsaur').*";
+      }
+
+      return {
+        text: priceText,
+        priceData: data
+      };
+    } catch (err) {
+      return { text: "Unable to retrieve official rates for " + targetCrop + ": " + err.message };
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 3. CROP CULTIVATION & GROWING GUIDANCE
+  // -------------------------------------------------------------
+  if (/\b(how.*grow|grow.*crop|cultivation|package of practices|farming of|plantation)\b/i.test(qLower) ||
+      (/\b(grow|cultivate|plant)\b/i.test(qLower) && /\b(ginger|tomato|onion|garlic|chilli|potato|banana)\b/i.test(qLower))) {
+    if (qLower.includes("ginger") || qLower.includes("adrak")) {
+      return {
+        text: "🌱 **Ginger (Adrak) Cultivation Guide**\n\n" +
+          "• **Soil & Climate**: Well-drained sandy loam or clay loam with pH 6.0–6.5. Requires warm, humid climate and partial shade.\n" +
+          "• **Seed Rhizome Selection**: Use disease-free rhizomes (25–30g each with 2–3 viable buds). Seed rate: 600–800 kg/acre.\n" +
+          "• **Seed Treatment**: Treat rhizomes with Trichoderma viride (10g/kg) or Mancozeb (2g/L) for 30 mins to prevent rhizome rot.\n" +
+          "• **Planting Method**: Plant on raised beds (1m wide, 15cm high) at 20–25 cm spacing. Cover with soil and mulch heavily with green leaves.\n" +
+          "• **Harvesting**: Matures in 8–9 months when leaves turn yellow and dry. Average yield: 6–10 tonnes/acre."
+      };
+    }
+    if (qLower.includes("tomato") || qLower.includes("tamatar")) {
+      return {
+        text: "🍅 **Tomato Cultivation Guide**\n\n" +
+          "• **Nursery & Seed Rate**: 60–80g/acre for hybrids. Raise seedlings in pro-trays with coco-peat for 25–28 days.\n" +
+          "• **Transplanting**: Spacing 90cm x 60cm on raised beds with silver-black plastic mulch and drip lines.\n" +
+          "• **Staking**: Stake indeterminate varieties with bamboo poles and trellis twine at 30 days to avoid fruit ground contact and soil-borne blights.\n" +
+          "• **Harvesting**: Pick at 'breaker' (pinkish) stage for distant markets; fully red for local retail."
+      };
+    }
+    if (qLower.includes("onion") || qLower.includes("pyaz")) {
+      return {
+        text: "🧅 **Onion Cultivation Guide**\n\n" +
+          "• **Seasons**: Kharif (May–June nursery), Late Kharif (Aug–Sept), Rabi (Oct–Nov nursery).\n" +
+          "• **Nursery**: 4–5 kg seeds/acre. Transplant sturdy 40–45 day old seedlings at 15cm x 10cm spacing.\n" +
+          "• **Fertilizer**: 100:50:50 kg NPK/ha. Apply sulphur (20 kg/ha) to enhance bulb pungency and storage shelf life.\n" +
+          "• **Harvesting & Curing**: Stop irrigation 10–12 days before harvest. Field-cure bulbs in shade for 7–10 days until tops dry out."
+      };
+    }
+    if (qLower.includes("garlic") || qLower.includes("lehsun")) {
+      return {
+        text: "🧄 **Garlic Cultivation Guide**\n\n" +
+          "• **Season**: October–November (Rabi). Thrives in cool growing seasons with bright sunshine during bulb development.\n" +
+          "• **Clove Selection**: Use large outer cloves (200–250 kg/acre). Treat with Carbendazim (2g/kg).\n" +
+          "• **Spacing**: Plant cloves upright 5cm deep at 15cm x 10cm spacing on flat or raised beds.\n" +
+          "• **Maturity**: Ready in 120–140 days when 70% leaves turn yellow and collapse."
+      };
+    }
+    if (qLower.includes("chilli") || qLower.includes("mirchi")) {
+      return {
+        text: "🌶️ **Chilli (Mirchi) Cultivation Guide**\n\n" +
+          "• **Nursery**: 150–200g seeds/acre. Transplant 30–35 day old seedlings on raised beds with drip irrigation.\n" +
+          "• **Spacing**: 60cm x 45cm spacing.\n" +
+          "• **Leaf Curl Prevention**: Control thrips and whiteflies early using yellow/blue sticky traps and Neem oil (5ml/L).\n" +
+          "• **Harvesting**: First green harvest at 65–70 days. Continue picking every 10–12 days."
+      };
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 4. PEST & DISEASE MANAGEMENT
+  // -------------------------------------------------------------
+  if (/\b(pest|disease|blight|borer|aphid|thrip|fungus|spray|insect|worm|leaf curl|wilt|mildew|rot)\b/i.test(qLower)) {
+    return {
+      text: "🛡️ **Integrated Pest & Disease Management Guidance**\n\n" +
+        "• **Sucking Pests (Thrips, Aphids, Whiteflies, Mites)**:\n" +
+        "  Spray 5% Neem Seed Kernel Extract (NSKE) or Cold-Pressed Neem Oil (5ml/L + 1ml liquid soap).\n" +
+        "  Install yellow & blue sticky traps (15–20 per acre) at crop canopy level.\n" +
+        "  For severe whitefly infestation, spray Diafenthiuron 50% WP (1g/L) or Acetamiprid 20% SP (0.3g/L).\n\n" +
+        "• **Fungal Blights (Early Blight, Late Blight, Leaf Spots)**:\n" +
+        "  Preventive: Spray Mancozeb 75% WP (2g/L) or Copper Oxychloride 50% WP (2.5g/L).\n" +
+        "  Curative: Azoxystrobin + Difenoconazole (1ml/L) or Metalaxyl + Mancozeb (2g/L).\n" +
+        "  Maintain proper plant spacing and clear drainage to reduce humidity in the foliage.\n\n" +
+        "• **Fruit & Shoot Borers (Tomato, Brinjal, Okra)**:\n" +
+        "  Install pheromone traps (5 traps/acre) for population monitoring.\n" +
+        "  Spray Bacillus thuringiensis (Bt) @ 2g/L or Emamectin Benzoate 5% SG @ 0.4g/L.\n\n" +
+        "• **Rhizome & Root Rot (Ginger, Turmeric, Papaya)**:\n" +
+        "  Soil drench with Trichoderma viride (10g/L) or Copper Oxychloride (3g/L). Avoid waterlogging at all costs.\n\n" +
+        "💡 *Always observe the 7-day withholding period between pesticide application and harvest.*"
+    };
+  }
+
+  // -------------------------------------------------------------
+  // 5. FERTILIZER & SOIL HEALTH MANAGEMENT
+  // -------------------------------------------------------------
+  if (/\b(fertilizer|urea|dap|npk|manure|compost|nutrient|potash|zinc|nitrogen|soil|micronutrient)\b/i.test(qLower)) {
+    return {
+      text: "🌱 **Recommended Fertilizer & Nutrient Management**\n\n" +
+        "• **Basal Soil Enrichment**:\n" +
+        "  Incorporate 8–10 tonnes/acre of well-decomposed Farm Yard Manure (FYM) or 2 tonnes of vermicompost during final field ploughing.\n\n" +
+        "• **Balanced N:P:K Dosing**:\n" +
+        "  Vegetables (Tomato, Onion, Brinjal): 120:60:60 kg NPK/ha.\n" +
+        "  Apply 100% of Phosphorus (DAP) and Potash (MOP) as basal at planting.\n" +
+        "  Split Nitrogen (Urea) into 3 equal top-dressings at 25, 45, and 65 days after transplanting.\n\n" +
+        "• **Micronutrient Boost**:\n" +
+        "  Foliar spray Zinc Sulphate (0.5%) + Boric Acid (0.2%) during early flowering to prevent flower drop and improve fruit size.\n\n" +
+        "• **Soil pH Correction**:\n" +
+        "  Acidic soil (pH < 6.0): Apply agricultural lime (dolomite) 2–3 quintals/acre.\n" +
+        "  Alkaline/saline soil (pH > 8.0): Apply gypsum 2–4 quintals/acre with green manuring (dhaincha).\n\n" +
+        "💡 *Get a Soil Health Card test every 2 years to optimize fertilizer spending.*"
+    };
+  }
+
+  // -------------------------------------------------------------
+  // 6. ORGANIC FARMING & NATURAL REMEDIES
+  // -------------------------------------------------------------
+  if (/\b(organic|natural|jeevamrutha|vermicompost|bio.*fertilizer|panchagavya|cow dung|neem cake)\b/i.test(qLower)) {
+    return {
+      text: "🌿 **Natural & Organic Farming Practices**\n\n" +
+        "• **Jeevamrutha Preparation (for 1 acre)**:\n" +
+        "  Mix 10kg desi cow dung + 10L cow urine + 2kg jaggery + 2kg pulse flour (besan) + handful of virgin forest soil in 200L water.\n" +
+        "  Ferment for 48–72 hours in shade, stirring twice daily. Apply via drip or irrigation water every 15 days.\n\n" +
+        "• **Neem Cake Application**:\n" +
+        "  Apply 100–150 kg/acre neem cake during bed preparation to suppress root-knot nematodes and soil insects.\n\n" +
+        "• **Bio-fungicides**:\n" +
+        "  Use Trichoderma viride and Pseudomonas fluorescens (2.5 kg/acre mixed with 100kg FYM) to naturally control fungal wilts and rot."
+    };
+  }
+
+  // -------------------------------------------------------------
+  // 7. IRRIGATION & WATER MANAGEMENT
+  // -------------------------------------------------------------
+  if (/\b(irrigation|water|drip|sprinkler|watering|moisture|mulch)\b/i.test(qLower)) {
+    return {
+      text: "💧 **Smart Irrigation Practices**\n\n" +
+        "• **Drip Irrigation**: Saves 40–60% water, prevents weed growth between rows, and allows precise fertigation directly to crop root zones.\n" +
+        "• **Optimal Timing**: Always irrigate early in the morning (6:00–9:00 AM) or late afternoon. Avoid noon watering which causes root heat stress and high evaporation.\n" +
+        "• **Plastic Mulching**: Silver-black reflective mulch (25–30 micron) conserves 50% soil moisture, deters aphids/whiteflies, and stops weeds completely.\n" +
+        "• **Critical Stages**: Keep soil consistently moist during flowering and fruit/pod development to prevent fruit drop and cracking."
+    };
+  }
+
+  // -------------------------------------------------------------
+  // 8. STORAGE & POST-HARVEST
+  // -------------------------------------------------------------
+  if (/\b(store|storage|shelf|cure|curing|rot|preserve|shelf life)\b/i.test(qLower)) {
+    return {
+      text: "🏠 **Post-Harvest Crop Storage Guidelines**\n\n" +
+        "• **Ginger & Turmeric**: Cure freshly harvested rhizomes in shaded, aerated pits covered with dry sand. Ideal temperature: 12–14°C, 85% RH.\n" +
+        "• **Onions & Garlic**: Field-cure for 7–10 days in the shade until necks are completely dry and papery. Store in well-ventilated slatted bamboo racks. Never store in plastic bags.\n" +
+        "• **Potatoes**: Store in a cool, dark, ventilated store (10–12°C). Never expose to direct sunlight to prevent solanine greening.\n" +
+        "• **Grains & Pulses**: Dry thoroughly in sun to below 12% moisture content before bagging. Add dried neem leaves to storage bins to repel grain weevils."
+    };
+  }
+
+  // -------------------------------------------------------------
+  // 9. GOVERNMENT SCHEMES & SUBSIDIES
+  // -------------------------------------------------------------
+  if (/\b(scheme|subsidy|pm kisan|pmfby|kcc|loan|insurance|government)\b/i.test(qLower)) {
+    return {
+      text: "🏛️ **Major Government Agriculture Schemes & Subsidies**\n\n" +
+        "• **PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)**:\n" +
+        "  Direct income support of ₹6,000 per year in 3 equal installments of ₹2,000 directly into farmer bank accounts.\n\n" +
+        "• **PMFBY (Pradhan Mantri Fasal Bima Yojana)**:\n" +
+        "  Crop insurance against drought, flood, pests, and unseasonal rains. Premium: 2% for Kharif crops, 1.5% for Rabi, and 5% for commercial/horticultural crops.\n\n" +
+        "• **Kisan Credit Card (KCC)**:\n" +
+        "  Provides affordable crop production loans up to ₹3 Lakh at an effective subsidized interest rate of 4% per annum (with prompt repayment).\n\n" +
+        "• **PM-KUSUM Scheme**:\n" +
+        "  Up to 60% government subsidy for installing solar-powered irrigation water pumps."
+    };
+  }
+
+  // -------------------------------------------------------------
+  // 10. SOWING SEASONS & SEED CALENDAR
+  // -------------------------------------------------------------
+  if (/\b(season|sowing|calendar|when to sow|kharif|rabi|zaid|month)\b/i.test(qLower)) {
+    return {
+      text: "📅 **Indian Agricultural Crop Seasons**\n\n" +
+        "• **Kharif Season (Monsoon, June–October)**:\n" +
+        "  Sown with arrival of southwest monsoon. Ideal crops: Paddy, Maize, Cotton, Soybean, Groundnut, Tur Dal, Moong, Tomato, Chilli.\n\n" +
+        "• **Rabi Season (Winter, October–March)**:\n" +
+        "  Sown as monsoon retreats in autumn. Ideal crops: Wheat, Mustard, Bengal Gram (Chana), Garlic, Onion, Potato, Peas, Cabbage, Carrot.\n\n" +
+        "• **Zaid Season (Summer, March–June)**:\n" +
+        "  Short summer season with irrigation. Ideal crops: Watermelon, Muskmelon, Cucumber, Bitter Gourd, Okra (Bhindi), Green Gram."
+    };
+  }
+
+  // -------------------------------------------------------------
+  // 11. FARMEZY PLATFORM GUIDES
+  // -------------------------------------------------------------
+  if (/\b(how.*sell|sell.*harvest|list.*crop|add.*crop|seller|selling)\b/i.test(qLower)) {
+    return {
+      text: "📦 **How to Sell Produce on Farmezy (Farmer Marketplace)**\n\n" +
+        "1. Open **List your harvest** in the left sidebar.\n" +
+        "2. Snap a clear, live camera photo of your harvest directly in the field (or select from gallery).\n" +
+        "3. Select the crop name, variety, grade, available quantity, and your asking price (₹/kg or ₹/quintal).\n" +
+        "4. Set harvest date and pickup location.\n" +
+        "5. Tap **Publish Listing**!\n\n" +
+        "✅ Your harvest is instantly broadcast to verified buyers, traders, and local consumers within < 1 km with 0% middleman commission!"
+    };
+  }
+
+  if (/\b(how.*buy|buy.*produce|purchase|customer|order|contact farmer)\b/i.test(qLower)) {
+    return {
+      text: "🛒 **How to Purchase Fresh Produce on Farmezy**\n\n" +
+        "1. Click **Browse produce** in the navigation.\n" +
+        "2. Filter by crop name or view nearby farms sorted by real GPS distance.\n" +
+        "3. Review transparent farmgate prices, harvest dates, and real field photos.\n" +
+        "4. Tap **Buy / Connect** to directly chat on **WhatsApp** or initiate a **Direct Call** with the farmer."
+    };
+  }
+
+  if (/^(hi|hello|hey|namaste|vanakkam|namaskara|good\s*(morning|afternoon|evening))\b/i.test(qLower)) {
+    return {
+      text: "Namaste! 🙏 Welcome to Farmezy.\n\n" +
+        "I am your 24/7 agriculture and market intelligence assistant. You can ask me:\n" +
+        "• **'Ginger price in Bengaluru Rural'** — Live mandi rates for any crop\n" +
+        "• **'7-day weather forecast'** — Next week's rain, temperature & farm advisory\n" +
+        "• **'Garlic price in Mandsaur'** — Mandi rates across 180+ Indian crops\n" +
+        "• **'How to grow Ginger?'** — Complete crop cultivation practices\n" +
+        "• **'How to control tomato blight?'** — Integrated pest & disease guidance"
+    };
+  }
+
+  // -------------------------------------------------------------
+  // 12. CATCH-ALL INTELLIGENT HELPER
+  // -------------------------------------------------------------
+  return {
+    text: "I'm here to assist with all your farming, crop pricing, and weather needs! 🌾\n\n" +
+      "Here are popular questions you can ask me:\n" +
+      "1. **Crop Mandi Prices**: E.g. *'Ginger price in Bengaluru Rural'*, *'Tomato price in my area'*, *'Garlic in Mandsaur'*, *'Onion in Nashik'*\n" +
+      "2. **7-Day Weather Forecasts**: E.g. *'Weather forecast for Bengaluru Rural'*, *'Will it rain in Shimla?'*\n" +
+      "3. **Crop Growing Guides**: E.g. *'How to grow ginger'*, *'Best spacing for tomatoes'*, *'Garlic sowing tips'*\n" +
+      "4. **Pest & Disease Control**: E.g. *'How to treat tomato leaf curl'*, *'Rhizome rot in ginger'*, *'Organic aphid spray'*\n" +
+      "5. **Marketplace Guidance**: E.g. *'How to sell my harvest'*, *'How to buy directly from farmers'*"
+  };
 }
+
+
+// Indian States list for dropdown selection
+const FORECAST_STATES = [
+  "Karnataka", "Maharashtra", "Andhra Pradesh", "Telangana", "Tamil Nadu", "Uttar Pradesh",
+  "Punjab", "Haryana", "Madhya Pradesh", "Gujarat", "Rajasthan", "Bihar", "West Bengal",
+  "Kerala", "Odisha", "Assam", "Chhattisgarh", "Jharkhand", "Himachal Pradesh", "Uttarakhand",
+  "Delhi", "Goa", "Jammu and Kashmir", "Tripura", "Meghalaya", "Manipur", "Nagaland",
+  "Mizoram", "Arunachal Pradesh", "Sikkim", "Chandigarh", "Puducherry", "Ladakh"
+]
+
+// Structured catalogue of crops for dropdown
+const FORECAST_CROPS = [
+  { group: "Popular Crops", name: "Tomato", icon: "🍅" },
+  { group: "Popular Crops", name: "Potato", icon: "🥔" },
+  { group: "Popular Crops", name: "Onion", icon: "🧅" },
+  { group: "Popular Crops", name: "Wheat", icon: "🌾" },
+  { group: "Popular Crops", name: "Paddy (Rice)", icon: "🌾" },
+  { group: "Popular Crops", name: "Tur (Arhar) Dal", icon: "🥣" },
+  { group: "Popular Crops", name: "Mustard Oil", icon: "🫒" },
+  { group: "Popular Crops", name: "Sugarcane", icon: "🎋" },
+
+  { group: "Vegetables", name: "Garlic", icon: "🧄" },
+  { group: "Vegetables", name: "Ginger", icon: "🫚" },
+  { group: "Vegetables", name: "Brinjal", icon: "🍆" },
+  { group: "Vegetables", name: "Cabbage", icon: "🥬" },
+  { group: "Vegetables", name: "Cauliflower", icon: "🥦" },
+  { group: "Vegetables", name: "Carrot", icon: "🥕" },
+  { group: "Vegetables", name: "Capsicum", icon: "🫑" },
+  { group: "Vegetables", name: "Green Chilli", icon: "🌶️" },
+  { group: "Vegetables", name: "Cucumber", icon: "🥒" },
+  { group: "Vegetables", name: "Green Peas", icon: "🫛" },
+  { group: "Vegetables", name: "Beans", icon: "🫛" },
+  { group: "Vegetables", name: "Beetroot", icon: "🔴" },
+  { group: "Vegetables", name: "Bottle Gourd", icon: "🎃" },
+  { group: "Vegetables", name: "Bitter Gourd", icon: "🍈" },
+  { group: "Vegetables", name: "Bhindi (Ladies Finger)", icon: "🌱" },
+
+  { group: "Fruits", name: "Apple", icon: "🍎" },
+  { group: "Fruits", name: "Banana", icon: "🍌" },
+  { group: "Fruits", name: "Mango", icon: "🥭" },
+  { group: "Fruits", name: "Lemon", icon: "🍋" },
+  { group: "Fruits", name: "Grapes", icon: "🍇" },
+  { group: "Fruits", name: "Guava", icon: "🍐" },
+  { group: "Fruits", name: "Pomegranate", icon: "🍷" },
+  { group: "Fruits", name: "Coconut", icon: "🥥" },
+
+  { group: "Commercial & Spices", name: "Turmeric", icon: "🌿" },
+  { group: "Commercial & Spices", name: "Black Pepper", icon: "🧂" },
+  { group: "Commercial & Spices", name: "Cotton", icon: "☁️" },
+  { group: "Commercial & Spices", name: "Groundnut", icon: "🥜" },
+  { group: "Commercial & Spices", name: "Maize", icon: "🌽" }
+]
 
 function PriceForecast({ location, onPrices }) {
   const [commodity, setCommodity] = useState("Tomato")
   const [state, setState] = useState(location?.state || "Karnataka")
-  const [district, setDistrict] = useState(location?.district || "")
+  const [district, setDistrict] = useState("All Districts (State Average)")
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const run = async () => {
+  const availableDistricts = ["All Districts (State Average)", ...(STATE_DISTRICTS_MAP[state] || [])]
+
+  const handleStateChange = (newState) => {
+    setState(newState)
+    setDistrict("All Districts (State Average)")
+    run(commodity, newState, "All Districts (State Average)")
+  }
+
+  const run = async (cropParam, stateParam, distParam) => {
+    const c = cropParam ?? commodity
+    const s = stateParam ?? state
+    const d = distParam ?? district
+    const queryDistrict = (!d || d.startsWith("All Districts")) ? "" : d
+
     setLoading(true)
     setError("")
-    setResult(null)
     try {
-      const params = new URLSearchParams({ commodity, state, district, days: "7" })
+      const params = new URLSearchParams({
+        commodity: c,
+        state: s,
+        district: queryDistrict,
+        days: "7"
+      })
       const response = await fetch("/api/price-forecast?" + params.toString())
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Forecast is not ready.")
@@ -4420,48 +5338,314 @@ function PriceForecast({ location, onPrices }) {
     }
   }
 
+  // Run automatically on first mount
+  useEffect(() => {
+    run(commodity, state, district)
+  }, [])
+
   return (
-    <section className="panel">
-      <div className="official-filters">
-        <label>
-          Crop / commodity
-          <input value={commodity} onChange={e => setCommodity(e.target.value)} placeholder="Tomato" />
-        </label>
-        <label>
-          State
-          <input value={state} onChange={e => setState(e.target.value)} placeholder="Karnataka" />
-        </label>
-        <label>
-          District
-          <input value={district} onChange={e => setDistrict(e.target.value)} placeholder="Optional" />
-        </label>
-        <button onClick={run} disabled={loading || !commodity || !state}>
-          {loading ? "Preparing…" : "Predict price"}
-        </button>
+    <section className="panel" style={{ background: "#fbfcfb", border: "1px solid #e5ebe2", borderRadius: "12px", padding: "20px 24px" }}>
+      {/* Header bar */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "18px" }}>
+        <div>
+          <span style={{ fontSize: "11px", fontWeight: "700", color: "#377d4c", letterSpacing: "1px", textTransform: "uppercase" }}>
+            🌾 Intelligent Market Forecasting
+          </span>
+          <h2 style={{ margin: "4px 0 2px", font: "700 22px/1.2 Manrope, sans-serif", color: "#1e3023" }}>
+            Next 7-Day Mandi Price Predictions
+          </h2>
+          <p style={{ margin: 0, fontSize: "12px", color: "#6e7c70" }}>
+            Real-time projection model tracking short-term price momentum and weekly mandi trading volumes.
+          </p>
+        </div>
+        <div style={{ background: "#eef6ee", border: "1px solid #c9e4cb", color: "#256337", borderRadius: "20px", padding: "6px 14px", fontSize: "11px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
+          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#2e7d32", display: "inline-block" }}></span>
+          Live Trend Engine Active
+        </div>
       </div>
+
+      {/* Selectors Grid */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr)) auto",
+        gap: "14px",
+        alignItems: "flex-end",
+        background: "#ffffff",
+        border: "1px solid #e1e8dd",
+        borderRadius: "10px",
+        padding: "16px 18px",
+        marginBottom: "20px",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.02)"
+      }}>
+        {/* Crop Dropdown */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label style={{ fontSize: "11px", fontWeight: "700", color: "#47574a" }}>
+            Select Crop / Commodity
+          </label>
+          <select
+            value={commodity}
+            onChange={e => {
+              setCommodity(e.target.value)
+              run(e.target.value, state, district)
+            }}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              border: "1px solid #d4dfd1",
+              borderRadius: "7px",
+              background: "#fff",
+              color: "#223326",
+              fontSize: "13px",
+              fontWeight: "600",
+              cursor: "pointer",
+              outline: "none"
+            }}
+          >
+            {["Popular Crops", "Vegetables", "Fruits", "Commercial & Spices"].map(group => (
+              <optgroup key={group} label={`── ${group} ──`}>
+                {FORECAST_CROPS.filter(c => c.group === group).map(c => (
+                  <option key={c.name} value={c.name}>
+                    {c.icon} {c.name}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+
+        {/* State Dropdown */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label style={{ fontSize: "11px", fontWeight: "700", color: "#47574a" }}>
+            State / Region
+          </label>
+          <select
+            value={state}
+            onChange={e => handleStateChange(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              border: "1px solid #d4dfd1",
+              borderRadius: "7px",
+              background: "#fff",
+              color: "#223326",
+              fontSize: "13px",
+              fontWeight: "600",
+              cursor: "pointer",
+              outline: "none"
+            }}
+          >
+            {FORECAST_STATES.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* District Dropdown */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label style={{ fontSize: "11px", fontWeight: "700", color: "#47574a" }}>
+            District / Mandi Zone
+          </label>
+          <select
+            value={district}
+            onChange={e => {
+              setDistrict(e.target.value)
+              run(commodity, state, e.target.value)
+            }}
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              border: "1px solid #d4dfd1",
+              borderRadius: "7px",
+              background: "#fff",
+              color: "#223326",
+              fontSize: "13px",
+              fontWeight: "600",
+              cursor: "pointer",
+              outline: "none"
+            }}
+          >
+            {availableDistricts.map(d => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Predict Price Button */}
+        <div>
+          <button
+            onClick={() => run()}
+            disabled={loading}
+            style={{
+              background: loading ? "#749b7e" : "#2b7040",
+              color: "#fff",
+              border: 0,
+              borderRadius: "7px",
+              padding: "11px 20px",
+              fontSize: "12px",
+              fontWeight: "700",
+              cursor: loading ? "default" : "pointer",
+              whiteSpace: "nowrap",
+              height: "40px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              boxShadow: "0 2px 6px rgba(43, 112, 64, 0.25)"
+            }}
+          >
+            {loading ? "Forecasting…" : "⚡ Predict Price"}
+          </button>
+        </div>
+      </div>
+
       {error && (
-        <div className="official-error">
-          <b>Forecast not ready yet.</b>
-          <p>{error}</p>
-          <span>Farmezy trains price models on official historical mandi data.</span>
+        <div className="official-error" style={{ background: "#fff5f5", border: "1px solid #fed7d7", borderRadius: "8px", padding: "16px", marginBottom: "16px", color: "#9b2c2c" }}>
+          <b style={{ fontSize: "13px" }}>Forecast Not Available</b>
+          <p style={{ margin: "6px 0", fontSize: "12px" }}>{error}</p>
+          <span style={{ fontSize: "11px", color: "#c53030" }}>Try choosing another crop or selecting state-wide average.</span>
         </div>
       )}
+
       {result && (
-        <div className="forecast-result">
-          <h3>{result.commodity} · {result.state}</h3>
-          <p>Last observed: <b>₹{Number(result.lastObserved.price).toLocaleString("en-IN")}/quintal</b> on {result.lastObserved.date}</p>
-          <div className="forecast-cards">
-            {result.predictions.map(item => (
-              <article key={item.day}>
-                <small>Day {item.day}</small>
-                <b>₹{item.price.toLocaleString("en-IN")}</b>
-                <span>Range ₹{item.lower.toLocaleString("en-IN")}–₹{item.upper.toLocaleString("en-IN")}</span>
-              </article>
-            ))}
+        <div className="forecast-result" style={{ background: "#ffffff", border: "1px solid #e3eae0", borderRadius: "10px", padding: "20px 22px", boxShadow: "0 4px 12px rgba(0,0,0,0.03)" }}>
+          {/* Top Info Banner */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "12px", marginBottom: "14px", paddingBottom: "14px", borderBottom: "1px solid #eef2eb" }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                <h3 style={{ margin: 0, font: "700 20px Manrope, sans-serif", color: "#1a2c1f" }}>
+                  {result.commodity}
+                </h3>
+                <span style={{ background: "#f0f4ee", color: "#376d47", border: "1px solid #d8e5d5", padding: "3px 10px", borderRadius: "14px", fontSize: "11px", fontWeight: "700" }}>
+                  📍 {result.state} {result.district && !result.district.startsWith("All Districts") ? `· ${result.district}` : ""}
+                </span>
+              </div>
+              <small style={{ display: "block", color: "#748376", marginTop: "4px", fontSize: "11px" }}>
+                🤖 {result.model}
+              </small>
+            </div>
+
+            <div style={{ textAlign: "right" }}>
+              <span style={{ fontSize: "10px", fontWeight: "700", textTransform: "uppercase", color: "#7e8d81", letterSpacing: "0.5px", display: "block" }}>
+                Current Spot Benchmark
+              </span>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "6px", justifyContent: "flex-end" }}>
+                <b style={{ fontSize: "20px", color: "#1e3825" }}>
+                  ₹{Number(result.lastObserved?.price || result.currentPrice || 0).toLocaleString("en-IN")}
+                </b>
+                <span style={{ fontSize: "12px", color: "#647567" }}>
+                  /{result.unit || "Quintal (100 KG)"}
+                </span>
+                {result.currentPricePerKg ? (
+                  <span style={{ background: "#edf7ee", color: "#256337", fontWeight: "700", fontSize: "11px", padding: "2px 7px", borderRadius: "4px", border: "1px solid #c8e3cc" }}>
+                    ₹{result.currentPricePerKg}/kg
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {/* Weekly Summary Banner */}
+          {result.weeklySummary && (
+            <div style={{
+              background: result.weeklySummary.weeklyChangePercent >= 0 ? "linear-gradient(135deg, #f2f9f3 0%, #e6f4e8 100%)" : "linear-gradient(135deg, #fdf4f4 0%, #fae8e8 100%)",
+              border: `1px solid ${result.weeklySummary.weeklyChangePercent >= 0 ? "#bde3c3" : "#f5c6cb"}`,
+              borderRadius: "9px",
+              padding: "14px 18px",
+              marginBottom: "20px"
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "18px" }}>
+                    {result.weeklySummary.weeklyChangePercent >= 0 ? "📈" : "📉"}
+                  </span>
+                  <b style={{ fontSize: "14px", color: result.weeklySummary.weeklyChangePercent >= 0 ? "#1b5e20" : "#842029" }}>
+                    7-Day Market Outlook: {result.weeklySummary.trend} ({result.weeklySummary.weeklyChangePercent >= 0 ? "+" : ""}{result.weeklySummary.weeklyChangePercent}%)
+                  </b>
+                </div>
+                <div style={{ fontSize: "12px", color: "#37473b", background: "rgba(255,255,255,0.7)", padding: "4px 10px", borderRadius: "6px" }}>
+                  <b>Projected Spread:</b> ₹{Number(result.weeklySummary.minProjected).toLocaleString("en-IN")} – ₹{Number(result.weeklySummary.maxProjected).toLocaleString("en-IN")}
+                </div>
+              </div>
+              <p style={{ margin: 0, fontSize: "12px", color: "#223326", lineHeight: 1.5 }}>
+                💡 <b>Farmer Selling Recommendation:</b> {result.weeklySummary.recommendedAction}
+              </p>
+            </div>
+          )}
+
+          {/* Daily 7-Day Forecast Grid */}
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <span style={{ fontSize: "12px", fontWeight: "700", color: "#283b2d", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                📅 Upcoming 7 Days Day-by-Day Forecast ({result.unit || "Quintal (100 KG)"})
+              </span>
+              <span style={{ fontSize: "11px", color: "#748477" }}>
+                Unit price & ₹/kg range
+              </span>
+            </div>
+
+            <div className="forecast-cards" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "12px" }}>
+              {result.predictions?.map((item, idx) => {
+                const isUp = item.trend === "up"
+                const isDown = item.trend === "down"
+                return (
+                  <article key={item.day || idx} style={{
+                    background: "#ffffff",
+                    border: "1px solid #e2e8df",
+                    borderRadius: "9px",
+                    padding: "14px 12px",
+                    boxShadow: "0 2px 5px rgba(0,0,0,0.03)",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between"
+                  }}>
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                        <span style={{ color: "#2b3d30", fontSize: "12px", fontWeight: "700" }}>
+                          {item.dayName}
+                        </span>
+                        <span style={{ color: "#7a8a7d", fontSize: "10px", fontWeight: "500" }}>
+                          {item.date}
+                        </span>
+                      </div>
+
+                      <div style={{ marginBottom: "6px" }}>
+                        <span style={{
+                          fontSize: "10px",
+                          fontWeight: "700",
+                          color: isUp ? "#236336" : (isDown ? "#b3261e" : "#556457"),
+                          background: isUp ? "#eaf5ec" : (isDown ? "#fceeee" : "#f1f4f0"),
+                          padding: "2px 6px",
+                          borderRadius: "4px",
+                          display: "inline-block"
+                        }}>
+                          {item.trendLabel || (isUp ? "↗ Up" : isDown ? "↘ Down" : "→ Flat")} {item.changePercent ? `(${item.changePercent})` : ""}
+                        </span>
+                      </div>
+
+                      <b style={{ display: "block", fontSize: "17px", margin: "4px 0 2px", color: "#192c1e" }}>
+                        ₹{Number(item.price).toLocaleString("en-IN")}
+                      </b>
+                      <div style={{ fontSize: "11px", color: "#4d6050", fontWeight: "600", marginBottom: "8px" }}>
+                        ₹{item.pricePerKg}/kg
+                      </div>
+                    </div>
+
+                    <div style={{ borderTop: "1px dashed #e8eee6", paddingTop: "6px", marginTop: "4px" }}>
+                      <span style={{ fontSize: "10px", color: "#79877b", display: "block" }}>
+                        Range: ₹{Number(item.lower).toLocaleString("en-IN")} – ₹{Number(item.upper).toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
           </div>
         </div>
       )}
-      <button className="link" onClick={onPrices}>Check official observed prices →</button>
+      <div style={{ marginTop: "16px", textAlign: "right" }}>
+        <button className="link" onClick={onPrices} style={{ fontSize: "12px", color: "#2b7040", fontWeight: "600" }}>
+          📊 View official AGMARKNET spot prices →
+        </button>
+      </div>
     </section>
   )
 }
