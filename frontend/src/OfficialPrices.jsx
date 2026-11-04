@@ -23,7 +23,7 @@ const fallbackCategories = [
   "Dry Fruits", "Oils and Fats", "Fibre Crops", "Beverages", "Others"
 ]
 
-export default function OfficialPrices({ location, preview = false, onViewAll }) {
+export default function OfficialPrices({ location, preview = false, onViewAll, farmerListings = [], onSelectListing }) {
   const defaultState = "All India"
   const defaultDistrict = ""
 
@@ -70,6 +70,99 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
   const [historicalFallback, setHistoricalFallback] = useState(null)
   const [availableDistricts, setAvailableDistricts] = useState([])
   const [availableGrades, setAvailableGrades] = useState(["FAQ", "Grade A", "Grade B", "Medium", "Large", "Small", "Local"])
+  const [internalListings, setInternalListings] = useState([])
+  const [selectedCropDetail, setSelectedCropDetail] = useState(null)
+
+  useEffect(() => {
+    if (!farmerListings || farmerListings.length === 0) {
+      fetch("/api/listings")
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data.listings)) {
+            setInternalListings(data.listings)
+          }
+        })
+        .catch(err => console.warn("Could not fetch farmer listings:", err.message))
+    }
+  }, [farmerListings])
+
+  const activeFarmerListings = useMemo(() => {
+    return (Array.isArray(farmerListings) && farmerListings.length > 0)
+      ? farmerListings
+      : internalListings
+  }, [farmerListings, internalListings])
+
+  const normalizeString = useCallback(str => {
+    return String(str || "").toLowerCase().replace(/[^a-z0-9]/g, "").trim()
+  }, [])
+
+  const matchFarmerListingsForCrop = useCallback((listingsList, targetCommodity, targetVariety) => {
+    if (!Array.isArray(listingsList) || !targetCommodity) return []
+    const commNorm = normalizeString(targetCommodity)
+    const varNorm = normalizeString(targetVariety)
+
+    return listingsList.filter(item => {
+      const itemCropNorm = normalizeString(item.crop)
+      if (!itemCropNorm) return false
+
+      const cropMatches = itemCropNorm === commNorm || 
+        itemCropNorm.includes(commNorm) || 
+        commNorm.includes(itemCropNorm)
+      if (!cropMatches) return false
+
+      if (!varNorm) return true
+
+      const itemVarNorm = normalizeString(item.variety)
+      if (!itemVarNorm) {
+        const genericVarieties = ["other", "local", "common", "faq", "general", "standard"]
+        return genericVarieties.includes(varNorm)
+      }
+
+      if (itemVarNorm === varNorm) return true
+      if (varNorm.length >= 3 && itemVarNorm.includes(varNorm)) return true
+      if (itemVarNorm.length >= 3 && varNorm.includes(itemVarNorm)) return true
+
+      const genericVarieties = ["other", "local", "common", "faq", "general", "standard"]
+      if (genericVarieties.includes(varNorm) && genericVarieties.includes(itemVarNorm)) return true
+
+      return false
+    })
+  }, [normalizeString])
+
+  const officialRecordsForSelectedCrop = useMemo(() => {
+    if (!selectedCropDetail?.commodity) return []
+    const commNorm = normalizeString(selectedCropDetail.commodity)
+    const varNorm = normalizeString(selectedCropDetail.variety)
+
+    return allRecords.filter(r => {
+      const rCommNorm = normalizeString(r.commodity)
+      if (rCommNorm !== commNorm && !rCommNorm.includes(commNorm) && !commNorm.includes(rCommNorm)) {
+        return false
+      }
+      if (varNorm) {
+        const rVarNorm = normalizeString(r.variety)
+        if (rVarNorm !== varNorm && !rVarNorm.includes(varNorm) && !varNorm.includes(rVarNorm)) {
+          return false
+        }
+      }
+      return true
+    })
+  }, [allRecords, selectedCropDetail, normalizeString])
+
+  const farmerListingsForSelectedCrop = useMemo(() => {
+    if (!selectedCropDetail?.commodity) return []
+    return matchFarmerListingsForCrop(
+      activeFarmerListings,
+      selectedCropDetail.commodity,
+      selectedCropDetail.variety
+    )
+  }, [activeFarmerListings, selectedCropDetail, matchFarmerListingsForCrop])
+
+  const handleOpenFarmerDetails = useCallback((listing) => {
+    if (typeof onSelectListing === "function") {
+      onSelectListing(listing)
+    }
+  }, [onSelectListing])
 
   // Quick lookup for category by commodity
   const commodityCategoryMap = useMemo(() => {
@@ -864,7 +957,19 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                 const cardKey = [r.state, r.district, r.market, r.commodity, r.variety, r.grade, r.arrival_date, idx].join("-")
 
                 return (
-                  <article className="listing-card mandi-listing-card" key={cardKey}>
+                  <article
+    className="listing-card mandi-listing-card"
+    key={cardKey}
+    style={{ cursor: "pointer" }}
+    onClick={() => {
+      setSelectedCropDetail({
+        commodity: r.commodity,
+        variety: r.variety,
+        category: categoryName,
+        record: r
+      })
+    }}
+  >
                     {/* Thumbnail column with badge */}
                     <div className="listing-photo-thumb-container">
                       <div className="listing-photo-thumb" style={{ position: "relative" }}>
@@ -877,13 +982,8 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                             e.currentTarget.src = getCategorySvgDataUri(categoryName, `${r.commodity} (${r.variety})`)
                           }}
                         />
-                        <span className="listing-photo-badge" style={{ background: badge.bg, color: badge.color, fontWeight: "700" }}>
-                          {badge.label}
-                        </span>
+                        
                       </div>
-                      <span style={{ fontSize: "8px", color: "#64748b", display: "block", marginTop: "3px", textAlign: "center" }}>
-                        {imgInfo.isExact ? "Exact Match" : (imgInfo.isCategoryFallback ? "Category SVG" : "Representative")}
-                      </span>
                     </div>
 
                     {/* Column 2: Commodity, Variety, Category, Grade, Date */}
@@ -1009,7 +1109,19 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                 const cardKey = [r.state, r.district, r.market, r.commodity, r.variety, r.grade, r.arrival_date, idx].join("-")
 
                 return (
-                  <article className="crop-price-card" key={cardKey}>
+                  <article
+    className="crop-price-card"
+    key={cardKey}
+    style={{ cursor: "pointer" }}
+    onClick={() => {
+      setSelectedCropDetail({
+        commodity: r.commodity,
+        variety: r.variety,
+        category: categoryName,
+        record: r
+      })
+    }}
+  >
                     <div className="crop-photo">
                       <img
                         src={imgInfo.url}
@@ -1022,9 +1134,6 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                         }}
                       />
                       <span className="crop-symbol">{imgInfo.symbol}</span>
-                      <span className={imgInfo.isExact ? "crop-img-tag exact-tag" : (imgInfo.isCategoryFallback ? "crop-img-tag cat-tag" : "crop-img-tag rep-tag")}>
-                        {imgInfo.isExact ? "Exact Match" : (imgInfo.isCategoryFallback ? "Category SVG" : "Representative")}
-                      </span>
                     </div>
                     <div className="crop-card-copy">
                       <small className="crop-category-tag">{categoryName || "AGMARKNET"} · {(r.arrival_date && r.arrival_date !== "Date unavailable") ? r.arrival_date : "Date unavailable"}</small>
@@ -1067,6 +1176,7 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                 <th>Min</th>
                 <th>Max</th>
                 <th>Modal Price / Unit</th>
+                <th>Market &amp; Farmer Details</th>
               </tr>
             </thead>
             <tbody>
@@ -1074,7 +1184,18 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                 const badge = getPriceBadge(r)
                 const formattedDate = (r.arrival_date && r.arrival_date !== "Date unavailable") ? r.arrival_date : "Date unavailable"
                 return (
-                  <tr key={[r.state, r.district, r.market, r.commodity, r.variety, r.arrival_date, i].join("-")}>
+                  <tr
+  key={[r.state, r.district, r.market, r.commodity, r.variety, r.arrival_date, i].join("-")}
+  style={{ cursor: "pointer" }}
+  onClick={() => {
+    setSelectedCropDetail({
+      commodity: r.commodity,
+      variety: r.variety,
+      category: r.category,
+      record: r
+    })
+  }}
+>
                     <td>{formattedDate}</td>
                     <td>
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
@@ -1153,9 +1274,6 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
                       }}
                     />
                     <span className="crop-symbol">{imgInfo.symbol}</span>
-                    <span className={imgInfo.isExact ? "crop-img-tag exact-tag" : "crop-img-tag rep-tag"}>
-                      {imgInfo.isExact ? "Exact Match" : "Representative"}
-                    </span>
                   </div>
                   <div className="crop-card-copy">
                     <small className="crop-category-tag">{item.category} · AGMARKNET</small>
@@ -1304,11 +1422,434 @@ export default function OfficialPrices({ location, preview = false, onViewAll })
         </div>
       )}
 
+
+      {/* IN-PAGE FARMER LISTINGS SECTION (when commodity is filtered) */}
+      {applied.commodity && (
+        <section className="inpage-farmer-listings-section" style={{ margin: "24px 0" }}>
+          <div className="section-title-bar farmer-bar">
+            <div className="section-title-left">
+              <span className="section-icon">🚜</span>
+              <div>
+                <h3 style={{ margin: 0, fontSize: "16px", color: "#166534" }}>
+                  B. Farmer Listings for {applied.commodity} {applied.variety ? `(${applied.variety})` : ""}
+                </h3>
+                <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#4b5563" }}>
+                  Direct farmgate produce available from registered farmers matching this crop
+                </p>
+              </div>
+            </div>
+            <span className="section-count-badge farmer-count">
+              {matchFarmerListingsForCrop(activeFarmerListings, applied.commodity, applied.variety).length} Farmer Listing{matchFarmerListingsForCrop(activeFarmerListings, applied.commodity, applied.variety).length === 1 ? "" : "s"}
+            </span>
+          </div>
+
+          {matchFarmerListingsForCrop(activeFarmerListings, applied.commodity, applied.variety).length > 0 ? (
+            <div className="farmer-listings-split-grid" style={{ marginTop: "14px" }}>
+              {matchFarmerListingsForCrop(activeFarmerListings, applied.commodity, applied.variety).map(item => {
+                const categoryName = item.category || getCategoryForCommodity(item.crop)
+                const fallbackImg = resolveCommodityImage(item.crop)
+                const displayImg = item.image || fallbackImg.url
+
+                return (
+                  <article className="farmer-split-card" key={`inpage-listing-${item.id}`}>
+                    <div className="farmer-split-card-header">
+                      <div className="farmer-id-row">
+                        <span className="farmer-avatar-badge">🧑‍🌾</span>
+                        <div>
+                          <b className="farmer-name-text">{item.farmerName || "Registered Farmer"}</b>
+                          <span className="farmer-crop-type-sub">
+                            {item.crop} · {item.variety || "Local / Standard"}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="farmer-badges-row">
+                        <span className="badge-farmer-direct">🚜 Farmgate Direct</span>
+                        <span className="badge-farming-method">{item.organic || "Conventional"}</span>
+                        <span className="badge-grade">Grade: {item.grade || "FAQ"}</span>
+                      </div>
+                    </div>
+
+                    <div className="farmer-split-card-body">
+                      <div className="farmer-split-thumb-box">
+                        <img
+                          src={displayImg}
+                          alt={item.crop}
+                          loading="lazy"
+                          className="farmer-split-thumb"
+                          onError={e => {
+                            e.currentTarget.onerror = null
+                            e.currentTarget.src = getCategorySvgDataUri(categoryName, item.crop)
+                          }}
+                        />
+                        {item.imageSource === "farmer" && (
+                          <span className="thumb-farmer-verified-tag">📸 Farmer Photo</span>
+                        )}
+                      </div>
+
+                      <div className="farmer-split-details-col">
+                        <div className="farmer-price-qty-bar">
+                          <div>
+                            <small className="label-asking-price">Farmer's Asking Price</small>
+                            <div className="farmer-asking-price">
+                              <b>₹{Number(item.price || 0).toLocaleString("en-IN")}</b>
+                              <span className="price-unit-text">/ {item.priceUnit || item.unit || "kg"}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <small className="label-asking-price">Available Quantity</small>
+                            <div className="farmer-qty-value">
+                              <b>{item.quantity}</b> {item.unit || "kg"}
+                            </div>
+                          </div>
+                          {item.minOrder && (
+                            <div>
+                              <small className="label-asking-price">Min. Order</small>
+                              <div className="farmer-qty-value">
+                                {item.minOrder} {item.unit || "kg"}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="farmer-dates-bar">
+                          <div className="date-item">
+                            <span className="date-icon">🌾</span>
+                            <span>Harvest Date: <b>{item.harvestDate || "Not specified"}</b></span>
+                          </div>
+                          <div className="date-item">
+                            <span className="date-icon">📦</span>
+                            <span>Available From: <b>{item.availableFrom || "Immediate"}</b></span>
+                          </div>
+                          <div className="date-item">
+                            <span className="date-icon">⏳</span>
+                            <span>Available Until / Expiry: <b>{item.expiryDate || item.date || "Not specified"}</b></span>
+                          </div>
+                        </div>
+
+                        <div className="farmer-location-box">
+                          <small className="location-box-title">📍 Farmgate Pickup Location</small>
+                          <p className="farmer-full-address">
+                            {item.address || item.farmerLocation || "Direct farmgate pickup"}
+                          </p>
+                          <div className="location-spec-chips">
+                            {(item.village || item.locality) && (
+                              <span className="loc-chip">🏘️ Locality: {item.village || item.locality}</span>
+                            )}
+                            {item.city && (
+                              <span className="loc-chip">🏙️ City: {item.city}</span>
+                            )}
+                            {(item.district || item.farmerDistrict) && (
+                              <span className="loc-chip">🗺️ District: {item.district || item.farmerDistrict}</span>
+                            )}
+                            {(item.state || item.farmerState) && (
+                              <span className="loc-chip">🌐 State: {item.state || item.farmerState}</span>
+                            )}
+                            {item.pincode && (
+                              <span className="loc-chip">📮 PIN: {item.pincode}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="farmer-split-actions">
+                          <button
+                            type="button"
+                            className="btn-view-farmer-crop-details"
+                            onClick={() => handleOpenFarmerDetails(item)}
+                            title="Open full dynamic crop details with WhatsApp contact and order options"
+                          >
+                            🔍 View Complete Crop Details
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="no-farmer-listings-box">
+              <span className="empty-farmer-icon">🧑‍🌾</span>
+              <h4>No farmer listings currently available for this variety.</h4>
+              <p>There are currently no active farmgate listings for {applied.commodity} {applied.variety ? `(${applied.variety})` : ""}.</p>
+              <small>Check other varieties of {applied.commodity} or explore all available produce in the Farmer Marketplace.</small>
+            </div>
+          )}
+        </section>
+      )}
+
       {/* Preview mode "View All" Button */}
       {preview && onViewAll && (
         <button className="crop-card-more" onClick={onViewAll} style={{ width: "100%", marginTop: "12px", cursor: "pointer" }}>
           View all current market prices &amp; full AGMARKNET directory ({total !== null ? total.toLocaleString("en-IN") : "16,000+"} records) →
         </button>
+      )}
+
+
+      {/* =========================================================================
+          DYNAMIC MARKET & FARMER DETAILS MODAL (DUAL SECTIONS: AGMARKNET + FARMER)
+         ========================================================================= */}
+      {selectedCropDetail && (
+        <div className="market-farmer-modal-overlay" onClick={() => setSelectedCropDetail(null)}>
+          <div className="market-farmer-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="modal-crop-title">
+            <div className="market-farmer-topbar">
+              <div className="topbar-left">
+                <button
+                  type="button"
+                  className="btn-back-market-farmer"
+                  onClick={() => setSelectedCropDetail(null)}
+                >
+                  ← Back to Market Prices
+                </button>
+                <span className="market-farmer-title" id="modal-crop-title">
+                  🌾 Market Prices &amp; Farmer Listings · {selectedCropDetail.commodity} {selectedCropDetail.variety ? `(${selectedCropDetail.variety})` : ""}
+                </span>
+              </div>
+              <button
+                type="button"
+                className="btn-close-market-farmer"
+                onClick={() => setSelectedCropDetail(null)}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="market-farmer-content">
+              {/* SECTION A: OFFICIAL AGMARKNET MARKET INFORMATION */}
+              <section className="market-farmer-section section-official">
+                <div className="section-title-bar official-bar">
+                  <div className="section-title-left">
+                    <span className="section-icon">🏛️</span>
+                    <div>
+                      <h3>A. Official AGMARKNET Market Information</h3>
+                      <p>Original Government of India APMC wholesale mandi price records (Preserved per reporting mandi)</p>
+                    </div>
+                  </div>
+                  <span className="section-count-badge official-count">
+                    {officialRecordsForSelectedCrop.length} Reporting Mandi Record{officialRecordsForSelectedCrop.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+
+                {officialRecordsForSelectedCrop.length > 0 ? (
+                  <div className="official-mandi-records-container">
+                    <div className="table-responsive">
+                      <table className="official-mandi-detail-table">
+                        <thead>
+                          <tr>
+                            <th>Mandi / Market</th>
+                            <th>State &amp; District</th>
+                            <th>Commodity &amp; Variety</th>
+                            <th>Grade</th>
+                            <th>Arrival Date</th>
+                            <th>Min Price</th>
+                            <th>Max Price</th>
+                            <th>Modal Price (Benchmark)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {officialRecordsForSelectedCrop.map((r, mIdx) => {
+                            const badge = getPriceBadge(r)
+                            return (
+                              <tr key={`mandi-rec-${r.state}-${r.district}-${r.market}-${r.arrival_date}-${mIdx}`}>
+                                <td>
+                                  <strong className="mandi-name-highlight">{r.market}</strong>
+                                  <small className="mandi-source-sub">{r.source_name || "AGMARKNET"}</small>
+                                </td>
+                                <td>
+                                  <span>{r.district ? `${r.district}, ` : ""}{r.state}</span>
+                                </td>
+                                <td>
+                                  <b style={{ color: "#1e3a24" }}>{r.commodity}</b>
+                                  <span style={{ display: "block", fontSize: "11px", color: "#475569" }}>
+                                    {r.variety || "Other"}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span className="badge-grade">{r.grade || "FAQ"}</span>
+                                </td>
+                                <td>
+                                  <span className="badge-packaging">📅 {r.arrival_date || "Date unavailable"}</span>
+                                </td>
+                                <td className="price-min">
+                                  ₹{Number(r.min_price).toLocaleString("en-IN")}
+                                </td>
+                                <td className="price-max">
+                                  ₹{Number(r.max_price).toLocaleString("en-IN")}
+                                </td>
+                                <td className="price-modal">
+                                  <b className="modal-price-val">₹{Number(r.modal_price).toLocaleString("en-IN")}</b>
+                                  <small className="unit-label">/ {r.price_unit ? r.price_unit.replace(/^₹\/?/, "") : (r.unit ? r.unit.replace(/^₹\/?/, "") : "quintal")}</small>
+                                  <span className="verified-mandi-badge" style={{ background: badge.bg }}>
+                                    {badge.verifiedText}
+                                  </span>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="no-official-records-notice">
+                    <p>No active wholesale mandi report recorded for this specific variety in today's session.</p>
+                    <small>Registered in the official Government of India AGMARKNET catalogue across all 3,115 varieties.</small>
+                  </div>
+                )}
+              </section>
+
+              {/* SECTION B: FARMER LISTINGS FOR THIS CROP */}
+              <section className="market-farmer-section section-farmers">
+                <div className="section-title-bar farmer-bar">
+                  <div className="section-title-left">
+                    <span className="section-icon">🚜</span>
+                    <div>
+                      <h3>B. Farmer Listings for This Crop</h3>
+                      <p>
+                        Direct farmgate produce listed by verified farmers matching {selectedCropDetail.commodity} {selectedCropDetail.variety ? `(${selectedCropDetail.variety})` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="section-count-badge farmer-count">
+                    {farmerListingsForSelectedCrop.length} Farmer Listing{farmerListingsForSelectedCrop.length === 1 ? "" : "s"} Available
+                  </span>
+                </div>
+
+                {farmerListingsForSelectedCrop.length > 0 ? (
+                  <div className="farmer-listings-split-grid">
+                    {farmerListingsForSelectedCrop.map(item => {
+                      const categoryName = item.category || getCategoryForCommodity(item.crop)
+                      const fallbackImg = resolveCommodityImage(item.crop)
+                      const displayImg = item.image || fallbackImg.url
+
+                      return (
+                        <article className="farmer-split-card" key={`split-listing-${item.id}`}>
+                          <div className="farmer-split-card-header">
+                            <div className="farmer-id-row">
+                              <span className="farmer-avatar-badge">🧑‍🌾</span>
+                              <div>
+                                <b className="farmer-name-text">{item.farmerName || "Registered Farmer"}</b>
+                                <span className="farmer-crop-type-sub">
+                                  {item.crop} · {item.variety || "Local / Standard"}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="farmer-badges-row">
+                              <span className="badge-farmer-direct">🚜 Farmgate Direct</span>
+                              <span className="badge-farming-method">{item.organic || "Conventional"}</span>
+                              <span className="badge-grade">Grade: {item.grade || "FAQ"}</span>
+                            </div>
+                          </div>
+
+                          <div className="farmer-split-card-body">
+                            <div className="farmer-split-thumb-box">
+                              <img
+                                src={displayImg}
+                                alt={item.crop}
+                                loading="lazy"
+                                className="farmer-split-thumb"
+                                onError={e => {
+                                  e.currentTarget.onerror = null
+                                  e.currentTarget.src = getCategorySvgDataUri(categoryName, item.crop)
+                                }}
+                              />
+                              {item.imageSource === "farmer" && (
+                                <span className="thumb-farmer-verified-tag">📸 Farmer Photo</span>
+                              )}
+                            </div>
+
+                            <div className="farmer-split-details-col">
+                              <div className="farmer-price-qty-bar">
+                                <div>
+                                  <small className="label-asking-price">Farmer's Asking Price</small>
+                                  <div className="farmer-asking-price">
+                                    <b>₹{Number(item.price || 0).toLocaleString("en-IN")}</b>
+                                    <span className="price-unit-text">/ {item.priceUnit || item.unit || "kg"}</span>
+                                  </div>
+                                </div>
+                                <div>
+                                  <small className="label-asking-price">Available Quantity</small>
+                                  <div className="farmer-qty-value">
+                                    <b>{item.quantity}</b> {item.unit || "kg"}
+                                  </div>
+                                </div>
+                                {item.minOrder && (
+                                  <div>
+                                    <small className="label-asking-price">Min. Order</small>
+                                    <div className="farmer-qty-value">
+                                      {item.minOrder} {item.unit || "kg"}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="farmer-dates-bar">
+                                <div className="date-item">
+                                  <span className="date-icon">🌾</span>
+                                  <span>Harvest Date: <b>{item.harvestDate || "Not specified"}</b></span>
+                                </div>
+                                <div className="date-item">
+                                  <span className="date-icon">📦</span>
+                                  <span>Available From: <b>{item.availableFrom || "Immediate"}</b></span>
+                                </div>
+                                <div className="date-item">
+                                  <span className="date-icon">⏳</span>
+                                  <span>Available Until / Expiry: <b>{item.expiryDate || item.date || "Not specified"}</b></span>
+                                </div>
+                              </div>
+
+                              <div className="farmer-location-box">
+                                <small className="location-box-title">📍 Farmgate Pickup Location</small>
+                                <p className="farmer-full-address">
+                                  {item.address || item.farmerLocation || "Direct farmgate pickup"}
+                                </p>
+                                <div className="location-spec-chips">
+                                  {(item.village || item.locality) && (
+                                    <span className="loc-chip">🏘️ Locality: {item.village || item.locality}</span>
+                                  )}
+                                  {item.city && (
+                                    <span className="loc-chip">🏙️ City: {item.city}</span>
+                                  )}
+                                  {(item.district || item.farmerDistrict) && (
+                                    <span className="loc-chip">🗺️ District: {item.district || item.farmerDistrict}</span>
+                                  )}
+                                  {(item.state || item.farmerState) && (
+                                    <span className="loc-chip">🌐 State: {item.state || item.farmerState}</span>
+                                  )}
+                                  {item.pincode && (
+                                    <span className="loc-chip">📮 PIN: {item.pincode}</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="farmer-split-actions">
+                                <button
+                                  type="button"
+                                  className="btn-view-farmer-crop-details"
+                                  onClick={() => handleOpenFarmerDetails(item)}
+                                  title="Open full dynamic crop details with WhatsApp contact and order options"
+                                >
+                                  🔍 View Complete Crop Details
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </article>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="no-farmer-listings-box">
+                    <span className="empty-farmer-icon">🧑‍🌾</span>
+                    <h4>No farmer listings currently available for this variety.</h4>
+                    <p>There are currently no active farmgate listings for {selectedCropDetail.commodity} {selectedCropDetail.variety ? `(${selectedCropDetail.variety})` : ""}.</p>
+                    <small>Check other varieties of {selectedCropDetail.commodity} or explore all available produce in the Farmer Marketplace.</small>
+                  </div>
+                )}
+              </section>
+            </div>
+          </div>
+        </div>
       )}
 
       <p className="official-source" style={{ marginTop: "20px" }}>

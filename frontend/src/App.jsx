@@ -1,3 +1,4 @@
+import { generateInvoicePDF, printInvoice, getInvoiceNumber, formatINR } from "./invoicePdf.js"
 import { useEffect, useState, useRef, useMemo } from "react"
 import OfficialPrices from "./OfficialPrices.jsx"
 import { supabase, isSupabaseConfigured } from "./supabase.js"
@@ -7,6 +8,7 @@ import "./App.css"
 
 export const translations = {
   English: {
+    notifications: "Notifications",
     home: "Home",
     prices: "Market prices",
     outlook: "Price outlook",
@@ -723,6 +725,10 @@ function App() {
   const [buyQuantity, setBuyQuantity] = useState("")
   const [orderLoading, setOrderLoading] = useState(false)
   const [editingListingId, setEditingListingId] = useState(null)
+  const [viewingListingId, setViewingListingId] = useState(null)
+  const [viewingListing, setViewingListing] = useState(null)
+  const [viewingLoading, setViewingLoading] = useState(false)
+  const [viewingError, setViewingError] = useState("")
   const [locating, setLocating] = useState(false)
   const [locationStatus, setLocationStatus] = useState(null)
 
@@ -785,6 +791,30 @@ function App() {
   const [roleAuthError, setRoleAuthError] = useState("")
   const [roleAuthLoading, setRoleAuthLoading] = useState(false)
   const [customerNotifications, setCustomerNotifications] = useState([])
+
+  const [notifications, setNotifications] = useState([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false)
+  const [notifFilter, setNotifFilter] = useState("all") // "all" | "unread" | "read"
+  const [highlightedOrderId, setHighlightedOrderId] = useState(null)
+  const notifDropdownRef = useRef(null)
+  // Invoices & Ratings State
+  const [reviews, setReviews] = useState([])
+  const [cropStats, setCropStats] = useState({})
+  const [farmerStats, setFarmerStats] = useState({})
+  const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState(null)
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false)
+  const [ratingModalOrder, setRatingModalOrder] = useState(null)
+  const [showRatingModal, setShowRatingModal] = useState(false)
+  const [ratingStars, setRatingStars] = useState(5)
+  const [farmerRatingStars, setFarmerRatingStars] = useState(5)
+  const [ratingComment, setRatingComment] = useState("")
+  const [ratingLoading, setRatingLoading] = useState(false)
+  const [ratingError, setRatingError] = useState("")
+  const [selectedReviewsCrop, setSelectedReviewsCrop] = useState("")
+  const [showReviewsListModal, setShowReviewsListModal] = useState(false)
+
+
   const orderStatusesRef = useRef(new Map())
   const initialOrdersLoadedRef = useRef(false)
   const notifiedKeysRef = useRef(new Set())
@@ -884,6 +914,9 @@ function App() {
     await supabase.auth.signOut()
     setRole(null)
     setProfile(null)
+    setEditingListingId(null)
+    setViewingListingId(null)
+    setViewingListing(null)
     setPage("Home")
     setCustomerNotifications([])
     orderStatusesRef.current = new Map()
@@ -903,8 +936,50 @@ function App() {
       .finally(() => setListingLoading(false))
   }, [role])
 
-  const farmerId = profile?.farmerId || profile?.phone?.replace(/\D/g, "") || profile?.name || "farmer"
+  
+    const farmerId = profile?.farmerId || profile?.phone?.replace(/\D/g, "") || profile?.name || "farmer"
   const customerId = profile?.customerId || profile?.phone?.replace(/\D/g, "") || profile?.name || "customer"
+
+  const isOwnerOfListing = item => {
+    if (!item || !profile) return false
+    // 1. Strict primary check: If listing has ownerUserId, it MUST match profile.id
+    if (item.ownerUserId && profile.id) {
+      return String(item.ownerUserId).trim() === String(profile.id).trim()
+    }
+    // 2. Legacy listing check: Only if listing does not have ownerUserId
+    // Verify against registered farmerId and/or phone number
+    if (item.farmerId && farmerId && String(item.farmerId).trim() === String(farmerId).trim()) {
+      if (item.farmerPhone && profile.phone) {
+        const lp = String(item.farmerPhone).replace(/\D/g, "")
+        const pp = String(profile.phone).replace(/\D/g, "")
+        if (lp && pp && lp !== pp) return false
+      }
+      return true
+    }
+    if (item.farmerPhone && profile.phone) {
+      const lp = String(item.farmerPhone).replace(/\D/g, "")
+      const pp = String(profile.phone).replace(/\D/g, "")
+      if (lp && pp && lp === pp) return true
+    }
+    return false
+  }
+
+  const getAuthHeaders = async (includeContentType = true) => {
+    const headers = includeContentType ? { "Content-Type": "application/json" } : {}
+    if (profile?.id) headers["X-User-Id"] = String(profile.id)
+    if (profile?.role) headers["X-User-Role"] = String(profile.role)
+    if (farmerId) headers["X-Farmer-Id"] = String(farmerId)
+    if (profile?.phone) headers["X-User-Phone"] = String(profile.phone)
+    if (profile?.name) headers["X-User-Name"] = String(profile.name)
+    if (profile?.email) headers["X-User-Email"] = String(profile.email)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.access_token) {
+        headers["Authorization"] = `Bearer ${session.access_token}`
+      }
+    } catch {}
+    return headers
+  }
 
   const loadOrders = async () => {
     try {
@@ -931,6 +1006,318 @@ function App() {
       loadOrders()
     }
   }, [role])
+
+  // Active notification user identification
+  
+  const loadReviews = async () => {
+    try {
+      const res = await fetch("/api/reviews")
+      if (!res.ok) return
+      const data = await res.json()
+      if (Array.isArray(data.reviews)) {
+        setReviews(data.reviews)
+        if (data.cropStats) setCropStats(data.cropStats)
+        if (data.farmerStats) setFarmerStats(data.farmerStats)
+      }
+    } catch (err) {
+      console.warn("Could not load reviews:", err.message)
+    }
+  }
+
+  useEffect(() => {
+    loadReviews()
+  }, [])
+
+  const customerHasReviewedOrder = (orderId) => {
+    return reviews.some(r => String(r.orderId) === String(orderId))
+  }
+
+  const getExistingReviewForOrder = (orderId) => {
+    return reviews.find(r => String(r.orderId) === String(orderId)) || null
+  }
+
+  const openRatingModal = (order) => {
+    const existing = getExistingReviewForOrder(order.id)
+    setRatingModalOrder(order)
+    if (existing) {
+      setRatingStars(existing.rating || 5)
+      setFarmerRatingStars(existing.farmerRating || 5)
+      setRatingComment(existing.reviewText || "")
+    } else {
+      setRatingStars(5)
+      setFarmerRatingStars(5)
+      setRatingComment("")
+    }
+    setRatingError("")
+    setShowRatingModal(true)
+  }
+
+  const submitRating = async () => {
+    if (!ratingModalOrder) return
+    if (!ratingComment.trim()) {
+      setRatingError("Please share a few words about your experience with the produce.")
+      return
+    }
+    setRatingLoading(true)
+    setRatingError("")
+    try {
+      const existing = getExistingReviewForOrder(ratingModalOrder.id)
+      if (existing) {
+        const res = await fetch("/api/reviews/" + existing.id, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rating: ratingStars,
+            farmerRating: farmerRatingStars,
+            reviewText: ratingComment.trim()
+          })
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || "Failed to update review")
+      } else {
+        const res = await fetch("/api/reviews", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: ratingModalOrder.id,
+            listingId: ratingModalOrder.listingId,
+            crop: ratingModalOrder.crop,
+            farmerId: ratingModalOrder.farmerId,
+            farmerName: ratingModalOrder.farmerName,
+            customerId: customerId,
+            customerName: profile?.name || "Customer",
+            rating: ratingStars,
+            farmerRating: farmerRatingStars,
+            reviewText: ratingComment.trim()
+          })
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || "Failed to submit review")
+      }
+      await loadReviews()
+      setShowRatingModal(false)
+    } catch (err) {
+      setRatingError(err.message)
+    } finally {
+      setRatingLoading(false)
+    }
+  }
+
+  const deleteExistingReview = async (reviewId) => {
+    if (!window.confirm("Are you sure you want to delete your review?")) return
+    setRatingLoading(true)
+    try {
+      const res = await fetch("/api/reviews/" + reviewId, { method: "DELETE" })
+      if (!res.ok) throw new Error("Could not delete review")
+      await loadReviews()
+      setShowRatingModal(false)
+    } catch (err) {
+      setRatingError(err.message)
+    } finally {
+      setRatingLoading(false)
+    }
+  }
+
+  const openInvoiceModal = (order) => {
+    setSelectedInvoiceOrder(order)
+    setShowInvoiceModal(true)
+  }
+
+  const openReviewsModal = (cropName) => {
+    setSelectedReviewsCrop(cropName)
+    setShowReviewsListModal(true)
+  }
+
+  const activeNotifUserId = role === "Farmer" ? farmerId : customerId
+  const activeNotifPhone = profile?.phone || ""
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target)) {
+        setShowNotifDropdown(false)
+      }
+    }
+    document.addEventListener("mousedown", handleOutsideClick)
+    return () => document.removeEventListener("mousedown", handleOutsideClick)
+  }, [])
+
+  // Load persisted notifications
+  const loadNotifications = async () => {
+    if (!activeNotifUserId) return
+    try {
+      const params = new URLSearchParams({
+        userId: activeNotifUserId,
+        role: role,
+        phone: activeNotifPhone
+      })
+      const res = await fetch("/api/notifications?" + params.toString())
+      if (!res.ok) return
+      const data = await res.json()
+      if (Array.isArray(data.notifications)) {
+        setNotifications(data.notifications)
+        setUnreadCount(typeof data.unreadCount === "number" ? data.unreadCount : data.notifications.filter(n => !n.read).length)
+      }
+    } catch (err) {
+      console.warn("Could not load notifications:", err.message)
+    }
+  }
+
+  useEffect(() => {
+    loadNotifications()
+  }, [role, activeNotifUserId, activeNotifPhone])
+
+  // Real-time notification SSE listener
+  useEffect(() => {
+    if (!activeNotifUserId) return
+
+    const params = new URLSearchParams({
+      userId: activeNotifUserId,
+      role: role,
+      phone: activeNotifPhone
+    })
+    const eventSource = new EventSource("/api/notifications/stream?" + params.toString())
+
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data)
+        if (payload.type === "init") {
+          if (typeof payload.unreadCount === "number") {
+            setUnreadCount(payload.unreadCount)
+          }
+        } else if (payload.type === "notification" && payload.notification) {
+          const incoming = payload.notification
+          setNotifications(prev => {
+            if (prev.some(n => n.id === incoming.id)) return prev
+            return [incoming, ...prev]
+          })
+          setUnreadCount(prev => prev + 1)
+
+          // Refresh orders list so UI updates instantly
+          loadOrders()
+
+          // Show floating toast banner
+          setCustomerNotifications(prev => [
+            {
+              id: incoming.id,
+              title: incoming.title,
+              message: incoming.message,
+              orderId: incoming.orderId,
+              status: incoming.status,
+              crop: incoming.crop,
+              quantity: incoming.quantity,
+              unit: incoming.unit,
+              farmerName: incoming.farmerName,
+              customerName: incoming.customerName,
+              timestamp: Date.now()
+            },
+            ...prev
+          ])
+        }
+      } catch (err) {
+        console.warn("Error parsing notification SSE payload:", err.message)
+      }
+    }
+
+    return () => {
+      eventSource.close()
+    }
+  }, [role, activeNotifUserId, activeNotifPhone])
+
+  const handleMarkSingleRead = async (notifId) => {
+    try {
+      setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
+      setUnreadCount(prev => Math.max(0, prev - 1))
+      await fetch("/api/notifications/" + notifId + "/read", { method: "PATCH" })
+    } catch (err) {
+      console.warn("Failed marking notification read:", err.message)
+    }
+  }
+
+  const handleMarkAllRead = async () => {
+    try {
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+      setUnreadCount(0)
+      await fetch("/api/notifications/read-all", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: activeNotifUserId,
+          role: role,
+          phone: activeNotifPhone
+        })
+      })
+    } catch (err) {
+      console.warn("Failed marking all notifications read:", err.message)
+    }
+  }
+
+  const handleNotificationClick = (notif) => {
+    if (!notif.read) {
+      handleMarkSingleRead(notif.id)
+    }
+    setShowNotifDropdown(false)
+    if (role === "Farmer") {
+      setPage("Requests")
+    } else {
+      setPage("Orders")
+    }
+    if (notif.orderId) {
+      setHighlightedOrderId(notif.orderId)
+      setTimeout(() => {
+        const el = document.getElementById("order-" + notif.orderId)
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
+      }, 120)
+    }
+  }
+
+  const getNotifIcon = (type, status) => {
+    switch (type) {
+      case "ORDER_RECEIVED": return "📦"
+      case "ORDER_ACCEPTED": return "✅"
+      case "ORDER_PREPARING": return "👨‍🍳"
+      case "ORDER_READY": return "🔔"
+      case "ORDER_DISPATCHED": return "🛵"
+      case "ORDER_COMPLETED": return "🎉"
+      case "ORDER_CANCELLED":
+      case "ORDER_REJECTED": return "❌"
+      default:
+        if (status === "Accepted") return "✅"
+        if (status === "Preparing") return "👨‍🍳"
+        if (status === "Ready") return "🔔"
+        if (status === "Dispatched") return "🛵"
+        if (status === "Completed") return "🎉"
+        if (status === "Cancelled" || status === "Rejected") return "❌"
+        return "🔔"
+    }
+  }
+
+  const formatNotifTime = (dateStr) => {
+    if (!dateStr) return ""
+    try {
+      const date = new Date(dateStr)
+      const now = new Date()
+      const diffMs = now - date
+      const diffMins = Math.floor(diffMs / 60000)
+      if (diffMins < 1) return "Just now"
+      if (diffMins < 60) return diffMins + "m ago"
+      const diffHours = Math.floor(diffMins / 60)
+      if (diffHours < 24) return diffHours + "h ago"
+      return date.toLocaleDateString("en-IN", { day: "numeric", month: "short" }) + " " + date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })
+    } catch {
+      return String(dateStr)
+    }
+  }
+
+  const filteredNotifications = notifications.filter(n => {
+    if (notifFilter === "unread") return !n.read
+    if (notifFilter === "read") return n.read
+    return true
+  })
+
+  
 
   const dismissNotification = id => {
     setCustomerNotifications(prev => prev.filter(n => n.id !== id))
@@ -1034,13 +1421,22 @@ function App() {
   }, [role, customerId])
 
   const deleteListing = async (id, cropName) => {
+    const target = listings.find(item => String(item.id) === String(id))
+    if (target && !isOwnerOfListing(target)) {
+      setListingError("Access denied: You cannot delete another farmer's crop listing.")
+      return
+    }
     if (!window.confirm(`Are you sure you want to delete the listing for "${cropName}"? This action cannot be undone.`)) {
       return
     }
     setListingLoading(true)
     setListingError("")
     try {
-      const response = await fetch("/api/listings/" + id, { method: "DELETE" })
+      const authHeaders = await getAuthHeaders()
+      const response = await fetch("/api/listings/" + id, {
+        method: "DELETE",
+        headers: authHeaders
+      })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Could not delete listing.")
       setListings(prev => prev.filter(item => String(item.id) !== String(id)))
@@ -1234,6 +1630,10 @@ function App() {
   }
 
   const startEditListing = item => {
+    if (!isOwnerOfListing(item)) {
+      setListingError("Access denied: You can only edit crop listings you personally created.")
+      return
+    }
     setEditingListingId(item.id)
     setCropImage(item.image || null)
     setFormCategory(item.category || getCategoryForCrop(item.crop) || "Vegetables")
@@ -1276,6 +1676,35 @@ function App() {
     setListed(false)
     const formEl = document.querySelector(".form-panel")
     if (formEl) formEl.scrollIntoView({ behavior: "smooth" })
+  }
+
+  const openListingDetails = async itemOrId => {
+    const id = typeof itemOrId === "object" ? itemOrId.id : itemOrId
+    setViewingListingId(id)
+    setViewingLoading(true)
+    setViewingError("")
+    if (typeof itemOrId === "object") {
+      setViewingListing(itemOrId)
+    }
+    try {
+      const response = await fetch(`/api/listings/${id}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.listing) {
+          setViewingListing(data.listing)
+        }
+      }
+    } catch (err) {
+      console.warn("Could not fetch listing details:", err.message)
+    } finally {
+      setViewingLoading(false)
+    }
+  }
+
+  const closeListingDetails = () => {
+    setViewingListingId(null)
+    setViewingListing(null)
+    setViewingError("")
   }
 
   const cancelEditListing = () => {
@@ -1752,11 +2181,7 @@ function App() {
     )
   }
 
-  const myListings = listings.filter(item =>
-    item.farmerId === farmerId ||
-    (profile?.phone && item.farmerPhone && String(item.farmerPhone).replace(/\D/g, "") === String(profile.phone).replace(/\D/g, "")) ||
-    (profile?.name && item.farmerName && item.farmerName.trim().toLowerCase() === profile.name.trim().toLowerCase())
-  )
+  const myListings = listings.filter(isOwnerOfListing)
 
   const displayedFarmerListings = listingScope === "all" ? listings : myListings
 
@@ -1765,7 +2190,8 @@ function App() {
     [t("prices"), "Prices", "↗"],
     ...(role === "Farmer" ? [[t("outlook"), "Forecast", "◷"]] : []),
     ...(role === "Farmer" ? [[t("sell"), "Sell", "+"]] : [[t("browse"), "Browse", "🧺"]]),
-    ...(role === "Farmer" ? [[t("requests"), "Requests", "✓"]] : [[t("myRequests"), "Orders", "▣"]])
+    ...(role === "Farmer" ? [[t("requests"), "Requests", "✓"]] : [[t("myRequests"), "Orders", "▣"]]),
+    [t("notifications") || "Notifications", "Notifications", "🔔"]
   ]
 
   const askPrice = async question => {
@@ -1852,20 +2278,28 @@ function App() {
         </a>
 
         <div className="side-label">{t("yourWorkspace")}</div>
-        <div className="role-switch">
+        <div className="role-switch" role="tablist" aria-label="Workspace selection">
           <button
-            className={role === "Farmer" ? "active" : ""}
+            type="button"
+            className={`workspace-card ${role === "Farmer" ? "active" : ""}`}
             onClick={handleFarmerRoleClick}
+            role="tab"
+            aria-selected={role === "Farmer"}
             title={role === "Farmer" ? "Currently in Farmer workspace" : "Switch to Farmer workspace (requires authorization)"}
           >
-            🌾 <span className="role-text">{t("farmer")}</span>
+            <span className="workspace-icon" aria-hidden="true">🌾</span>
+            <span className="role-text">{t("farmer")}</span>
           </button>
           <button
-            className={role === "Customer" ? "active" : ""}
+            type="button"
+            className={`workspace-card ${role === "Customer" ? "active" : ""}`}
             onClick={() => { setRole("Customer"); setPage("Home") }}
+            role="tab"
+            aria-selected={role === "Customer"}
             title="Switch to Customer workspace"
           >
-            🧺 <span className="role-text">{t("customer")}</span>
+            <span className="workspace-icon" aria-hidden="true">🧺</span>
+            <span className="role-text">{t("customer")}</span>
           </button>
         </div>
 
@@ -1912,6 +2346,162 @@ function App() {
             <span className="supabase-pill" title="Supabase User Authorization Active">
               ⚡ {role}: {profile?.email || profile?.name}
             </span>
+            
+            {/* Notification Bell with Badge & Dropdown Panel */}
+            <div className="notification-bell-wrapper" ref={notifDropdownRef}>
+              <button
+                type="button"
+                className={"notification-bell-btn" + (unreadCount > 0 ? " has-unread" : "")}
+                onClick={() => setShowNotifDropdown(prev => !prev)}
+                aria-label={"Notifications (" + unreadCount + " unread)"}
+                title={"Notifications (" + unreadCount + " unread)"}
+              >
+                <span className="bell-emoji">🔔</span>
+                {unreadCount > 0 && (
+                  <span className="notification-badge-counter">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {showNotifDropdown && (
+                <div className="notification-dropdown-panel">
+                  <div className="notification-dropdown-header">
+                    <div className="notif-header-title">
+                      <b>Notifications</b>
+                      {unreadCount > 0 ? (
+                        <span className="notif-unread-pill">{unreadCount} new</span>
+                      ) : (
+                        <span className="notif-allread-pill">All caught up</span>
+                      )}
+                    </div>
+                    <div className="notif-header-actions">
+                      {unreadCount > 0 && (
+                        <button
+                          type="button"
+                          className="notif-mark-all-btn"
+                          onClick={handleMarkAllRead}
+                          title="Mark all notifications as read"
+                        >
+                          ✓ Mark all as read
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="notif-close-btn"
+                        onClick={() => setShowNotifDropdown(false)}
+                        aria-label="Close notifications"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="notif-dropdown-tabs">
+                    <button
+                      type="button"
+                      className={"notif-tab" + (notifFilter === "all" ? " active" : "")}
+                      onClick={() => setNotifFilter("all")}
+                    >
+                      All ({notifications.length})
+                    </button>
+                    <button
+                      type="button"
+                      className={"notif-tab" + (notifFilter === "unread" ? " active" : "")}
+                      onClick={() => setNotifFilter("unread")}
+                    >
+                      Unread ({unreadCount})
+                    </button>
+                    <button
+                      type="button"
+                      className={"notif-tab" + (notifFilter === "read" ? " active" : "")}
+                      onClick={() => setNotifFilter("read")}
+                    >
+                      Read ({notifications.length - unreadCount})
+                    </button>
+                  </div>
+
+                  <div className="notification-list-scroll">
+                    {filteredNotifications.length === 0 ? (
+                      <div className="notification-empty">
+                        <span className="notif-empty-icon">🔕</span>
+                        <p>No {notifFilter === "unread" ? "unread " : ""}notifications yet</p>
+                        <small>You will see real-time order updates here.</small>
+                      </div>
+                    ) : (
+                      filteredNotifications.map(notif => (
+                        <div
+                          key={notif.id}
+                          className={"notification-item-card " + (!notif.read ? "unread" : "read")}
+                          onClick={() => handleNotificationClick(notif)}
+                        >
+                          <div className="notif-card-avatar">
+                            {getNotifIcon(notif.type, notif.status)}
+                          </div>
+                          <div className="notif-card-body">
+                            <div className="notif-card-top">
+                              <span className="notif-card-title">{notif.title}</span>
+                              <span className="notif-card-time">{formatNotifTime(notif.createdAt)}</span>
+                            </div>
+                            <p className="notif-card-message">{notif.message}</p>
+                            
+                            <div className="notif-meta-tags">
+                              {notif.crop && (
+                                <span className="notif-tag crop-tag">🌾 {notif.crop} {notif.quantity ? "(" + notif.quantity + " " + (notif.unit || "kg") + ")" : ""}</span>
+                              )}
+                              {notif.customerName && (
+                                <span className="notif-tag customer-tag">👤 {notif.customerName}</span>
+                              )}
+                              {notif.farmerName && (
+                                <span className="notif-tag farmer-tag">👨‍🌾 {notif.farmerName}</span>
+                              )}
+                              {notif.status && (
+                                <span className={"notif-tag status-tag status-" + String(notif.status).toLowerCase()}>
+                                  ● {notif.status}
+                                </span>
+                              )}
+                              {notif.orderId && (
+                                <span className="notif-tag orderid-tag">#{String(notif.orderId).slice(-6)}</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="notif-card-actions">
+                            {!notif.read && (
+                              <button
+                                type="button"
+                                className="notif-mark-single-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleMarkSingleRead(notif.id)
+                                }}
+                                title="Mark as read"
+                              >
+                                ✓
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="notification-dropdown-footer">
+                    <button
+                      type="button"
+                      className="notif-view-history-btn"
+                      onClick={() => {
+                        setShowNotifDropdown(false)
+                        setPage("Notifications")
+                      }}
+                    >
+                      View full notification history →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <select value={lang} onChange={e => setLang(e.target.value)} aria-label="Language">
               {Object.keys(translations).map(x => <option key={x} value={x}>{x}</option>)}
             </select>
@@ -2160,11 +2750,11 @@ function App() {
               )}
 
               {/* Show prices for all vegetables of user's district and state */}
-              <OfficialPrices location={profile} preview onViewAll={() => setPage("Prices")} />
+              <OfficialPrices location={profile} preview onViewAll={() => setPage("Prices")} farmerListings={listings} onSelectListing={openListingDetails} />
             </>
           )}
 
-          {page === "Prices" && <OfficialPrices location={profile} />}
+          {page === "Prices" && <OfficialPrices location={profile} farmerListings={listings} onSelectListing={openListingDetails} />}
 
           {page === "Browse" && (
             <>
@@ -2604,16 +3194,16 @@ function App() {
                 <section className="panel farmer-listings">
                   {filteredMarketplaceListings.map(item => {
                     const km = distanceKm(customerLocation?.lat, customerLocation?.lng, item.latitude || item.farmerLat, item.longitude || item.farmerLng)
-                    const isOwner = item.farmerId === farmerId || (profile?.phone && item.farmerPhone && String(item.farmerPhone).replace(/\D/g, "") === String(profile.phone).replace(/\D/g, ""))
+                    const isOwner = isOwnerOfListing(item)
                     return (
                       <article className="listing-card" key={item.id}>
                         {item.image && (
                           <div className="listing-photo-thumb-container">
                             <div
                               className="listing-photo-thumb"
-                              onClick={() => { setBuyItem(item); setBuyQuantity("") }}
+                              onClick={() => openListingDetails(item)}
                               style={{ cursor: "pointer" }}
-                              title={`Click to view/request ${item.crop}`}
+                              title={`Click to view full details of ${item.crop}`}
                             >
                               <img
                                 src={item.image}
@@ -2644,9 +3234,9 @@ function App() {
                           </div>
                         )}
                         <div
-                          onClick={() => { setBuyItem(item); setBuyQuantity("") }}
+                          onClick={() => openListingDetails(item)}
                           style={{ cursor: "pointer" }}
-                          title={`Click to view/request ${item.crop}`}
+                          title={`Click to view full details of ${item.crop}`}
                         >
                           <small>{t("crop")}</small>
                           <b>{item.crop}</b>
@@ -2689,6 +3279,24 @@ function App() {
                           <small>{t("askingPrice")}</small>
                           <b>₹{item.price} / {item.unit}</b>
                           <span>Listed by {item.farmerName}</span>
+                          <div
+                            className="listing-rating-row"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openReviewsModal(item.crop)
+                            }}
+                            title="Click to view verified customer ratings and reviews"
+                          >
+                            <span className="star-gold">★</span>
+                            <span className="rating-score">
+                              {cropStats[String(item.crop).toLowerCase()]?.averageRating > 0
+                                ? cropStats[String(item.crop).toLowerCase()].averageRating.toFixed(1)
+                                : "5.0"}
+                            </span>
+                            <span className="rating-count">
+                              ({cropStats[String(item.crop).toLowerCase()]?.totalReviews || 1} {cropStats[String(item.crop).toLowerCase()]?.totalReviews === 1 ? "review" : "reviews"})
+                            </span>
+                          </div>
                           <div style={{ marginTop: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
                             {item.deliveryAvailable && (
                               <span className="badge-delivery">
@@ -2713,6 +3321,14 @@ function App() {
                           <span>{contactPhone(item) ? "📞 " + contactPhone(item) : "Contact details unavailable"}</span>
                           {km !== null && <span>{formatDistance(km)}</span>}
                           <div className="listing-actions">
+                            <button
+                              type="button"
+                              className="btn-action-details"
+                              onClick={() => openListingDetails(item)}
+                              title="View full crop details"
+                            >
+                              🔍 Details
+                            </button>
                             <button
                               type="button"
                               className="btn-action-buy"
@@ -2747,7 +3363,7 @@ function App() {
                             {routeUrl(item) && (
                               <a href={routeUrl(item)} target="_blank" rel="noopener noreferrer" className="btn-action-link">🗺️ {t("bestRoute")} ↗</a>
                             )}
-                            {(role === "Farmer" || isOwner) && (
+                            {role === "Farmer" && isOwner && (
                               <>
                                 <button
                                   type="button"
@@ -2860,7 +3476,7 @@ function App() {
               <section className="panel farmer-listings">
                 {orders.length ? (
                   orders.map(order => (
-                    <article className="listing-card" key={order.id}>
+                    <article id={"order-" + order.id} className={"listing-card" + (highlightedOrderId === order.id ? " highlight-order-card" : "")} key={order.id}>
                       <div>
                         <small>CROP</small>
                         <b>{order.crop}</b>
@@ -2931,6 +3547,150 @@ function App() {
                 ) : (
                   <p className="empty-list">You have not requested any crops yet. Browse farmer produce to start.</p>
                 )}
+              </section>
+            </>
+          )}
+
+          
+          {page === "Notifications" && (
+            <>
+              <Title
+                eyebrow={role === "Farmer" ? "FARMER NOTIFICATIONS" : "CUSTOMER NOTIFICATIONS"}
+                title="Notification History"
+                sub="View all your past and real-time order alerts, status updates, and customer requests."
+              />
+
+              <section className="panel notification-history-panel">
+                <div className="notif-history-toolbar">
+                  <div className="notif-history-tabs">
+                    <button
+                      type="button"
+                      className={"notif-tab" + (notifFilter === "all" ? " active" : "")}
+                      onClick={() => setNotifFilter("all")}
+                    >
+                      All ({notifications.length})
+                    </button>
+                    <button
+                      type="button"
+                      className={"notif-tab" + (notifFilter === "unread" ? " active" : "")}
+                      onClick={() => setNotifFilter("unread")}
+                    >
+                      Unread ({unreadCount})
+                    </button>
+                    <button
+                      type="button"
+                      className={"notif-tab" + (notifFilter === "read" ? " active" : "")}
+                      onClick={() => setNotifFilter("read")}
+                    >
+                      Read ({notifications.length - unreadCount})
+                    </button>
+                  </div>
+
+                  <div className="notif-history-right-tools">
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        className="btn-mark-all-read"
+                        onClick={handleMarkAllRead}
+                      >
+                        ✓ Mark All as Read
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="notif-history-cards-container">
+                  {filteredNotifications.length === 0 ? (
+                    <div className="notification-empty">
+                      <span className="notif-empty-icon">🔕</span>
+                      <p>No {notifFilter === "unread" ? "unread " : ""}notifications found</p>
+                      <small>When orders are created or updated, alerts appear here automatically in real time.</small>
+                    </div>
+                  ) : (
+                    filteredNotifications.map(notif => (
+                      <article
+                        key={notif.id}
+                        className={"notif-history-card " + (!notif.read ? "unread" : "read")}
+                        onClick={() => handleNotificationClick(notif)}
+                      >
+                        <div className="notif-card-avatar large">
+                          {getNotifIcon(notif.type, notif.status)}
+                        </div>
+
+                        <div className="notif-card-main-content">
+                          <div className="notif-card-header">
+                            <h4 className="notif-title">{notif.title}</h4>
+                            <span className="notif-time-badge">{formatNotifTime(notif.createdAt)}</span>
+                          </div>
+
+                          <p className="notif-description">{notif.message}</p>
+
+                          <div className="notif-meta-details-grid">
+                            {notif.customerName && (
+                              <div className="meta-box">
+                                <small>CUSTOMER</small>
+                                <b>{notif.customerName}</b>
+                              </div>
+                            )}
+                            {notif.farmerName && (
+                              <div className="meta-box">
+                                <small>FARMER</small>
+                                <b>{notif.farmerName}</b>
+                              </div>
+                            )}
+                            {notif.crop && (
+                              <div className="meta-box">
+                                <small>PRODUCT & QTY</small>
+                                <b>{notif.crop} {notif.quantity ? "(" + notif.quantity + " " + (notif.unit || "kg") + ")" : ""}</b>
+                              </div>
+                            )}
+                            {notif.status && (
+                              <div className="meta-box">
+                                <small>ORDER STATUS</small>
+                                <span className={"order-status-badge status-" + String(notif.status).toLowerCase()}>
+                                  {notif.status}
+                                </span>
+                              </div>
+                            )}
+                            {notif.orderId && (
+                              <div className="meta-box">
+                                <small>ORDER ID</small>
+                                <code>#{notif.orderId}</code>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="notif-card-side-actions">
+                          <button
+                            type="button"
+                            className="btn-view-order-link"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleNotificationClick(notif)
+                            }}
+                          >
+                            View Order Details →
+                          </button>
+                          {!notif.read ? (
+                            <button
+                              type="button"
+                              className="btn-mark-read-pill"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleMarkSingleRead(notif.id)
+                              }}
+                            >
+                              Mark Read
+                            </button>
+                          ) : (
+                            <span className="read-status-label">✓ Read</span>
+                          )}
+                        </div>
+                      </article>
+                    ))
+                  )}
+                </div>
               </section>
             </>
           )}
@@ -3117,10 +3877,17 @@ function App() {
                       }
 
                       try {
+                        const authHeaders = await getAuthHeaders()
                         if (editingListingId) {
+                          const currentListing = listings.find(l => String(l.id) === String(editingListingId))
+                          if (currentListing && !isOwnerOfListing(currentListing)) {
+                            setListingError("Access denied: You cannot edit another farmer's crop listing.")
+                            setListingLoading(false)
+                            return
+                          }
                           const response = await fetch(`/api/listings/${editingListingId}`, {
                             method: "PUT",
-                            headers: { "Content-Type": "application/json" },
+                            headers: authHeaders,
                             body: JSON.stringify(payload)
                           })
                           const result = await response.json()
@@ -3133,7 +3900,7 @@ function App() {
                         } else {
                           const response = await fetch("/api/listings", {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" },
+                            headers: authHeaders,
                             body: JSON.stringify(payload)
                           })
                           const result = await response.json()
@@ -3856,22 +4623,40 @@ function App() {
                             </span>
                           )}
                           <span>{item.notes || "No additional notes"}</span>
-                          <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
+                          <div style={{ marginTop: 8, display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                             <button
                               type="button"
-                              className="btn-edit-listing"
-                              onClick={() => startEditListing(item)}
+                              className="btn-action-details"
+                              onClick={() => openListingDetails(item)}
+                              title="View full crop details"
                             >
-                              ✏️ Edit listing
-                            </button>
-                            <button
-                              type="button"
-                              className="btn-delete"
-                              onClick={() => deleteListing(item.id, item.crop)}
-                            >
-                              🗑️ Delete listing
+                              🔍 Details
                             </button>
                           </div>
+                          {isOwnerOfListing(item) ? (
+                            <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
+                              <button
+                                type="button"
+                                className="btn-edit-listing"
+                                onClick={() => startEditListing(item)}
+                              >
+                                ✏️ Edit listing
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-delete"
+                                onClick={() => deleteListing(item.id, item.crop)}
+                              >
+                                🗑️ Delete listing
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "center" }}>
+                              <span style={{ fontSize: "0.85em", color: "#5f6368", fontStyle: "italic" }}>
+                                🔒 Listed by {item.farmerName || "another farmer"} (View only)
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </article>
                     ))
@@ -4041,6 +4826,8 @@ function App() {
 
           {/* Quick Action Suggestion Chips */}
           <div className="chat-actions" style={{ display: "flex", gap: "6px", flexWrap: "wrap", overflowX: "auto", padding: "6px 10px 4px", background: "#f8faf7", borderTop: "1px solid #edf2eb" }}>
+            <button type="button" onClick={() => askPrice("Who are you?")}>🤖 Who are you?</button>
+            <button type="button" onClick={() => askPrice("How can you help me?")}>❓ How can you help?</button>
             <button type="button" onClick={() => askPrice("What is today's ginger price in my area?")}>🫚 Ginger in my area</button>
             <button type="button" onClick={() => askPrice("What is today's tomato price in my area?")}>🍅 Tomato in my area</button>
             <button type="button" onClick={() => askPrice("What is today's onion price in my area?")}>🧅 Onion in my area</button>
@@ -4063,6 +4850,676 @@ function App() {
           </form>
         </div>
       )}
+
+{/* 1. PROFESSIONAL INVOICE MODAL */}
+      {showInvoiceModal && selectedInvoiceOrder && (
+        <div className="invoice-modal-overlay" onClick={() => setShowInvoiceModal(false)}>
+          <div className="invoice-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="invoice-modal-header">
+              <div className="invoice-modal-brand">
+                <span className="brand-mark-sm">f</span>
+                <div>
+                  <b>farmezy.</b>
+                  <small>Tax Invoice & Order Receipt</small>
+                </div>
+              </div>
+              <div className="invoice-modal-top-actions">
+                <button
+                  type="button"
+                  className="btn-download-pdf-primary"
+                  onClick={() => generateInvoicePDF(selectedInvoiceOrder)}
+                  title="Download actual PDF file to your device"
+                >
+                  📥 Download Invoice PDF
+                </button>
+                <button
+                  type="button"
+                  className="btn-print-invoice"
+                  onClick={() => printInvoice(selectedInvoiceOrder)}
+                  title="Print invoice or save as PDF"
+                >
+                  🖨️ Print
+                </button>
+                <button
+                  type="button"
+                  className="invoice-modal-close"
+                  onClick={() => setShowInvoiceModal(false)}
+                  aria-label="Close invoice"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="invoice-paper-preview">
+              <div className="inv-preview-header-bar">
+                <div className="inv-preview-brand-left">
+                  <div className="inv-logo-circle">f</div>
+                  <div>
+                    <h2 className="inv-brand-name">farmezy.</h2>
+                    <span className="inv-brand-sub">Direct Farmgate Produce Marketplace · India</span>
+                  </div>
+                </div>
+                <div className="inv-preview-type-right">
+                  <h3>TAX INVOICE</h3>
+                  <small>Original for Buyer</small>
+                </div>
+              </div>
+
+              <div className="inv-preview-meta-grid">
+                <div className="inv-meta-box">
+                  <small>INVOICE NO</small>
+                  <b>{getInvoiceNumber(selectedInvoiceOrder)}</b>
+                </div>
+                <div className="inv-meta-box">
+                  <small>INVOICE DATE</small>
+                  <span>{new Date(selectedInvoiceOrder.createdAt || Date.now()).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                </div>
+                <div className="inv-meta-box">
+                  <small>ORDER ID</small>
+                  <code>#{selectedInvoiceOrder.id}</code>
+                </div>
+                <div className="inv-meta-box">
+                  <small>PAYMENT STATUS</small>
+                  <b className={selectedInvoiceOrder.status === "Completed" ? "status-paid" : "status-pending"}>
+                    {selectedInvoiceOrder.status === "Completed" ? "Paid (Completed)" : "Pending on Delivery"}
+                  </b>
+                </div>
+              </div>
+
+              <div className="inv-preview-parties-row">
+                <div className="inv-party-card">
+                  <div className="inv-party-card-title">BILLED TO (CUSTOMER)</div>
+                  <h4 className="inv-party-name">{selectedInvoiceOrder.customerName || "Customer"}</h4>
+                  <p>📞 {selectedInvoiceOrder.customerPhone || "Not provided"}</p>
+                  <p>📍 Delivery Location: {selectedInvoiceOrder.customerLocation || "Direct Farmgate Pickup"}</p>
+                </div>
+                <div className="inv-party-card">
+                  <div className="inv-party-card-title">SOLD BY (FARMER / PRODUCER)</div>
+                  <h4 className="inv-party-name">{selectedInvoiceOrder.farmerName || "Farmer"}</h4>
+                  <p>📞 {selectedInvoiceOrder.farmerPhone || "Direct Farm Contact"}</p>
+                  <p>📍 Farm Location: {selectedInvoiceOrder.farmerAddress || selectedInvoiceOrder.address || "Verified Farmezy Farmer"}</p>
+                </div>
+              </div>
+
+              <table className="inv-preview-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 40 }}>#</th>
+                    <th>Product / Crop Description</th>
+                    <th style={{ textAlign: "right" }}>Quantity</th>
+                    <th style={{ textAlign: "right" }}>Unit Price</th>
+                    <th style={{ textAlign: "right" }}>Total (INR)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>
+                      <b>{String(selectedInvoiceOrder.crop || "Fresh Harvest").toUpperCase()}</b>
+                      <small style={{ display: "block", color: "#6b7280" }}>Direct Farmgate Harvest · Grade A</small>
+                    </td>
+                    <td style={{ textAlign: "right" }}><b>{selectedInvoiceOrder.quantity} {selectedInvoiceOrder.unit || "kg"}</b></td>
+                    <td style={{ textAlign: "right" }}>₹{Number(selectedInvoiceOrder.price || 0).toLocaleString("en-IN")}/{selectedInvoiceOrder.unit || "kg"}</td>
+                    <td style={{ textAlign: "right" }}><b>₹{(Number(selectedInvoiceOrder.quantity || 1) * Number(selectedInvoiceOrder.price || 0)).toLocaleString("en-IN")}</b></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div className="inv-preview-totals-section">
+                <div className="inv-terms-notes">
+                  <b>Payment & Delivery Terms:</b>
+                  <ul>
+                    <li>Payment Method: Direct Farmgate Pay on Delivery / UPI</li>
+                    <li>Delivery: Direct farm pickup or farmer-coordinated transport</li>
+                    <li>Zero platform commission charged to farmer or buyer</li>
+                    <li>For support or queries, contact help@farmezy.in</li>
+                  </ul>
+                </div>
+
+                <div className="inv-totals-box">
+                  <div className="inv-total-line">
+                    <span>Subtotal:</span>
+                    <span>₹{(Number(selectedInvoiceOrder.quantity || 1) * Number(selectedInvoiceOrder.price || 0)).toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="inv-total-line">
+                    <span>Delivery Charges:</span>
+                    <span style={{ color: "#15803d" }}>₹0.00 (Free / Pickup)</span>
+                  </div>
+                  <div className="inv-total-line">
+                    <span>Mandi Cess / Taxes:</span>
+                    <span>₹0.00</span>
+                  </div>
+                  <div className="inv-total-line grand">
+                    <span>Grand Total:</span>
+                    <span>₹{(Number(selectedInvoiceOrder.quantity || 1) * Number(selectedInvoiceOrder.price || 0)).toLocaleString("en-IN")}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="inv-preview-footer-thankyou">
+                <b>Thank you for supporting Indian farmers with FarmEzy!</b>
+                <small>This is an electronically generated tax invoice valid without physical signature.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. CUSTOMER RATINGS & REVIEWS MODAL */}
+      {showRatingModal && ratingModalOrder && (
+        <div className="rating-modal-overlay" onClick={() => setShowRatingModal(false)}>
+          <div className="rating-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="rating-modal-header">
+              <div>
+                <h3>⭐ Rate & Review Your Purchase</h3>
+                <p>Order #{ratingModalOrder.id} · <b>{ratingModalOrder.crop}</b> from <b>{ratingModalOrder.farmerName}</b></p>
+              </div>
+              <button type="button" className="rating-modal-close" onClick={() => setShowRatingModal(false)}>✕</button>
+            </div>
+
+            <div className="rating-modal-body">
+              <div className="verified-purchase-banner">
+                ✓ Verified Farmezy Purchase
+              </div>
+
+              <div className="rating-group">
+                <label>Product / Crop Quality:</label>
+                <div className="star-rating-selector">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      type="button"
+                      key={star}
+                      className={"star-btn" + (star <= ratingStars ? " active" : "")}
+                      onClick={() => setRatingStars(star)}
+                    >
+                      ★
+                    </button>
+                  ))}
+                  <span className="star-label">
+                    {ratingStars === 5 ? "5/5 (Excellent)" : ratingStars === 4 ? "4/5 (Very Good)" : ratingStars === 3 ? "3/5 (Good)" : ratingStars === 2 ? "2/5 (Fair)" : "1/5 (Poor)"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="rating-group">
+                <label>Farmer Communication & Service:</label>
+                <div className="star-rating-selector">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      type="button"
+                      key={star}
+                      className={"star-btn" + (star <= farmerRatingStars ? " active" : "")}
+                      onClick={() => setFarmerRatingStars(star)}
+                    >
+                      ★
+                    </button>
+                  ))}
+                  <span className="star-label">
+                    {farmerRatingStars === 5 ? "5/5 (Excellent)" : farmerRatingStars === 4 ? "4/5 (Very Good)" : farmerRatingStars === 3 ? "3/5 (Good)" : farmerRatingStars === 2 ? "2/5 (Fair)" : "1/5 (Poor)"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="rating-group">
+                <label>Your Written Review:</label>
+                <textarea
+                  rows="4"
+                  value={ratingComment}
+                  onChange={e => setRatingComment(e.target.value)}
+                  placeholder="Share details on freshness, harvest condition, taste, pickup convenience, or farmer interaction..."
+                />
+              </div>
+
+              {ratingError && <p className="rating-error-msg">{ratingError}</p>}
+
+              <div className="rating-modal-actions">
+                <button
+                  type="button"
+                  className="btn-submit-review"
+                  disabled={ratingLoading}
+                  onClick={submitRating}
+                >
+                  {ratingLoading ? "Saving..." : getExistingReviewForOrder(ratingModalOrder.id) ? "✓ Update Review" : "Submit Review"}
+                </button>
+                {getExistingReviewForOrder(ratingModalOrder.id) && (
+                  <button
+                    type="button"
+                    className="btn-delete-review"
+                    disabled={ratingLoading}
+                    onClick={() => deleteExistingReview(getExistingReviewForOrder(ratingModalOrder.id).id)}
+                  >
+                    Delete Review
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="btn-cancel-review"
+                  onClick={() => setShowRatingModal(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. REVIEWS LIST MODAL (VIEW ALL CUSTOMER REVIEWS) */}
+      {showReviewsListModal && (
+        <div className="reviews-list-modal-overlay" onClick={() => setShowReviewsListModal(false)}>
+          <div className="reviews-list-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="reviews-list-modal-header">
+              <div>
+                <h3>⭐ Customer Reviews for {selectedReviewsCrop || "Produce"}</h3>
+                <p>Verified purchase feedback from real Farmezy buyers</p>
+              </div>
+              <button type="button" className="rating-modal-close" onClick={() => setShowReviewsListModal(false)}>✕</button>
+            </div>
+
+            <div className="reviews-list-modal-body">
+              <div className="reviews-summary-card">
+                <div className="summary-score-box">
+                  <span className="big-score">
+                    {cropStats[String(selectedReviewsCrop).toLowerCase()]?.averageRating > 0
+                      ? cropStats[String(selectedReviewsCrop).toLowerCase()].averageRating.toFixed(1)
+                      : "5.0"}
+                  </span>
+                  <div className="summary-stars">★★★★★</div>
+                  <small>{cropStats[String(selectedReviewsCrop).toLowerCase()]?.totalReviews || 1} verified review{cropStats[String(selectedReviewsCrop).toLowerCase()]?.totalReviews === 1 ? "" : "s"}</small>
+                </div>
+
+                <div className="summary-breakdown">
+                  {[5, 4, 3, 2, 1].map(st => {
+                    const count = cropStats[String(selectedReviewsCrop).toLowerCase()]?.breakdown?.[st] || (st === 5 ? 1 : 0)
+                    const total = cropStats[String(selectedReviewsCrop).toLowerCase()]?.totalReviews || 1
+                    const pct = Math.round((count / total) * 100)
+                    return (
+                      <div key={st} className="breakdown-row">
+                        <span>{st} ★</span>
+                        <div className="breakdown-bar-bg">
+                          <div className="breakdown-bar-fill" style={{ width: pct + "%" }}></div>
+                        </div>
+                        <small>{count}</small>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="reviews-cards-list">
+                {reviews.filter(r => !selectedReviewsCrop || String(r.crop || "").toLowerCase() === String(selectedReviewsCrop).toLowerCase()).length === 0 ? (
+                  <div className="empty-reviews-state">
+                    <span>🌱</span>
+                    <p>No customer reviews for {selectedReviewsCrop} yet.</p>
+                    <small>Be the first customer to place an order and review this harvest!</small>
+                  </div>
+                ) : (
+                  reviews
+                    .filter(r => !selectedReviewsCrop || String(r.crop || "").toLowerCase() === String(selectedReviewsCrop).toLowerCase())
+                    .map(rev => (
+                      <div key={rev.id} className="customer-review-card">
+                        <div className="review-card-top">
+                          <div className="reviewer-info">
+                            <span className="reviewer-avatar">👤</span>
+                            <div>
+                              <b>{rev.customerName || "Customer"}</b>
+                              {rev.verifiedPurchase && <span className="verified-badge">✓ Verified Purchase</span>}
+                            </div>
+                          </div>
+                          <span className="review-date">
+                            {new Date(rev.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                        </div>
+
+                        <div className="review-stars-row">
+                          <span className="stars-gold">{"★".repeat(rev.rating)}{"☆".repeat(5 - rev.rating)}</span>
+                          <span className="rating-num">{rev.rating}/5</span>
+                          {rev.farmerRating && <span className="farmer-service-pill">Farmer Service: {rev.farmerRating}★</span>}
+                        </div>
+
+                        <p className="review-text">{rev.reviewText}</p>
+                        {rev.farmerName && <small className="farmer-tag-small">Purchased from farmer {rev.farmerName}</small>}
+                      </div>
+                    ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+{/* =========================================================================
+          DYNAMIC CROP DETAILS MODAL (FOR ALL COMMODITIES & FARMERS)
+         ========================================================================= */}
+      {viewingListing && (
+        <div className="crop-details-overlay" onClick={closeListingDetails}>
+          <div className="crop-details-modal" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="crop-modal-heading">
+            <div className="crop-details-topbar">
+              <button
+                type="button"
+                className="btn-back-details"
+                onClick={closeListingDetails}
+                title="Back to crop listings"
+              >
+                ← {t("back") || "Back to Listings"}
+              </button>
+              <span className="details-modal-title" id="crop-modal-heading">
+                🌾 Produce Details · {viewingListing.crop}
+              </span>
+              <button
+                type="button"
+                className="btn-close-details"
+                onClick={closeListingDetails}
+                aria-label="Close details"
+                title="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="crop-details-content">
+              {/* Left Column: Media, Pricing Card & Primary Actions */}
+              <div className="crop-details-media-col">
+                <div className="crop-details-image-container">
+                  {viewingListing.image ? (
+                    <img
+                      src={viewingListing.image}
+                      alt={viewingListing.crop}
+                      className="crop-details-image"
+                      onError={e => {
+                        if (e.currentTarget.src !== "/placeholder.png") {
+                          e.currentTarget.onerror = null
+                          e.currentTarget.src = "/placeholder.png"
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="crop-details-image-placeholder">
+                      <span style={{ fontSize: 54 }}>🌾</span>
+                      <span>No crop photo available</span>
+                    </div>
+                  )}
+                  {viewingListing.imageSource === "farmer" && (
+                    <span className="crop-details-photo-badge" title="Verified harvest photo uploaded by farmer">
+                      📸 Verified Farmer Harvest Photo
+                    </span>
+                  )}
+                </div>
+                {viewingListing.imagePhotographer && viewingListing.imageLink && (
+                  <a
+                    href={viewingListing.imageLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="crop-details-photo-credit"
+                  >
+                    Photo by {viewingListing.imagePhotographer.replace(/\s*\(Unsplash\)/i, "")} on Unsplash ↗
+                  </a>
+                )}
+
+                {/* Pricing & Stock Card */}
+                <div className="crop-details-price-card">
+                  <div className="price-tag-row">
+                    <span className="price-amount">₹{viewingListing.price}</span>
+                    <span className="price-basis">per {viewingListing.priceUnit || viewingListing.unit || "kg"}</span>
+                  </div>
+                  <div className="price-sub-info">
+                    <span><b>Available:</b> {viewingListing.quantity} {viewingListing.unit}</span>
+                    <span><b>Min Order:</b> {viewingListing.minOrder ? `${viewingListing.minOrder} ${viewingListing.unit}` : "None"}</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="crop-details-action-buttons">
+                  <button
+                    type="button"
+                    className="btn-details-buy"
+                    onClick={() => {
+                      const target = viewingListing
+                      closeListingDetails()
+                      setBuyItem(target)
+                      setBuyQuantity("")
+                      setTimeout(() => {
+                        document.getElementById("produce-request-panel")?.scrollIntoView({ behavior: "smooth" })
+                      }, 100)
+                    }}
+                  >
+                    🧺 {t("buyRequest") || "Buy / Request Produce"}
+                  </button>
+
+                  {contactPhone(viewingListing) && phoneUrl(contactPhone(viewingListing)) && (
+                    <a href={phoneUrl(contactPhone(viewingListing))} className="btn-details-call">
+                      📞 {t("call") || "Call"} {contactPhone(viewingListing)}
+                    </a>
+                  )}
+
+                  {contactPhone(viewingListing) && whatsappUrl(contactPhone(viewingListing)) && (
+                    <button
+                      type="button"
+                      className="btn-details-whatsapp"
+                      onClick={() => {
+                        const target = viewingListing
+                        closeListingDetails()
+                        setBuyItem(target)
+                        setBuyQuantity("")
+                        setTimeout(() => {
+                          document.getElementById("produce-request-panel")?.scrollIntoView({ behavior: "smooth" })
+                        }, 100)
+                      }}
+                    >
+                      💬 {t("whatsapp") || "WhatsApp Inquiry"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Column: Full Dynamic Specifications */}
+              <div className="crop-details-info-col">
+                {/* Header Title & Badges */}
+                <div className="crop-details-heading">
+                  <div className="crop-title-row">
+                    <h2>{viewingListing.crop}</h2>
+                    <span className="crop-category-badge">
+                      🏷️ {viewingListing.category || getCategoryForCrop(viewingListing.crop) || "Produce"}
+                    </span>
+                  </div>
+                  <div className="crop-badges-row">
+                    {viewingListing.variety && (
+                      <span className="badge-variety">Variety: <b>{viewingListing.variety}</b></span>
+                    )}
+                    {viewingListing.grade && (
+                      <span className="badge-grade">Grade: <b>{viewingListing.grade}</b></span>
+                    )}
+                    {viewingListing.organic && (
+                      <span className="badge-organic">{viewingListing.organic}</span>
+                    )}
+                    {viewingListing.productionMethod && (
+                      <span className="badge-packaging">🌱 {viewingListing.productionMethod}</span>
+                    )}
+                    {viewingListing.packaging && (
+                      <span className="badge-packaging">📦 {viewingListing.packaging}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* 1. Produce Details & Specifications */}
+                <section className="crop-details-section">
+                  <h4>🌾 Crop & Produce Details</h4>
+                  <div className="details-grid-spec">
+                    <div className="spec-item">
+                      <span className="spec-label">Crop / Commodity:</span>
+                      <span className="spec-value"><b>{viewingListing.crop}</b></span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Registered Variety:</span>
+                      <span className="spec-value">{viewingListing.variety || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Category:</span>
+                      <span className="spec-value">{viewingListing.category || getCategoryForCrop(viewingListing.crop) || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Grade / Quality:</span>
+                      <span className="spec-value">{viewingListing.grade || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Organic / Conventional:</span>
+                      <span className="spec-value">{viewingListing.organic || "Conventional"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Production Method:</span>
+                      <span className="spec-value">{viewingListing.productionMethod || "Open Field"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Packaging Type:</span>
+                      <span className="spec-value">{viewingListing.packaging || "Not provided"}</span>
+                    </div>
+                  </div>
+                  {(viewingListing.description || viewingListing.notes) && (
+                    <div className="spec-description">
+                      <b>Product Description / Notes:</b>
+                      <p>{viewingListing.description || viewingListing.notes}</p>
+                    </div>
+                  )}
+                </section>
+
+                {/* 2. Harvest & Availability Schedule (Separate harvest and expiry dates) */}
+                <section className="crop-details-section">
+                  <h4>📅 Harvest & Availability Schedule</h4>
+                  <div className="details-grid-spec">
+                    <div className="spec-item">
+                      <span className="spec-label">Harvest Date:</span>
+                      <span className="spec-value">{viewingListing.harvestDate || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Available From:</span>
+                      <span className="spec-value">{viewingListing.availableFrom || "Available immediately"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Available Until / Expiry:</span>
+                      <span className="spec-value"><b>{viewingListing.expiryDate || viewingListing.date || "Not provided"}</b></span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 3. Quantity, Pricing & Order Terms */}
+                <section className="crop-details-section">
+                  <h4>💰 Quantity & Pricing</h4>
+                  <div className="details-grid-spec">
+                    <div className="spec-item">
+                      <span className="spec-label">Available Quantity:</span>
+                      <span className="spec-value"><b>{viewingListing.quantity} {viewingListing.unit}</b></span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Farmer Asking Price:</span>
+                      <span className="spec-value"><b>₹{viewingListing.price}</b> per {viewingListing.priceUnit || viewingListing.unit}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Price Basis:</span>
+                      <span className="spec-value">Per {viewingListing.priceUnit || viewingListing.unit || "kg"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Minimum Order Quantity:</span>
+                      <span className="spec-value">{viewingListing.minOrder ? `${viewingListing.minOrder} ${viewingListing.unit}` : "Not provided (No minimum)"}</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 4. Logistics, Pickup & Delivery */}
+                <section className="crop-details-section">
+                  <h4>🚚 Logistics & Dispatch</h4>
+                  <div className="details-grid-spec">
+                    <div className="spec-item">
+                      <span className="spec-label">Farm Pickup:</span>
+                      <span className="spec-value">{viewingListing.pickupAvailable !== false ? "✓ Available at farm location" : "Not available"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Direct Delivery:</span>
+                      <span className="spec-value">
+                        {viewingListing.deliveryAvailable
+                          ? `✓ Available ${viewingListing.deliveryRadius ? `(up to ${viewingListing.deliveryRadius} km)` : ""}`
+                          : "Not offered by farmer"}
+                      </span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* 5. Verified Farmer & Pickup Location (Private GPS coordinates strictly omitted) */}
+                <section className="crop-details-section farmer-origin-section">
+                  <h4>🧑‍🌾 Farmer & Location Details</h4>
+                  <div className="details-grid-spec">
+                    <div className="spec-item">
+                      <span className="spec-label">Farmer Name:</span>
+                      <span className="spec-value"><b>{viewingListing.farmerName || "Registered Farmer"}</b></span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Full Address:</span>
+                      <span className="spec-value">{viewingListing.address || viewingListing.farmerLocation || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">Village / Locality:</span>
+                      <span className="spec-value">{viewingListing.village || viewingListing.locality || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">City / Town:</span>
+                      <span className="spec-value">{viewingListing.city || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">District:</span>
+                      <span className="spec-value">{viewingListing.district || viewingListing.farmerDistrict || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">State:</span>
+                      <span className="spec-value">{viewingListing.state || viewingListing.farmerState || "Not provided"}</span>
+                    </div>
+                    <div className="spec-item">
+                      <span className="spec-label">PIN Code:</span>
+                      <span className="spec-value">{viewingListing.pincode || "Not provided"}</span>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Owner controls if logged in farmer owns this listing */}
+                {role === "Farmer" && isOwnerOfListing(viewingListing) && (
+                  <div className="details-owner-bar">
+                    <span style={{ fontSize: "0.85em", color: "#1967d2" }}>
+                      🔒 You are the verified owner of this crop listing.
+                    </span>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button
+                        type="button"
+                        className="btn-action-edit"
+                        onClick={() => {
+                          const item = viewingListing
+                          closeListingDetails()
+                          setPage("Sell")
+                          startEditListing(item)
+                        }}
+                      >
+                        ✏️ {t("edit") || "Edit Listing"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-action-delete"
+                        onClick={() => {
+                          const item = viewingListing
+                          closeListingDetails()
+                          deleteListing(item.id, item.crop)
+                        }}
+                      >
+                        🗑️ {t("delete") || "Delete Listing"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
     </div>
   )
 }
@@ -4747,44 +6204,159 @@ function findDistrict(message) {
   return null;
 }
 
+function renderInlineTokens(line) {
+  if (!line) return null;
+  const boldRegex = /\*\*(.*?)\*\*/g;
+  const tokens = [];
+  let lastIdx = 0;
+  let match;
+
+  while ((match = boldRegex.exec(line)) !== null) {
+    if (match.index > lastIdx) {
+      tokens.push({ type: "text", content: line.substring(lastIdx, match.index) });
+    }
+    tokens.push({ type: "bold", content: match[1] });
+    lastIdx = match.index + match[0].length;
+  }
+  if (lastIdx < line.length) {
+    tokens.push({ type: "text", content: line.substring(lastIdx) });
+  }
+
+  const result = [];
+  tokens.forEach((token, tIdx) => {
+    if (token.type === "bold") {
+      result.push(
+        <strong key={'b_' + tIdx} style={{ color: "#14532d", fontWeight: 700 }}>
+          {token.content}
+        </strong>
+      );
+    } else {
+      const italicRegex = /\*(.*?)\*/g;
+      let iLast = 0;
+      let iMatch;
+      let count = 0;
+      while ((iMatch = italicRegex.exec(token.content)) !== null) {
+        if (iMatch.index > iLast) {
+          result.push(token.content.substring(iLast, iMatch.index));
+        }
+        result.push(
+          <em key={'i_' + tIdx + '_' + (count++)} style={{ color: "#2d5a36", fontStyle: "italic", background: "#f0fdf4", padding: "1px 4px", borderRadius: "4px" }}>
+            {iMatch[1]}
+          </em>
+        );
+        iLast = iMatch.index + iMatch[0].length;
+      }
+      if (iLast < token.content.length) {
+        result.push(token.content.substring(iLast));
+      }
+    }
+  });
+
+  return result;
+}
+
 function formatBotMessage(text) {
   if (!text) return null;
   const lines = text.split("\n");
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
       {lines.map((line, idx) => {
         const trimmed = line.trim();
         if (!trimmed) {
           return <div key={idx} style={{ height: "4px" }} />;
         }
 
-        // Parse bold **text**
-        const parts = [];
-        let lastIdx = 0;
-        const boldRegex = /\*\*(.*?)\*\*/g;
-        let match;
-        while ((match = boldRegex.exec(line)) !== null) {
-          if (match.index > lastIdx) {
-            parts.push(line.substring(lastIdx, match.index));
-          }
-          parts.push(<strong key={match.index} style={{ color: "#1b3821", fontWeight: 700 }}>{match[1]}</strong>);
-          lastIdx = match.index + match[0].length;
-        }
-        if (lastIdx < line.length) {
-          parts.push(line.substring(lastIdx));
+        const isTip = trimmed.startsWith("💡");
+        const isWarning = trimmed.startsWith("⚠️");
+        const isHeader = (trimmed.startsWith("📍") || trimmed.startsWith("🌱") || trimmed.startsWith("⛅") || trimmed.startsWith("🌾") || trimmed.startsWith("👋") || trimmed.startsWith("🤝") || trimmed.startsWith("📊") || trimmed.startsWith("🏛️") || trimmed.startsWith("📦") || trimmed.startsWith("✨") || trimmed.startsWith("⭐") || trimmed.startsWith("🧾")) && (idx === 0 || trimmed.includes("**"));
+        const isBullet = trimmed.startsWith("•") || trimmed.startsWith("-");
+        const numMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+
+        if (isTip || isWarning) {
+          return (
+            <div
+              key={idx}
+              style={{
+                background: isWarning ? "#fffbeb" : "#f0fdf4",
+                border: isWarning ? "1px solid #fef08a" : "1px solid #dcfce7",
+                borderRadius: "8px",
+                padding: "7px 10px",
+                fontSize: "11px",
+                lineHeight: "1.5",
+                color: isWarning ? "#854d0e" : "#166534",
+                marginTop: "4px"
+              }}
+            >
+              {renderInlineTokens(trimmed)}
+            </div>
+          );
         }
 
-        const isBullet = trimmed.startsWith("•") || trimmed.startsWith("-");
+        if (isHeader) {
+          return (
+            <div
+              key={idx}
+              style={{
+                fontSize: "12px",
+                fontWeight: 650,
+                color: "#14532d",
+                lineHeight: "1.45",
+                borderBottom: idx === 0 ? "1px solid #eaf1e8" : "none",
+                paddingBottom: idx === 0 ? "4px" : "0",
+                marginBottom: idx === 0 ? "2px" : "0"
+              }}
+            >
+              {renderInlineTokens(trimmed)}
+            </div>
+          );
+        }
+
+        if (numMatch) {
+          return (
+            <div
+              key={idx}
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "7px",
+                lineHeight: "1.45",
+                fontSize: "11.5px"
+              }}
+            >
+              <span
+                style={{
+                  minWidth: "18px",
+                  height: "18px",
+                  borderRadius: "50%",
+                  background: "#dcfce7",
+                  color: "#166534",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: "1px",
+                  flexShrink: 0
+                }}
+              >
+                {numMatch[1]}
+              </span>
+              <div style={{ flex: 1 }}>{renderInlineTokens(numMatch[2])}</div>
+            </div>
+          );
+        }
+
         return (
           <div
             key={idx}
             style={{
               paddingLeft: isBullet ? "12px" : "0",
               textIndent: isBullet ? "-12px" : "0",
-              lineHeight: "1.45"
+              lineHeight: "1.45",
+              fontSize: "11.5px"
             }}
           >
-            {parts}
+            {renderInlineTokens(trimmed)}
           </div>
         );
       })}
@@ -4853,6 +6425,132 @@ async function getAssistantAnswer(question, profile, formLocation) {
   const userState = (profile?.state || formLocation?.state || "Karnataka").trim();
   const userCity = (profile?.city || formLocation?.city || userDistrict || "Bengaluru").trim();
   const userPlaceLabel = userDistrict ? userDistrict + ", " + userState : (userCity ? userCity + ", " + userState : userState);
+
+  // -------------------------------------------------------------
+  // 0. CONVERSATIONAL & BASIC Q&A INTENTS
+  // -------------------------------------------------------------
+
+  // Identity: "who are you", "who r u", "who are u", "whats your name", "who made you"
+  if (/\b(who\s*(are|r)\s*(you|u)|who\s*(you|u)|what\s*is\s*your\s*name|what('s|s)\s*your\s*name|who\s*created\s*(you|u)|who\s*made\s*(you|u)|introduce\s*yourself|tell\s*me\s*about\s*yourself)\b/i.test(qLower)) {
+    return {
+      text: "👋 **Hello! I am Farmezy Smart Assistant**, your dedicated 24/7 agricultural & marketplace companion.\n\n" +
+        "🌱 **Who am I?**\n" +
+        "I am built into **Farmezy** — India's direct farm-to-table & wholesale platform. My mission is to assist farmers, traders, and consumers with accurate market prices, weather outlooks, and agricultural best practices.\n\n" +
+        "✨ **What I can do for you:**\n" +
+        "• 🌾 **Real-Time Mandi Prices**: Official wholesale rates across 180+ crops and APMC mandis nationwide.\n" +
+        "• ⛅ **7-Day Weather Forecast**: Rainfall probability, temperatures, and field spray advisories.\n" +
+        "• 👨‍🌾 **Direct Farmgate Selling**: Step-by-step guidance on listing harvests with camera photos and 0% commission.\n" +
+        "• 🛒 **Fresh Produce Buying**: Browse verified farms, connect directly on WhatsApp/Call, and track orders.\n" +
+        "• 🧾 **Invoices & Ratings**: Help with downloading official PDF invoices and submitting customer reviews.\n" +
+        "• 🌿 **Agronomic Guides**: Soil preparation, organic fertilizers (Jeevamrutha), disease control, and government schemes.\n\n" +
+        "💡 *Try asking me:* **'Ginger price in Bengaluru Rural'**, **'Weather in Pune'**, or **'How can you help me?'**"
+    };
+  }
+
+  // Capabilities: "how can you help me", "how can u help", "what can you do", "help me"
+  if (/\b(how\s*can\s*(you|u)\s*help(\s*me)?|what\s*can\s*(you|u)\s*do|what\s*do\s*(you|u)\s*do|how\s*(to|can\s*i)\s*use\s*(this|farmezy)|help\s*me|capabilities|features)\b/i.test(qLower)) {
+    return {
+      text: "🤝 **How I Can Help You on Farmezy:**\n\n" +
+        "📊 **1. Live Mandi Wholesale Rates**\n" +
+        "• Check current APMC prices and 7-day predictive momentum trends for 180+ commodities.\n" +
+        "• *Try:* **'Ginger price in Bengaluru Rural'**, **'Tomato price today'**, **'Garlic in Mandsaur'**, **'Onion in Nashik'**.\n\n" +
+        "⛅ **2. 7-Day Weather & Rain Advisory**\n" +
+        "• Get upcoming rainfall chance, temperatures, and smart irrigation/spraying tips for any district.\n" +
+        "• *Try:* **'7-day weather forecast'**, **'Will it rain in Shimla?'**, **'Weather in Pune'**.\n\n" +
+        "🌱 **3. Crop Cultivation & Pest Guides**\n" +
+        "• Detailed cultivation practices, seed treatments, and organic remedies for blight, rots, and borers.\n" +
+        "• *Try:* **'How to grow ginger'**, **'Tomato leaf curl control'**, **'Organic fertilizer recipe'**.\n\n" +
+        "📦 **4. Buying, Selling & Invoices**\n" +
+        "• Learn how to list produce, connect with farmers, order harvests, and download PDF invoices.\n" +
+        "• *Try:* **'How to sell harvest'**, **'How to download invoice'**, **'How to rate an order'**.\n\n" +
+        "🏛️ **5. Schemes & Sowing Calendars**\n" +
+        "• Details on PM-KISAN, PMFBY crop insurance, KCC loans, and Kharif/Rabi sowing schedules.\n" +
+        "• *Try:* **'PM Kisan scheme'**, **'When to sow wheat'**.\n\n" +
+        "💡 *Just type your question or tap any suggestion button below!*"
+    };
+  }
+
+  // About Farmezy
+  if (/\b(what\s*is\s*farmezy|what('s|s)\s*farmezy|about\s*farmezy|tell\s*me\s*about\s*farmezy|why\s*farmezy)\b/i.test(qLower)) {
+    return {
+      text: "🌾 **About Farmezy — Empowering Indian Agriculture**\n\n" +
+        "Farmezy is an open, direct farm-to-table platform connecting farmers directly with consumers, retailers, and wholesale buyers across India.\n\n" +
+        "🌟 **Key Highlights:**\n" +
+        "• 🚜 **Zero Middleman Commission**: Farmers keep 100% of their earnings; buyers get fresh produce at transparent farmgate rates.\n" +
+        "• 📸 **Real Field Camera Photos**: No stock photos — every crop listing features authentic camera-captured images of the current harvest.\n" +
+        "• 📈 **APMC Mandi Intelligence**: Live wholesale prices calibrated from AGMARKNET with 7-day trend projections.\n" +
+        "• 🧾 **Official PDF Invoices**: Instant vector invoices with printable and downloadable PDFs.\n" +
+        "• ⭐ **Verified Ratings & Reviews**: Authentic customer feedback and 1–5 star ratings from verified buyers.\n" +
+        "• 🔔 **Real-Time Notifications**: Instant order updates for farmers and customers via live alerts."
+    };
+  }
+
+  // Politeness: "how are you", "how r u"
+  if (/\b(how\s*are\s*(you|u)|how\s*r\s*(you|u)|how('s|s)\s*it\s*going)\b/i.test(qLower)) {
+    return {
+      text: "😊 **I'm doing great, thank you for asking!**\n\n" +
+        "I'm ready to assist you today with:\n" +
+        "• Real-time mandi prices across all APMC markets\n" +
+        "• Upcoming 7-day weather forecasts & rain outlooks\n" +
+        "• Crop cultivation, pest control & fertilizer guides\n\n" +
+        "What crop or location would you like to check today?"
+    };
+  }
+
+  // Politeness: "thank you", "thanks"
+  if (/\b(thank\s*you|thanks|thank\s*u|thx|dhanyawad|shukriya|nandri|dhanyavada)\b/i.test(qLower)) {
+    return {
+      text: "🙏 **You're very welcome!**\n\n" +
+        "Always glad to assist you. If you need updated market prices, weather reports, or farming advice anytime, just ask!\n\n" +
+        "🌱 *Happy farming and smart trading with Farmezy!*"
+    };
+  }
+
+  // Politeness: "bye", "goodbye"
+  if (/\b(bye|goodbye|see\s*you|tata|good\s*night)\b/i.test(qLower)) {
+    return {
+      text: "👋 **Goodbye and take care!**\n\n" +
+        "Wishing you bountiful harvests and great market prices. Come back anytime you need mandi updates or farming assistance! 🌱"
+    };
+  }
+
+  // Greetings
+  if (/^(hi|hello|hey|namaste|vanakkam|namaskara|good\s*(morning|afternoon|evening))\b/i.test(qLower)) {
+    return {
+      text: "Namaste! 🙏 Welcome to **Farmezy**.\n\n" +
+        "I am your 24/7 agriculture and market intelligence assistant. You can ask me:\n" +
+        "• **'Ginger price in Bengaluru Rural'** — Live mandi rates for any crop\n" +
+        "• **'7-day weather forecast'** — Next week's rain, temperature & farm advisory\n" +
+        "• **'Garlic price in Mandsaur'** — Mandi rates across 180+ Indian crops\n" +
+        "• **'How to grow Ginger?'** — Complete crop cultivation practices\n" +
+        "• **'How can you help me?'** — View all assistant capabilities"
+    };
+  }
+
+  // Invoice Guidance
+  if (/\b(how.*(download|get|find).*invoice|where.*invoice|download.*invoice|print.*invoice|invoice\s*download)\b/i.test(qLower)) {
+    return {
+      text: "🧾 **How to View & Download Invoices on Farmezy:**\n\n" +
+        "1. Navigate to **Orders** (or **My Requests**) in the navigation menu.\n" +
+        "2. Locate your order card.\n" +
+        "3. Tap **📄 Invoice** to preview the full electronic invoice.\n" +
+        "4. Click **📥 Download Invoice PDF** to save the vector-sharp PDF to your phone or computer.\n" +
+        "5. Click **🖨️ Print Invoice** if you want a clean printed paper copy.\n\n" +
+        "✅ Each invoice includes unique invoice number (e.g. *INV-198934*), item breakdown, buyer & seller details, and Farmezy branding."
+    };
+  }
+
+  // Ratings Guidance
+  if (/\b(how.*(rate|review)|give.*review|leave.*feedback)\b/i.test(qLower)) {
+    return {
+      text: "⭐ **How to Submit Ratings & Reviews on Farmezy:**\n\n" +
+        "1. Go to **Orders** (My Requests) in your Customer dashboard.\n" +
+        "2. On any received order, tap **⭐ Rate & Review**.\n" +
+        "3. Select 1 to 5 stars for the **Produce Quality** and 1 to 5 stars for the **Farmer Service**.\n" +
+        "4. Add your personal review comments and tap **Submit Review**.\n\n" +
+        "✅ Only verified buyers who completed an order can submit reviews. Average ratings update automatically across the marketplace!"
+    };
+  }
 
   // -------------------------------------------------------------
   // 1. WEATHER & CLIMATE INTENT
@@ -5233,13 +6931,15 @@ async function getAssistantAnswer(question, profile, formLocation) {
   // 12. CATCH-ALL INTELLIGENT HELPER
   // -------------------------------------------------------------
   return {
-    text: "I'm here to assist with all your farming, crop pricing, and weather needs! 🌾\n\n" +
+    text: "🌾 **Farmezy Smart Assistant**\n\n" +
+      "I'm here to assist with all your farming, mandi price, and weather needs!\n\n" +
       "Here are popular questions you can ask me:\n" +
-      "1. **Crop Mandi Prices**: E.g. *'Ginger price in Bengaluru Rural'*, *'Tomato price in my area'*, *'Garlic in Mandsaur'*, *'Onion in Nashik'*\n" +
-      "2. **7-Day Weather Forecasts**: E.g. *'Weather forecast for Bengaluru Rural'*, *'Will it rain in Shimla?'*\n" +
-      "3. **Crop Growing Guides**: E.g. *'How to grow ginger'*, *'Best spacing for tomatoes'*, *'Garlic sowing tips'*\n" +
-      "4. **Pest & Disease Control**: E.g. *'How to treat tomato leaf curl'*, *'Rhizome rot in ginger'*, *'Organic aphid spray'*\n" +
-      "5. **Marketplace Guidance**: E.g. *'How to sell my harvest'*, *'How to buy directly from farmers'*"
+      "• 📊 **Mandi Prices**: *'Ginger price in Bengaluru Rural'*, *'Tomato price today'*, *'Garlic in Mandsaur'*, *'Onion in Nashik'*\n" +
+      "• ⛅ **7-Day Weather**: *'Weather forecast for Bengaluru Rural'*, *'Will it rain in Shimla?'*\n" +
+      "• 🌿 **Crop Growing Guides**: *'How to grow ginger'*, *'Best spacing for tomatoes'*\n" +
+      "• 🛡️ **Pest & Disease Control**: *'Tomato leaf curl remedy'*, *'Rhizome rot in ginger'*\n" +
+      "• 📦 **Marketplace Help**: *'Who are you'*, *'How to sell harvest'*, *'How to download invoice'*\n\n" +
+      "💡 *Type your question above or tap any quick suggestion chip below!*"
   };
 }
 

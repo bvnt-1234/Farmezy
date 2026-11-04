@@ -31,6 +31,8 @@ const writableDataDir = isVercel
   : dataDir
 const listingsFile = path.join(writableDataDir, "listings.json")
 const ordersFile = path.join(writableDataDir, "orders.json")
+const notificationsFile = path.join(writableDataDir, "notifications.json")
+const reviewsFile = path.join(writableDataDir, "reviews.json")
 const imageCacheFile = path.join(writableDataDir, "image-cache.json")
 const catalogueFile = path.join(dataDir, "agmarknet-catalogue.json")
 const masterFile = path.join(dataDir, "commodity-master.json")
@@ -480,6 +482,194 @@ function saveOrders(newOrders) {
 
 let orders = loadOrders()
 
+function loadNotifications() {
+  try {
+    if (!existsSync(notificationsFile)) {
+      const defaultFile = path.join(dataDir, "notifications.json")
+      if (existsSync(defaultFile)) {
+        const data = JSON.parse(readFileSync(defaultFile, "utf8"))
+        return Array.isArray(data) ? data : []
+      }
+      return []
+    }
+    const data = JSON.parse(readFileSync(notificationsFile, "utf8"))
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+function saveNotifications(newNotifications) {
+  try {
+    mkdirSync(writableDataDir, { recursive: true })
+    writeFileSync(notificationsFile, JSON.stringify(newNotifications, null, 2))
+  } catch (err) {
+    console.warn("Warning: Could not persist notifications to disk:", err.message)
+  }
+}
+
+let notifications = loadNotifications()
+
+function loadReviews() {
+  try {
+    if (!existsSync(reviewsFile)) {
+      const defaultFile = path.join(dataDir, "reviews.json")
+      if (existsSync(defaultFile)) {
+        const data = JSON.parse(readFileSync(defaultFile, "utf8"))
+        return Array.isArray(data) ? data : []
+      }
+      return []
+    }
+    const data = JSON.parse(readFileSync(reviewsFile, "utf8"))
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+function saveReviews(newReviews) {
+  try {
+    mkdirSync(writableDataDir, { recursive: true })
+    writeFileSync(reviewsFile, JSON.stringify(newReviews, null, 2))
+  } catch (err) {
+    console.warn("Warning: Could not persist reviews to disk:", err.message)
+  }
+}
+
+let reviews = loadReviews()
+
+function calculateReviewStats(targetReviews) {
+  if (!Array.isArray(targetReviews) || targetReviews.length === 0) {
+    return {
+      averageRating: 0,
+      totalReviews: 0,
+      averageFarmerRating: 0,
+      breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    }
+  }
+  let sumRating = 0
+  let sumFarmer = 0
+  const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+  targetReviews.forEach(r => {
+    const star = Math.min(5, Math.max(1, Math.round(Number(r.rating || 5))))
+    breakdown[star] = (breakdown[star] || 0) + 1
+    sumRating += Number(r.rating || 5)
+    sumFarmer += Number(r.farmerRating || r.rating || 5)
+  })
+  return {
+    averageRating: Number((sumRating / targetReviews.length).toFixed(1)),
+    averageFarmerRating: Number((sumFarmer / targetReviews.length).toFixed(1)),
+    totalReviews: targetReviews.length,
+    breakdown
+  }
+}
+
+
+// Active SSE client connections: clientId -> { res, userId, phone, role }
+const sseClients = new Map()
+
+function cleanId(id) {
+  return String(id || "").trim().toLowerCase()
+}
+
+function cleanDigits(val) {
+  return String(val || "").replace(/\D/g, "")
+}
+
+function matchesUser(notification, userId, phone) {
+  if (!notification) return false
+  const nUserId = cleanId(notification.userId)
+  const qUserId = cleanId(userId)
+  if (qUserId && nUserId && (nUserId === qUserId || nUserId.includes(qUserId) || qUserId.includes(nUserId))) {
+    return true
+  }
+  const qPhoneDigits = cleanDigits(phone || userId)
+  const nPhoneDigits = cleanDigits(notification.userPhone || notification.userId)
+  if (qPhoneDigits.length >= 10 && nPhoneDigits.length >= 10) {
+    if (nPhoneDigits.slice(-10) === qPhoneDigits.slice(-10)) return true
+  }
+  return false
+}
+
+function createAndDispatchNotification({
+  userId,
+  userPhone,
+  role,
+  orderId,
+  type,
+  title,
+  message,
+  customerName,
+  farmerName,
+  crop,
+  quantity,
+  unit,
+  price,
+  status
+}) {
+  const recentDuplicate = notifications.find(n => 
+    n.orderId === String(orderId) && 
+    (n.type === type || n.status === status) && 
+    (Date.now() - new Date(n.createdAt).getTime()) < 4000
+  )
+  if (recentDuplicate) return recentDuplicate
+
+  const notif = {
+    id: "notif_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+    userId: String(userId || ""),
+    userPhone: String(userPhone || ""),
+    role: String(role || ""),
+    orderId: String(orderId || ""),
+    type: String(type || "GENERAL"),
+    title: String(title || "🔔 Notification"),
+    message: String(message || ""),
+    customerName: String(customerName || ""),
+    farmerName: String(farmerName || ""),
+    crop: String(crop || ""),
+    quantity: String(quantity || ""),
+    unit: String(unit || "kg"),
+    price: String(price || ""),
+    status: String(status || ""),
+    read: false,
+    createdAt: new Date().toISOString()
+  }
+
+  notifications = [notif, ...notifications]
+  if (notifications.length > 500) {
+    notifications = notifications.slice(0, 500)
+  }
+  saveNotifications(notifications)
+
+  // Real-time dispatch via SSE
+  const payload = "data: " + JSON.stringify({ type: "notification", notification: notif }) + "\n\n"
+  for (const [clientId, client] of sseClients.entries()) {
+    if (matchesUser(notif, client.userId, client.phone)) {
+      try {
+        client.res.write(payload)
+      } catch (err) {
+        console.warn("Failed writing to SSE client " + clientId + ":", err.message)
+        sseClients.delete(clientId)
+      }
+    }
+  }
+
+  return notif
+}
+
+// Heartbeat ping every 25 seconds to keep SSE connections open through load balancers
+setInterval(() => {
+  if (sseClients.size === 0) return
+  const pingPayload = ": ping\n\n"
+  for (const [clientId, client] of sseClients.entries()) {
+    try {
+      client.res.write(pingPayload)
+    } catch {
+      sseClients.delete(clientId)
+    }
+  }
+}, 25000)
+
+
 function startHistoricalCollector() {
   if (isVercel || !(process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY)) return
   const script = path.join(path.dirname(fileURLToPath(import.meta.url)), "scripts", "collect-mandi-history.js")
@@ -496,350 +686,1307 @@ startHistoricalCollector()
 
 // Curated high-res photos for common Indian vegetables, fruits, and commodities
 const curatedCropImages = {
-  // Spices & Aromatics
-  ginger: { url: "/ginger.jpg", alt: "Fresh ginger rhizome (Zingiber officinale)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "ginger green": { url: "/ginger.jpg", alt: "Fresh green ginger rhizome (Zingiber officinale)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "ginger dry": { url: "/ginger.jpg", alt: "Dry ginger rhizome (Zingiber officinale)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  adrak: { url: "/ginger.jpg", alt: "Fresh adrak / ginger (Zingiber officinale)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  inji: { url: "/ginger.jpg", alt: "Fresh inji / ginger (Zingiber officinale)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  allam: { url: "/ginger.jpg", alt: "Fresh allam / ginger (Zingiber officinale)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  shunti: { url: "/ginger.jpg", alt: "Fresh shunti / ginger (Zingiber officinale)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Okra / Ladies Finger (Clean pods on white background, no bowls or baskets)
-  "ladies finger": { url: "/ladies_finger.jpg", alt: "Fresh green ladies finger / okra pods (Abelmoschus esculentus)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "lady finger": { url: "/ladies_finger.jpg", alt: "Fresh green lady finger pods (Abelmoschus esculentus)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "lady s finger": { url: "/ladies_finger.jpg", alt: "Fresh green lady's finger pods (Abelmoschus esculentus)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  ladies: { url: "/ladies_finger.jpg", alt: "Fresh green ladies finger pods (Abelmoschus esculentus)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  bhindi: { url: "/ladies_finger.jpg", alt: "Fresh green bhindi / okra pods (Abelmoschus esculentus)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  bhendi: { url: "/ladies_finger.jpg", alt: "Fresh green bhendi pods (Abelmoschus esculentus)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  vendakkai: { url: "/ladies_finger.jpg", alt: "Fresh green vendakkai pods (Abelmoschus esculentus)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  okra: { url: "/ladies_finger.jpg", alt: "Fresh green okra pods (Abelmoschus esculentus)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  bende: { url: "/ladies_finger.jpg", alt: "Fresh green bende pods (Abelmoschus esculentus)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  bendakaya: { url: "/ladies_finger.jpg", alt: "Fresh green bendakaya pods (Abelmoschus esculentus)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Commercial Vegetables (Clean isolated photos)
-  tomato: { url: "/tomato.jpg", alt: "Fresh red vine tomatoes (Solanum lycopersicum)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  onion: { url: "/onion.jpg", alt: "Fresh red onion bulbs (Allium cepa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  potato: { url: "/potato.jpg", alt: "Fresh raw harvested potatoes (Solanum tuberosum)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  carrot: { url: "/carrot.jpg", alt: "Fresh raw orange carrots (Daucus carota)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  cabbage: { url: "/cabbage.jpg", alt: "Fresh green cabbage head (Brassica oleracea)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "patta gobhi": { url: "/cabbage.jpg", alt: "Fresh green cabbage head (Brassica oleracea)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "bandha gobhi": { url: "/cabbage.jpg", alt: "Fresh green cabbage head (Brassica oleracea)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  muttakose: { url: "/cabbage.jpg", alt: "Fresh green muttakose / cabbage head (Brassica oleracea)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Drumstick / Moringa (Individual pods isolated on clean background, not on tree)
-  drumstick: { url: "/drumstick.jpg", alt: "Fresh harvested moringa / drumstick pods (Moringa oleifera)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  moringa: { url: "/drumstick.jpg", alt: "Fresh harvested moringa pods (Moringa oleifera)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  sahjan: { url: "/drumstick.jpg", alt: "Fresh harvested sahjan / drumstick pods (Moringa oleifera)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  murungakkai: { url: "/drumstick.jpg", alt: "Fresh harvested murungakkai / drumstick pods (Moringa oleifera)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  nuggekayi: { url: "/drumstick.jpg", alt: "Fresh harvested nuggekayi / drumstick pods (Moringa oleifera)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Green Banana / Plantain (Actual raw unripe green cooking bananas, not yellow)
-  "green banana": { url: "/green_banana.jpg", alt: "Fresh unripe green cooking bananas / plantains (Musa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "banana - green": { url: "/green_banana.jpg", alt: "Fresh unripe green cooking bananas (Musa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "banana green": { url: "/green_banana.jpg", alt: "Fresh unripe green cooking bananas (Musa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  plantain: { url: "/green_banana.jpg", alt: "Fresh raw green plantains (Musa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "raw banana": { url: "/green_banana.jpg", alt: "Fresh raw green cooking bananas (Musa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  vazhaikkai: { url: "/green_banana.jpg", alt: "Fresh unripe vazhaikkai / green banana (Musa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  baalekayi: { url: "/green_banana.jpg", alt: "Fresh unripe baalekayi / raw banana (Musa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "kachha kela": { url: "/green_banana.jpg", alt: "Fresh raw kachha kela / green banana (Musa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Mosambi (Indian sweet lime Citrus limetta, not lemon or orange)
-  mosambi: { url: "/mosambi.jpg", alt: "Fresh Indian sweet lime / mosambi fruit (Citrus limetta)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "sweet lime": { url: "/mosambi.jpg", alt: "Fresh Indian sweet lime / mosambi (Citrus limetta)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "citrus limetta": { url: "/mosambi.jpg", alt: "Fresh Indian sweet lime (Citrus limetta)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  moushumi: { url: "/mosambi.jpg", alt: "Fresh moushumi / sweet lime (Citrus limetta)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  battayi: { url: "/mosambi.jpg", alt: "Fresh battayi / sweet lime (Citrus limetta)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Coconut (Whole mature coconut and cut half with white flesh, not tree or seedling)
-  coconut: { url: "/coconut.jpg", alt: "Fresh whole mature coconut and cracked half (Cocos nucifera)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  copra: { url: "/coconut.jpg", alt: "Mature coconut and copra kernel (Cocos nucifera)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  nariyal: { url: "/coconut.jpg", alt: "Fresh mature nariyal / coconut (Cocos nucifera)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  tenginakayi: { url: "/coconut.jpg", alt: "Fresh mature tenginakayi / coconut (Cocos nucifera)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  thengai: { url: "/coconut.jpg", alt: "Fresh mature thengai / coconut (Cocos nucifera)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Tender Coconut
-  "tender coconut": { url: "/tender_coconut.jpg", alt: "Fresh green tender coconut fruit (Cocos nucifera)", photographer: "Kilimanjaro STUDIOz (Unsplash)", link: "https://unsplash.com/photos/WmZLDvHZJfQ" },
-  "green coconut": { url: "/tender_coconut.jpg", alt: "Fresh green tender coconut fruit (Cocos nucifera)", photographer: "Kilimanjaro STUDIOz (Unsplash)", link: "https://unsplash.com/photos/WmZLDvHZJfQ" },
-  elnir: { url: "/tender_coconut.jpg", alt: "Fresh green tender coconut elnir (Cocos nucifera)", photographer: "Kilimanjaro STUDIOz (Unsplash)", link: "https://unsplash.com/photos/WmZLDvHZJfQ" },
-  elaneer: { url: "/tender_coconut.jpg", alt: "Fresh green tender coconut elaneer (Cocos nucifera)", photographer: "Kilimanjaro STUDIOz (Unsplash)", link: "https://unsplash.com/photos/WmZLDvHZJfQ" },
-  daab: { url: "/tender_coconut.jpg", alt: "Fresh green tender coconut daab (Cocos nucifera)", photographer: "Kilimanjaro STUDIOz (Unsplash)", link: "https://unsplash.com/photos/WmZLDvHZJfQ" },
-
-  // Tamarind
-  tamarind: { url: "/tamarind.jpg", alt: "Fresh harvested tamarind pods and pulp (Tamarindus indica)", photographer: "B.navez (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg" },
-  tamarinds: { url: "/tamarind.jpg", alt: "Fresh harvested tamarind pods and pulp (Tamarindus indica)", photographer: "B.navez (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg" },
-  imli: { url: "/tamarind.jpg", alt: "Fresh harvested imli / tamarind pods (Tamarindus indica)", photographer: "B.navez (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg" },
-  hunasehannu: { url: "/tamarind.jpg", alt: "Fresh hunasehannu / tamarind pods (Tamarindus indica)", photographer: "B.navez (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg" },
-  puli: { url: "/tamarind.jpg", alt: "Fresh puli / tamarind pods (Tamarindus indica)", photographer: "B.navez (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg" },
-  chintapandu: { url: "/tamarind.jpg", alt: "Fresh chintapandu / tamarind pods (Tamarindus indica)", photographer: "B.navez (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg" },
-
-  // Amaranthus
-  amaranthus: { url: "/amaranthus.jpg", alt: "Fresh green edible amaranthus leafy vegetable bunch", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  amaranth: { url: "/amaranthus.jpg", alt: "Fresh green edible amaranth leafy vegetable bunch", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "red amaranthus": { url: "/amaranthus.jpg", alt: "Fresh edible red amaranthus vegetable greens", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "green amaranthus": { url: "/amaranthus.jpg", alt: "Fresh edible green amaranthus vegetable greens", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  chaulai: { url: "/amaranthus.jpg", alt: "Fresh chaulai / amaranthus leafy vegetable greens", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  dantu: { url: "/amaranthus.jpg", alt: "Fresh dantu soppu / amaranthus leafy vegetable greens", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  thotakura: { url: "/amaranthus.jpg", alt: "Fresh thotakura / amaranthus leafy vegetable greens", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  keerai: { url: "/amaranthus.jpg", alt: "Fresh keerai greens / amaranthus leafy vegetable", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Ginger / Green Ginger
-  ginger: { url: "/ginger.jpg", alt: "Fresh raw ginger rhizomes isolated on clean background (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
-  "green ginger": { url: "/ginger.jpg", alt: "Fresh green ginger rhizomes isolated on clean background (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
-  "ginger green": { url: "/ginger.jpg", alt: "Fresh green ginger rhizomes isolated on clean background (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
-  adrak: { url: "/ginger.jpg", alt: "Fresh raw adrak / ginger rhizomes (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
-  shunti: { url: "/ginger.jpg", alt: "Fresh raw shunti / ginger rhizomes (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
-  inji: { url: "/ginger.jpg", alt: "Fresh raw inji / ginger rhizomes (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
-  allam: { url: "/ginger.jpg", alt: "Fresh raw allam / ginger rhizomes (Zingiber officinale)", photographer: "Mockup Graphics (Unsplash)", link: "https://unsplash.com/photos/c94e896edbae" },
-
-  // Commercial Flowers
-  marigold: { url: "/marigold.jpg", alt: "Fresh vibrant orange-yellow marigold blossoms (Tagetes)", photographer: "Tawseem Hakak (Unsplash)", link: "https://unsplash.com" },
-  marigolds: { url: "/marigold.jpg", alt: "Fresh vibrant orange-yellow marigold blossoms (Tagetes)", photographer: "Tawseem Hakak (Unsplash)", link: "https://unsplash.com" },
-  genda: { url: "/marigold.jpg", alt: "Fresh vibrant genda / marigold flowers (Tagetes)", photographer: "Tawseem Hakak (Unsplash)", link: "https://unsplash.com" },
-  "chendu hoovu": { url: "/marigold.jpg", alt: "Fresh vibrant chendu hoovu / marigold flowers (Tagetes)", photographer: "Tawseem Hakak (Unsplash)", link: "https://unsplash.com" },
-  "banthi puvvu": { url: "/marigold.jpg", alt: "Fresh banthi puvvu / marigold flowers (Tagetes)", photographer: "Tawseem Hakak (Unsplash)", link: "https://unsplash.com" },
-
-  rose: { url: "/rose.jpg", alt: "Fresh red rose flower bloom isolated on clean background (Rosa)", photographer: "Jerry Klein (Unsplash)", link: "https://unsplash.com" },
-  roses: { url: "/rose.jpg", alt: "Fresh red rose flower blooms isolated on clean background (Rosa)", photographer: "Jerry Klein (Unsplash)", link: "https://unsplash.com" },
-  gulab: { url: "/rose.jpg", alt: "Fresh red gulab / rose flower blooms (Rosa)", photographer: "Jerry Klein (Unsplash)", link: "https://unsplash.com" },
-  roja: { url: "/rose.jpg", alt: "Fresh roja / rose flower blooms (Rosa)", photographer: "Jerry Klein (Unsplash)", link: "https://unsplash.com" },
-  gulabi: { url: "/rose.jpg", alt: "Fresh gulabi / rose flower blooms (Rosa)", photographer: "Jerry Klein (Unsplash)", link: "https://unsplash.com" },
-
-  chrysanthemum: { url: "/chrysanthemum.jpg", alt: "Fresh chrysanthemum blossoms (Chrysanthemum)", photographer: "Unsplash", link: "https://unsplash.com" },
-  chrysanthemums: { url: "/chrysanthemum.jpg", alt: "Fresh chrysanthemum blossoms (Chrysanthemum)", photographer: "Unsplash", link: "https://unsplash.com" },
-  shevanti: { url: "/chrysanthemum.jpg", alt: "Fresh shevanti / chrysanthemum blossoms", photographer: "Unsplash", link: "https://unsplash.com" },
-  sevanthi: { url: "/chrysanthemum.jpg", alt: "Fresh sevanthi / chrysanthemum blossoms", photographer: "Unsplash", link: "https://unsplash.com" },
-  chamanti: { url: "/chrysanthemum.jpg", alt: "Fresh chamanti / chrysanthemum blossoms", photographer: "Unsplash", link: "https://unsplash.com" },
-
-  carnation: { url: "/carnation.jpg", alt: "Fresh carnation flower blossoms (Dianthus caryophyllus)", photographer: "Unsplash", link: "https://unsplash.com" },
-  carnations: { url: "/carnation.jpg", alt: "Fresh carnation flower blossoms (Dianthus caryophyllus)", photographer: "Unsplash", link: "https://unsplash.com" },
-
-  gerbera: { url: "/gerbera.jpg", alt: "Fresh colorful gerbera daisy flowers (Gerbera)", photographer: "Unsplash", link: "https://unsplash.com" },
-  gerberas: { url: "/gerbera.jpg", alt: "Fresh colorful gerbera daisy flowers (Gerbera)", photographer: "Unsplash", link: "https://unsplash.com" },
-
-  gladiolus: { url: "/gladiolus.jpg", alt: "Fresh gladiolus flower spikes blossoms", photographer: "Unsplash", link: "https://unsplash.com" },
-  gladioli: { url: "/gladiolus.jpg", alt: "Fresh gladiolus flower spikes blossoms", photographer: "Unsplash", link: "https://unsplash.com" },
-
-  lotus: { url: "/lotus.jpg", alt: "Fresh sacred pink lotus flower blossom (Nelumbo nucifera)", photographer: "Unsplash", link: "https://unsplash.com" },
-  kamal: { url: "/lotus.jpg", alt: "Fresh sacred kamal / lotus flower blossom (Nelumbo nucifera)", photographer: "Unsplash", link: "https://unsplash.com" },
-  tamara: { url: "/lotus.jpg", alt: "Fresh tamara / lotus flower blossom (Nelumbo nucifera)", photographer: "Unsplash", link: "https://unsplash.com" },
-
-  orchid: { url: "/orchid.jpg", alt: "Fresh exotic orchid flower blossoms (Orchidaceae)", photographer: "Unsplash", link: "https://unsplash.com" },
-  orchids: { url: "/orchid.jpg", alt: "Fresh exotic orchid flower blossoms (Orchidaceae)", photographer: "Unsplash", link: "https://unsplash.com" },
-
-  tulip: { url: "/tulip.jpg", alt: "Fresh tulip flower blossoms (Tulipa)", photographer: "Unsplash", link: "https://unsplash.com" },
-  tulips: { url: "/tulip.jpg", alt: "Fresh tulip flower blossoms (Tulipa)", photographer: "Unsplash", link: "https://unsplash.com" },
-
-  tuberose: { url: "/tuberose.jpg", alt: "Fresh white tuberose / rajanigandha flower spikes (Polianthes tuberosa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  rajanigandha: { url: "/tuberose.jpg", alt: "Fresh white rajanigandha flower spikes (Polianthes tuberosa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  sugandharaja: { url: "/tuberose.jpg", alt: "Fresh white sugandharaja flower spikes (Polianthes tuberosa)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  crossandra: { url: "/crossandra.jpg", alt: "Fresh bright orange crossandra / kanakambaram flowers (Crossandra infundibuliformis)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  kanakambaram: { url: "/crossandra.jpg", alt: "Fresh kanakambaram / crossandra flowers (Crossandra infundibuliformis)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-
-  // Chikoo / Sapodilla (Actual sapodilla fruit)
-  chikoo: { url: "/chikoo.jpg", alt: "Fresh ripe sapodilla / chikoo fruit (Manilkara zapota)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  chiku: { url: "/chikoo.jpg", alt: "Fresh ripe chikoo fruit (Manilkara zapota)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  sapota: { url: "/chikoo.jpg", alt: "Fresh ripe sapota fruit (Manilkara zapota)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  sapodilla: { url: "/chikoo.jpg", alt: "Fresh ripe sapodilla fruit (Manilkara zapota)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Amla (Indian gooseberry Phyllanthus emblica)
-  amla: { url: "/amla.jpg", alt: "Fresh Indian gooseberry / amla fruit (Phyllanthus emblica)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "indian gooseberry": { url: "/amla.jpg", alt: "Fresh Indian gooseberry / amla (Phyllanthus emblica)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  gooseberry: { url: "/amla.jpg", alt: "Fresh Indian gooseberry / amla (Phyllanthus emblica)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "nelli kai": { url: "/amla.jpg", alt: "Fresh nelli kai / amla (Phyllanthus emblica)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  nellikai: { url: "/amla.jpg", alt: "Fresh nellikai / amla (Phyllanthus emblica)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  usirikaya: { url: "/amla.jpg", alt: "Fresh usirikaya / amla (Phyllanthus emblica)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Jasmine (Actual jasmine flowers / mogra blossoms, not leaves or bush)
-  jasmine: { url: "/jasmine.jpg", alt: "Fresh white jasmine blossoms (Jasminum sambac)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  mogra: { url: "/jasmine.jpg", alt: "Fresh white mogra / jasmine blossoms (Jasminum sambac)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  "gundu malli": { url: "/jasmine.jpg", alt: "Fresh gundu malli / jasmine blossoms (Jasminum sambac)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  malli: { url: "/jasmine.jpg", alt: "Fresh malli / jasmine blossoms (Jasminum sambac)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  chameli: { url: "/jasmine.jpg", alt: "Fresh chameli / jasmine flowers (Jasminum)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  mallepuvu: { url: "/jasmine.jpg", alt: "Fresh mallepuvu / jasmine flowers (Jasminum)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Brinjal / Eggplant (Actual glossy purple brinjal fruit on clean white background, not leaves)
-  brinjal: { url: "/brinjal.jpg", alt: "Fresh purple brinjal fruit (Solanum melongena)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  eggplant: { url: "/brinjal.jpg", alt: "Fresh purple eggplant fruit (Solanum melongena)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  aubergine: { url: "/brinjal.jpg", alt: "Fresh purple aubergine fruit (Solanum melongena)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  baingan: { url: "/brinjal.jpg", alt: "Fresh purple baingan / brinjal fruit (Solanum melongena)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  badanekai: { url: "/brinjal.jpg", alt: "Fresh badanekai / brinjal fruit (Solanum melongena)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  kathirikai: { url: "/brinjal.jpg", alt: "Fresh kathirikai / brinjal fruit (Solanum melongena)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  vankaya: { url: "/brinjal.jpg", alt: "Fresh vankaya / brinjal fruit (Solanum melongena)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Pomegranate (Actual pomegranate fruit whole and cut open with ruby arils, not just flowers/tree)
-  pomegranate: { url: "/pomegranate.jpg", alt: "Fresh whole and cut pomegranate fruits with ruby arils (Punica granatum)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  anar: { url: "/pomegranate.jpg", alt: "Fresh whole and cut anar / pomegranate fruit (Punica granatum)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  dalimbe: { url: "/pomegranate.jpg", alt: "Fresh dalimbe / pomegranate fruit (Punica granatum)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  danimma: { url: "/pomegranate.jpg", alt: "Fresh danimma / pomegranate fruit (Punica granatum)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-  mathulai: { url: "/pomegranate.jpg", alt: "Fresh mathulai / pomegranate fruit (Punica granatum)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org" },
-
-  // Guava (Fresh whole and cut pink guava fruit, not leaf, tree or garden)
-  guava: { url: "/guava.jpg", alt: "Fresh whole and cut guava fruit (Psidium guajava)", photographer: "Muhammad Mahdi Karim (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Guava_pink_fruit.jpg" },
-  guavas: { url: "/guava.jpg", alt: "Fresh whole and cut guava fruit (Psidium guajava)", photographer: "Muhammad Mahdi Karim (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Guava_pink_fruit.jpg" },
-  amrood: { url: "/guava.jpg", alt: "Fresh whole and cut amrood / guava fruit (Psidium guajava)", photographer: "Muhammad Mahdi Karim (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Guava_pink_fruit.jpg" },
-  seebekayi: { url: "/guava.jpg", alt: "Fresh whole and cut seebekayi / guava fruit (Psidium guajava)", photographer: "Muhammad Mahdi Karim (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Guava_pink_fruit.jpg" },
-  koyyapazham: { url: "/guava.jpg", alt: "Fresh whole and cut koyyapazham / guava fruit (Psidium guajava)", photographer: "Muhammad Mahdi Karim (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Guava_pink_fruit.jpg" },
-  jama: { url: "/guava.jpg", alt: "Fresh whole and cut jama / guava fruit (Psidium guajava)", photographer: "Muhammad Mahdi Karim (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Guava_pink_fruit.jpg" },
-
-  // Watermelon (Fresh whole watermelon with cut slice, not garden or patch)
-  watermelon: { url: "/watermelon.jpg", alt: "Fresh whole and sliced watermelon fruit (Citrullus lanatus)", photographer: "Art Rachen (Unsplash)", link: "https://unsplash.com/photos/izi5AnlbRIA" },
-  watermelons: { url: "/watermelon.jpg", alt: "Fresh whole and sliced watermelon fruit (Citrullus lanatus)", photographer: "Art Rachen (Unsplash)", link: "https://unsplash.com/photos/izi5AnlbRIA" },
-  tarbooz: { url: "/watermelon.jpg", alt: "Fresh whole and sliced tarbooz / watermelon (Citrullus lanatus)", photographer: "Art Rachen (Unsplash)", link: "https://unsplash.com/photos/izi5AnlbRIA" },
-  kallangadi: { url: "/watermelon.jpg", alt: "Fresh whole and sliced kallangadi / watermelon (Citrullus lanatus)", photographer: "Art Rachen (Unsplash)", link: "https://unsplash.com/photos/izi5AnlbRIA" },
-  tharpoos: { url: "/watermelon.jpg", alt: "Fresh whole and sliced tharpoos / watermelon (Citrullus lanatus)", photographer: "Art Rachen (Unsplash)", link: "https://unsplash.com/photos/izi5AnlbRIA" },
-  puchakaya: { url: "/watermelon.jpg", alt: "Fresh whole and sliced puchakaya / watermelon (Citrullus lanatus)", photographer: "Art Rachen (Unsplash)", link: "https://unsplash.com/photos/izi5AnlbRIA" },
-
-  // Gourds & Melons
-  "ash gourd": { url: "https://upload.wikimedia.org/wikipedia/commons/b/ba/Benincasa_hispida-1-selvapuram-coimbatore-India.jpg", alt: "Fresh authentic ash gourd / wax gourd (Benincasa hispida)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Benincasa_hispida-1-selvapuram-coimbatore-India.jpg" },
-  ashgourd: { url: "https://upload.wikimedia.org/wikipedia/commons/b/ba/Benincasa_hispida-1-selvapuram-coimbatore-India.jpg", alt: "Fresh authentic ash gourd / wax gourd (Benincasa hispida)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Benincasa_hispida-1-selvapuram-coimbatore-India.jpg" },
-  "winter melon": { url: "https://upload.wikimedia.org/wikipedia/commons/b/ba/Benincasa_hispida-1-selvapuram-coimbatore-India.jpg", alt: "Fresh authentic ash gourd / wax gourd (Benincasa hispida)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Benincasa_hispida-1-selvapuram-coimbatore-India.jpg" },
-  petha: { url: "https://upload.wikimedia.org/wikipedia/commons/b/ba/Benincasa_hispida-1-selvapuram-coimbatore-India.jpg", alt: "Fresh authentic ash gourd / petha (Benincasa hispida)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Benincasa_hispida-1-selvapuram-coimbatore-India.jpg" },
-  kumbalakai: { url: "https://upload.wikimedia.org/wikipedia/commons/b/ba/Benincasa_hispida-1-selvapuram-coimbatore-India.jpg", alt: "Fresh authentic ash gourd / kumbalakai (Benincasa hispida)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Benincasa_hispida-1-selvapuram-coimbatore-India.jpg" },
-
-  "bitter gourd": { url: "https://upload.wikimedia.org/wikipedia/commons/e/eb/Momordica_charantia.jpg", alt: "Fresh authentic bitter gourd / bitter melon (Momordica charantia)", photographer: "Eric in SF (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Momordica_charantia.jpg" },
-  "bitter melon": { url: "https://upload.wikimedia.org/wikipedia/commons/e/eb/Momordica_charantia.jpg", alt: "Fresh authentic bitter gourd / bitter melon (Momordica charantia)", photographer: "Eric in SF (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Momordica_charantia.jpg" },
-  karela: { url: "https://upload.wikimedia.org/wikipedia/commons/e/eb/Momordica_charantia.jpg", alt: "Fresh authentic bitter gourd / karela (Momordica charantia)", photographer: "Eric in SF (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Momordica_charantia.jpg" },
-  hagalakayi: { url: "https://upload.wikimedia.org/wikipedia/commons/e/eb/Momordica_charantia.jpg", alt: "Fresh authentic bitter gourd / hagalakayi (Momordica charantia)", photographer: "Eric in SF (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Momordica_charantia.jpg" },
-  pavakkai: { url: "https://upload.wikimedia.org/wikipedia/commons/e/eb/Momordica_charantia.jpg", alt: "Fresh authentic bitter gourd / pavakkai (Momordica charantia)", photographer: "Eric in SF (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Momordica_charantia.jpg" },
-
-  "snake gourd": { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
-  snakegourd: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
-  snakeguard: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
-  "snake guard": { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
-  chichinda: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd / chichinda (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
-  padavalakai: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd / padavalakai (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
-  padavalkayi: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd / padavalkayi (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
-  pudalangai: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd / pudalangai (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
-  potlakaya: { url: "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg", alt: "Fresh authentic snake gourd / potlakaya (Trichosanthes cucumerina)", photographer: "Augustus Binu (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg" },
-
-  "ridge gourd": { url: "https://upload.wikimedia.org/wikipedia/commons/5/59/Luffa_acutangula.jpg", alt: "Fresh green ridge gourd / luffa (Luffa acutangula)", photographer: "SarKaLay (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Luffa_acutangula.jpg" },
-  ridgeguard: { url: "https://upload.wikimedia.org/wikipedia/commons/5/59/Luffa_acutangula.jpg", alt: "Fresh green ridge gourd / tori (Luffa acutangula)", photographer: "SarKaLay (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Luffa_acutangula.jpg" },
-  ridgegourd: { url: "https://upload.wikimedia.org/wikipedia/commons/5/59/Luffa_acutangula.jpg", alt: "Fresh green ridge gourd / tori (Luffa acutangula)", photographer: "SarKaLay (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Luffa_acutangula.jpg" },
-  tori: { url: "https://upload.wikimedia.org/wikipedia/commons/5/59/Luffa_acutangula.jpg", alt: "Fresh green ridge gourd / tori (Luffa acutangula)", photographer: "SarKaLay (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Luffa_acutangula.jpg" },
-  turai: { url: "https://upload.wikimedia.org/wikipedia/commons/5/59/Luffa_acutangula.jpg", alt: "Fresh green ridge gourd / turai (Luffa acutangula)", photographer: "SarKaLay (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Luffa_acutangula.jpg" },
-
-  "bottle gourd": { url: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Courge_encore_verte.jpg", alt: "Fresh green bottle gourd / calabash (Lagenaria siceraria)", photographer: "Kusabana Photo Studio (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Courge_encore_verte.jpg" },
-  lauki: { url: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Courge_encore_verte.jpg", alt: "Fresh green bottle gourd / calabash (Lagenaria siceraria)", photographer: "Kusabana Photo Studio (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Courge_encore_verte.jpg" },
-  doodhi: { url: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Courge_encore_verte.jpg", alt: "Fresh green bottle gourd / calabash (Lagenaria siceraria)", photographer: "Kusabana Photo Studio (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Courge_encore_verte.jpg" },
-  sorekayi: { url: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Courge_encore_verte.jpg", alt: "Fresh green bottle gourd / calabash (Lagenaria siceraria)", photographer: "Kusabana Photo Studio (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Courge_encore_verte.jpg" },
-  surakkai: { url: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Courge_encore_verte.jpg", alt: "Fresh green bottle gourd / calabash (Lagenaria siceraria)", photographer: "Kusabana Photo Studio (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Courge_encore_verte.jpg" },
-  sorakaya: { url: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Courge_encore_verte.jpg", alt: "Fresh green bottle gourd / calabash (Lagenaria siceraria)", photographer: "Kusabana Photo Studio (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Courge_encore_verte.jpg" },
-  calabash: { url: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Courge_encore_verte.jpg", alt: "Fresh green bottle gourd / calabash (Lagenaria siceraria)", photographer: "Kusabana Photo Studio (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Courge_encore_verte.jpg" },
-
-  // Roots & Tubers
-  "elephant foot yam": { url: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Amorphophallus_paeoniifolius_at_Taman_Botani_Negara_Shah_Alam.jpg", alt: "Elephant foot yam / suran corm (Amorphophallus paeoniifolius)", photographer: "Wee Hong (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Amorphophallus_paeoniifolius_at_Taman_Botani_Negara_Shah_Alam.jpg" },
-  "elephant yam": { url: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Amorphophallus_paeoniifolius_at_Taman_Botani_Negara_Shah_Alam.jpg", alt: "Elephant foot yam / suran corm (Amorphophallus paeoniifolius)", photographer: "Wee Hong (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Amorphophallus_paeoniifolius_at_Taman_Botani_Negara_Shah_Alam.jpg" },
-  suran: { url: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Amorphophallus_paeoniifolius_at_Taman_Botani_Negara_Shah_Alam.jpg", alt: "Elephant foot yam / suran corm (Amorphophallus paeoniifolius)", photographer: "Wee Hong (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Amorphophallus_paeoniifolius_at_Taman_Botani_Negara_Shah_Alam.jpg" },
-  amphophalus: { url: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Amorphophallus_paeoniifolius_at_Taman_Botani_Negara_Shah_Alam.jpg", alt: "Elephant foot yam (Amorphophallus paeoniifolius)", photographer: "Wee Hong (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Amorphophallus_paeoniifolius_at_Taman_Botani_Negara_Shah_Alam.jpg" },
-
-  radish: { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
-  raddish: { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
-  mooli: { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic mooli / long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
-  mullangi: { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic mullangi / long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
-  moolangi: { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic moolangi / long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
-  daikon: { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
-  "white radish": { url: "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg", alt: "Fresh authentic long white daikon radishes (Raphanus sativus var. longipinnatus)", photographer: "jetsun (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg" },
-
-  "knol khol": { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic knol khol / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
-  knolkhol: { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic knol khol / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
-  "knool khol": { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic knool khol / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
-  knoolkhol: { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic knool khol / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
-  kohlrabi: { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic kohlrabi / knol khol (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
-  "german turnip": { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic German turnip / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
-  "ganth gobi": { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic ganth gobi / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
-  ganthgobi: { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic ganth gobi / kohlrabi (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
-  "navil kosu": { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic navil kosu / knol khol (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
-  navilkosu: { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic navil kosu / knol khol (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
-  noolkol: { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic noolkol / knol khol (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
-  "nool kol": { url: "https://upload.wikimedia.org/wikipedia/commons/5/5f/KohlrabiinMarket.jpg", alt: "Fresh authentic noolkol / knol khol (Brassica oleracea Gongylodes)", photographer: "Secretlondon (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:KohlrabiinMarket.jpg" },
-
-  // Pulses & Grains
-  "bengal gram": { url: "https://upload.wikimedia.org/wikipedia/commons/1/12/Cicer_arietinum_%284217744781%29.jpg", alt: "Dried whole chickpea / Bengal gram grains (Cicer arietinum)", photographer: "Dinesh Valke (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cicer_arietinum_(4217744781).jpg" },
-  chana: { url: "https://upload.wikimedia.org/wikipedia/commons/1/12/Cicer_arietinum_%284217744781%29.jpg", alt: "Dried whole chickpea / Bengal gram grains (Cicer arietinum)", photographer: "Dinesh Valke (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cicer_arietinum_(4217744781).jpg" },
-  arecanut: { url: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Areca_nut_in_a_basket.jpg", alt: "Arecanut / supari (Areca catechu)", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org/wiki/File:Areca_nut_in_a_basket.jpg" },
-  gur: { url: "https://upload.wikimedia.org/wikipedia/commons/d/dc/Jaggery_blocks.jpg", alt: "Traditional jaggery / gur blocks", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org/wiki/File:Jaggery_blocks.jpg" },
-  jaggery: { url: "https://upload.wikimedia.org/wikipedia/commons/d/dc/Jaggery_blocks.jpg", alt: "Traditional jaggery blocks", photographer: "Wikimedia Commons", link: "https://commons.wikimedia.org/wiki/File:Jaggery_blocks.jpg" },
-  ragi: { url: "https://upload.wikimedia.org/wikipedia/commons/6/61/Eleusine_coracana_Manneczka_%C5%82%C4%99kowata_2020-10-03_03.jpg", alt: "Finger millet / ragi grain spikes (Eleusine coracana)", photographer: "Manneczka Łękowata (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Eleusine_coracana_Manneczka_%C5%82%C4%99kowata_2020-10-03_03.jpg" },
-  "finger millet": { url: "https://upload.wikimedia.org/wikipedia/commons/6/61/Eleusine_coracana_Manneczka_%C5%82%C4%99kowata_2020-10-03_03.jpg", alt: "Finger millet / ragi grain spikes (Eleusine coracana)", photographer: "Manneczka Łękowata (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Eleusine_coracana_Manneczka_%C5%82%C4%99kowata_2020-10-03_03.jpg" },
-  moong: { url: "https://upload.wikimedia.org/wikipedia/commons/8/86/Mung_beans_%28Vigna_radiata%29.jpg", alt: "Whole dry green mung beans (Vigna radiata)", photographer: "Ivar Leidus (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Mung_beans_(Vigna_radiata).jpg" },
-  "green gram": { url: "https://upload.wikimedia.org/wikipedia/commons/8/86/Mung_beans_%28Vigna_radiata%29.jpg", alt: "Whole dry green mung beans (Vigna radiata)", photographer: "Ivar Leidus (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Mung_beans_(Vigna_radiata).jpg" },
-  "mung bean": { url: "https://upload.wikimedia.org/wikipedia/commons/8/86/Mung_beans_%28Vigna_radiata%29.jpg", alt: "Whole dry green mung beans (Vigna radiata)", photographer: "Ivar Leidus (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Mung_beans_(Vigna_radiata).jpg" },
-  "green gram dal": { url: "https://upload.wikimedia.org/wikipedia/commons/8/86/Mung_beans_%28Vigna_radiata%29.jpg", alt: "Whole dry green mung beans (Vigna radiata)", photographer: "Ivar Leidus (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Mung_beans_(Vigna_radiata).jpg" },
-  "moong dal": { url: "https://upload.wikimedia.org/wikipedia/commons/8/86/Mung_beans_%28Vigna_radiata%29.jpg", alt: "Whole dry green mung beans (Vigna radiata)", photographer: "Ivar Leidus (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Mung_beans_(Vigna_radiata).jpg" },
-  "avare dal": { url: "https://upload.wikimedia.org/wikipedia/commons/4/4d/Lablab_purpureus_257105665.jpg", alt: "Fresh hyacinth bean / avare dal pods (Lablab purpureus)", photographer: "Dinesh Valke (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Lablab_purpureus_257105665.jpg" },
-  avare: { url: "https://upload.wikimedia.org/wikipedia/commons/4/4d/Lablab_purpureus_257105665.jpg", alt: "Fresh hyacinth bean / avare pods (Lablab purpureus)", photographer: "Dinesh Valke (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Lablab_purpureus_257105665.jpg" },
-  avarekalu: { url: "https://upload.wikimedia.org/wikipedia/commons/4/4d/Lablab_purpureus_257105665.jpg", alt: "Hyacinth bean / avarekalu (Lablab purpureus)", photographer: "Dinesh Valke (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Lablab_purpureus_257105665.jpg" },
-  "hyacinth bean": { url: "https://upload.wikimedia.org/wikipedia/commons/4/4d/Lablab_purpureus_257105665.jpg", alt: "Hyacinth bean (Lablab purpureus)", photographer: "Dinesh Valke (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Lablab_purpureus_257105665.jpg" },
-  "field bean": { url: "https://upload.wikimedia.org/wikipedia/commons/4/4d/Lablab_purpureus_257105665.jpg", alt: "Field bean / hyacinth bean pods (Lablab purpureus)", photographer: "Dinesh Valke (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Lablab_purpureus_257105665.jpg" },
-
-  // Oilseeds
-  sesame: { url: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Black_sesame.jpg", alt: "Natural raw sesame seeds (Sesamum indicum)", photographer: "National Institute of Korean Language (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Black_sesame.jpg" },
-  "sesame seeds": { url: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Black_sesame.jpg", alt: "Natural raw sesame seeds (Sesamum indicum)", photographer: "National Institute of Korean Language (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Black_sesame.jpg" },
-  sesamum: { url: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Black_sesame.jpg", alt: "Natural raw sesame seeds (Sesamum indicum)", photographer: "National Institute of Korean Language (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Black_sesame.jpg" },
-  til: { url: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Black_sesame.jpg", alt: "Natural raw sesame seeds (Sesamum indicum)", photographer: "National Institute of Korean Language (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Black_sesame.jpg" },
-  gingelly: { url: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Black_sesame.jpg", alt: "Natural raw sesame seeds (Sesamum indicum)", photographer: "National Institute of Korean Language (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Black_sesame.jpg" },
-  ellu: { url: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Black_sesame.jpg", alt: "Natural raw sesame seeds (Sesamum indicum)", photographer: "National Institute of Korean Language (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Black_sesame.jpg" },
-  nuvvulu: { url: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Black_sesame.jpg", alt: "Natural raw sesame seeds (Sesamum indicum)", photographer: "National Institute of Korean Language (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Black_sesame.jpg" },
-  mustard: { url: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=640&q=75", alt: "Natural whole raw mustard seeds (Brassica)", photographer: "Towfiqu barbhuiya (Unsplash)", link: "https://unsplash.com/photos/a-close-up-of-mustard-seeds-EmA2RjP_13Y?utm_source=farmezy&utm_medium=referral" },
-  sarson: { url: "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=640&q=75", alt: "Natural whole raw mustard seeds (Brassica)", photographer: "Towfiqu barbhuiya (Unsplash)", link: "https://unsplash.com/photos/a-close-up-of-mustard-seeds-EmA2RjP_13Y?utm_source=farmezy&utm_medium=referral" },
-
-  // Legumes & Beans
-  beans: { url: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg", alt: "Fresh authentic green beans / French beans (Phaseolus vulgaris)", photographer: "Daderot (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Green_beans_2_-_Massachusetts.jpg" },
-  bean: { url: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg", alt: "Fresh authentic green beans / French beans (Phaseolus vulgaris)", photographer: "Daderot (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Green_beans_2_-_Massachusetts.jpg" },
-  "green beans": { url: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg", alt: "Fresh authentic green beans (Phaseolus vulgaris)", photographer: "Daderot (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Green_beans_2_-_Massachusetts.jpg" },
-  "french beans": { url: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg", alt: "Fresh authentic French beans (Phaseolus vulgaris)", photographer: "Daderot (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Green_beans_2_-_Massachusetts.jpg" },
-  frasbean: { url: "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg", alt: "Fresh authentic French beans / frasbean (Phaseolus vulgaris)", photographer: "Daderot (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Green_beans_2_-_Massachusetts.jpg" },
-
-  thogarikai: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic cluster beans / thogarikai / guar (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
-  thogrikai: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic cluster beans / thogrikai / guar (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
-  "cluster beans": { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic cluster beans / guar (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
-  "cluster bean": { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic cluster beans / guar (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
-  guar: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic guar / cluster beans (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
-  gawar: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic gawar / cluster beans (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
-  gavar: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic gavar / cluster beans (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
-  gorikayi: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic gorikayi / cluster beans (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
-  gorikai: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic gorikai / cluster beans (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
-  kothavarangai: { url: "https://upload.wikimedia.org/wikipedia/commons/4/43/Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG", alt: "Fresh authentic kothavarangai / cluster beans (Cyamopsis tetragonoloba)", photographer: "Yercaud-elango (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Cyamopsis_tetragonoloba-1-yercaud-salem-India.JPG" },
-
-  // Other Commercial Produce
-  broccoli: { url: "https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?auto=format&fit=crop&w=640&q=75", alt: "Fresh green broccoli", photographer: "Annie Spratt (Unsplash)", link: "https://unsplash.com" },
-  garlic: { url: "https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?auto=format&fit=crop&w=640&q=75", alt: "Fresh garlic bulbs", photographer: "Nick Fewings (Unsplash)", link: "https://unsplash.com" },
-  cucumber: { url: "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=640&q=75", alt: "Fresh green cucumbers", photographer: "Harshal S. Hirve (Unsplash)", link: "https://unsplash.com" },
-  cucumbar: { url: "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=640&q=75", alt: "Fresh green cucumber / kheera", photographer: "Harshal S. Hirve (Unsplash)", link: "https://unsplash.com" },
-  kheera: { url: "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=640&q=75", alt: "Fresh green cucumber / kheera", photographer: "Harshal S. Hirve (Unsplash)", link: "https://unsplash.com" },
-  cauliflower: { url: "https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=640&q=75", alt: "Fresh white cauliflower", photographer: "Unsplash", link: "https://unsplash.com" },
-  chilli: { url: "https://images.unsplash.com/photo-1565685110871-1324fc462c84?auto=format&fit=crop&w=640&q=75", alt: "Fresh green chillies", photographer: "Unsplash", link: "https://unsplash.com" },
-  chili: { url: "https://images.unsplash.com/photo-1565685110871-1324fc462c84?auto=format&fit=crop&w=640&q=75", alt: "Fresh chillies", photographer: "Unsplash", link: "https://unsplash.com" },
-  beetroot: { url: "https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?auto=format&fit=crop&w=640&q=75", alt: "Fresh beetroot", photographer: "Unsplash", link: "https://unsplash.com" },
-  capsicum: { url: "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&fit=crop&w=640&q=75", alt: "Fresh bell pepper / capsicum", photographer: "Unsplash", link: "https://unsplash.com" },
-  peas: { url: "https://images.unsplash.com/photo-1587735243615-c03f25aaff15?auto=format&fit=crop&w=640&q=75", alt: "Fresh green peas", photographer: "Unsplash", link: "https://unsplash.com" },
-  spinach: { url: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=640&q=75", alt: "Fresh spinach leaves", photographer: "Unsplash", link: "https://unsplash.com" },
-  banana: { url: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=640&q=75", alt: "Fresh bananas", photographer: "Unsplash", link: "https://unsplash.com" },
-  apple: { url: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=640&q=75", alt: "Fresh apples", photographer: "Unsplash", link: "https://unsplash.com" },
-  mango: { url: "https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=640&q=75", alt: "Fresh mangoes", photographer: "Unsplash", link: "https://unsplash.com" },
-  lemon: { url: "https://images.unsplash.com/photo-1582281298055-e25b84a30b0b?auto=format&fit=crop&w=640&q=75", alt: "Fresh lemons", photographer: "Unsplash", link: "https://unsplash.com" },
-  lime: { url: "https://images.unsplash.com/photo-1582281298055-e25b84a30b0b?auto=format&fit=crop&w=640&q=75", alt: "Fresh limes", photographer: "Unsplash", link: "https://unsplash.com" },
-  grapes: { url: "https://images.unsplash.com/photo-1537640538966-79f369143f8f?auto=format&fit=crop&w=640&q=75", alt: "Fresh grapes", photographer: "Unsplash", link: "https://unsplash.com" },
-  papaya: { url: "/papaya.jpg", alt: "Fresh ripe whole and cut papaya fruit with seeds (Carica papaya)", photographer: "BNC (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Carica_papaya.jpg" },
-  papayas: { url: "/papaya.jpg", alt: "Fresh ripe whole and cut papaya fruit with seeds (Carica papaya)", photographer: "BNC (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Carica_papaya.jpg" },
-  papita: { url: "/papaya.jpg", alt: "Fresh ripe whole and cut papita / papaya fruit (Carica papaya)", photographer: "BNC (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Carica_papaya.jpg" },
-  parangi: { url: "/papaya.jpg", alt: "Fresh ripe whole and cut parangi / papaya fruit (Carica papaya)", photographer: "BNC (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Carica_papaya.jpg" },
-  boppayi: { url: "/papaya.jpg", alt: "Fresh ripe whole and cut boppayi / papaya fruit (Carica papaya)", photographer: "BNC (Wikimedia Commons)", link: "https://commons.wikimedia.org/wiki/File:Carica_papaya.jpg" },
-  pumpkin: { url: "https://images.unsplash.com/photo-1570586437263-ab629fccc818?auto=format&fit=crop&w=640&q=75", alt: "Fresh pumpkin", photographer: "Unsplash", link: "https://unsplash.com" },
-  coriander: { url: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=640&q=75", alt: "Fresh coriander leaves", photographer: "Unsplash", link: "https://unsplash.com" },
-  mint: { url: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=640&q=75", alt: "Fresh mint leaves", photographer: "Unsplash", link: "https://unsplash.com" },
-  wheat: { url: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=640&q=75", alt: "Golden wheat crop", photographer: "Unsplash", link: "https://unsplash.com" },
-  rice: { url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75", alt: "Wholesale rice grains", photographer: "Unsplash", link: "https://unsplash.com" },
-  paddy: { url: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75", alt: "Wholesale paddy / rice", photographer: "Unsplash", link: "https://unsplash.com" },
-  maize: { url: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=640&q=75", alt: "Fresh corn / maize", photographer: "Unsplash", link: "https://unsplash.com" },
-  cotton: { url: "/cotton.jpg", alt: "Harvested white raw cotton bolls and natural fiber (Gossypium)", photographer: "Mehmet Keskin (Unsplash)", link: "https://unsplash.com/photos/CHKPpH62QNk" },
-  kapas: { url: "/cotton.jpg", alt: "Harvested white raw cotton bolls and fiber / kapas (Gossypium)", photographer: "Mehmet Keskin (Unsplash)", link: "https://unsplash.com/photos/CHKPpH62QNk" },
-  kappas: { url: "/cotton.jpg", alt: "Harvested white raw cotton bolls and fiber / kappas (Gossypium)", photographer: "Mehmet Keskin (Unsplash)", link: "https://unsplash.com/photos/CHKPpH62QNk" },
-  "raw cotton": { url: "/cotton.jpg", alt: "Harvested white raw cotton bolls and fiber (Gossypium)", photographer: "Mehmet Keskin (Unsplash)", link: "https://unsplash.com/photos/CHKPpH62QNk" },
-  groundnut: { url: "https://images.unsplash.com/photo-1568283661195-266657962cfc?auto=format&fit=crop&w=640&q=75", alt: "Fresh groundnuts", photographer: "Unsplash", link: "https://unsplash.com" }
+  "tomato": {
+    "url": "/tomato.jpg",
+    "alt": "Fresh red vine tomatoes",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "onion": {
+    "url": "/onion.jpg",
+    "alt": "Fresh red onion bulbs",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "potato": {
+    "url": "/potato.jpg",
+    "alt": "Fresh raw harvested potatoes",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "carrot": {
+    "url": "/carrot.jpg",
+    "alt": "Fresh raw orange carrots",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "cabbage": {
+    "url": "/cabbage.jpg",
+    "alt": "Fresh green cabbage head",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "ginger(green)": {
+    "url": "/ginger_green.jpg",
+    "alt": "Fresh green ginger rhizome",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "ginger": {
+    "url": "/ginger.jpg",
+    "alt": "Fresh ginger rhizome",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "ginger(dry)": {
+    "url": "/ginger.jpg",
+    "alt": "Dry ginger rhizome",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "bhindi(ladies finger)": {
+    "url": "/ladies_finger.jpg",
+    "alt": "Fresh green ladies finger pods",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "cauliflower": {
+    "url": "https://images.unsplash.com/photo-1692956706779-576c151ec712?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8Y2F1bGlmbG93ZXIlMjBoZWFkJTIwdmVnZXRhYmxlfGVufDF8MHx8fDE3OTM3OTM3MTF8MA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh cauliflower head",
+    "photographer": "engin akyurt (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "garlic": {
+    "url": "https://images.unsplash.com/photo-1636210589096-a53d5dacd702?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8Z2FybGljJTIwYnVsYiUyMGNsb3Zlc3xlbnwxfDB8fHwxNzkzNzkzNzEyfDA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Garlic bulb and cloves",
+    "photographer": "Surya Prakash (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "cucumbar(kheera)": {
+    "url": "https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmVlbiUyMGN1Y3VtYmVyfGVufDF8MHx8fDE3OTM3OTM3MTN8MA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh green cucumber",
+    "photographer": "Harshal S. Hirve (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "brinjal": {
+    "url": "/brinjal.jpg",
+    "alt": "Fresh purple brinjal eggplants",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "green chilli": {
+    "url": "https://images.unsplash.com/photo-1599987141071-f5810d32e21a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmVlbiUyMGNoaWxpJTIwcGVwcGVyc3xlbnwxfDB8fHwxNzkzNzkzNzE1fDA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh green chilli peppers",
+    "photographer": "Hari Krishnan (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "beans": {
+    "url": "/beans.jpg",
+    "alt": "beans",
+    "photographer": "Farmezy Verified",
+    "link": "/beans.jpg"
+  },
+  "beetroot": {
+    "url": "https://images.unsplash.com/photo-1744028982670-67ca067bedfa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByYXclMjBiZWV0cm9vdCUyMHZlZ2V0YWJsZXxlbnwxfDB8fHwxNzkzNzkzNzIwfDA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh raw beetroot",
+    "photographer": "Ksenia Pixelesse (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "capsicum": {
+    "url": "https://images.unsplash.com/photo-1622376242797-538aa64a9d38?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8Z3JlZW4lMjBiZWxsJTIwcGVwcGVyJTIwY2Fwc2ljdW18ZW58MXwwfHx8MTc5Mzc5MzcxNHww&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh green capsicum bell pepper",
+    "photographer": "Çağlar Oskay (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "peas wet": {
+    "url": "https://images.unsplash.com/photo-1587735243615-c03f25aaff15?auto=format&fit=crop&w=640&q=75",
+    "alt": "Fresh green peas in pods",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "green peas": {
+    "url": "/green_peas.jpg",
+    "alt": "green peas",
+    "photographer": "Farmezy Verified",
+    "link": "/green_peas.jpg"
+  },
+  "raddish": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Rzodkiew2Rzodkiewki.jpg",
+    "alt": "Fresh white radish roots",
+    "photographer": "Wikimedia Commons",
+    "source": "Wikimedia Commons"
+  },
+  "bottle gourd": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/28/Lagenaria_siceraria_%22geese%22.jpg",
+    "alt": "Fresh green bottle gourd",
+    "photographer": "Wendy Cutler (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "bitter gourd": {
+    "url": "/bitter_gourd.jpg",
+    "alt": "bitter gourd",
+    "photographer": "Farmezy Verified",
+    "link": "/bitter_gourd.jpg"
+  },
+  "drumstick": {
+    "url": "/drumstick.jpg",
+    "alt": "Fresh drumstick moringa pods",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "spinach": {
+    "url": "https://images.unsplash.com/photo-1598278242809-6c21ee17aef1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8Mnx8ZnJlc2glMjBncmVlbiUyMHNwaW5hY2glMjBsZWF2ZXN8ZW58MXwwfHx8MTc5Mzc5MzcxNnww&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh green spinach leaves",
+    "photographer": "Elly Brian (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "pumpkin": {
+    "url": "https://images.unsplash.com/photo-1728945208979-3aee32965b2f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8d2hvbGUlMjBvcmFuZ2UlMjBwdW1wa2luJTIwdmVnZXRhYmxlfGVufDF8MHx8fDE3OTM3OTM3MTd8MA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Whole ripe pumpkin",
+    "photographer": "Giorgio Trovato (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "sweet potato": {
+    "url": "https://images.unsplash.com/photo-1730815048561-45df6f7f331d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8cmF3JTIwc3dlZXQlMjBwb3RhdG8lMjB0dWJlcnxlbnwxfDB8fHwxNzkzNzkzNzE5fDA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Raw sweet potato tubers",
+    "photographer": "Glen Hayoge (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "coriander(leaves)": {
+    "url": "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=640&q=75",
+    "alt": "Fresh coriander leaves",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "methi(leaves)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/49/Methi_leaves.jpg",
+    "alt": "Fresh green fenugreek leaves",
+    "photographer": "Katyare (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "mint(pudina)": {
+    "url": "https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?auto=format&fit=crop&w=640&q=75",
+    "alt": "Fresh mint pudina leaves",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "lemon": {
+    "url": "https://images.unsplash.com/photo-1568569350062-ebfa3cb195df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB5ZWxsb3clMjBsZW1vbnMlMjBmcnVpdHxlbnwxfDB8fHwxNzkzNzkzNzI2fDA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh yellow lemons",
+    "photographer": "Han Lahandoe (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "mushroom": {
+    "url": "https://images.unsplash.com/photo-1552825897-bb5efa86eab1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBidXR0b24lMjBtdXNocm9vbXMlMjB2ZWdldGFibGV8ZW58MXwwfHx8MTc5Mzc5MzcxOHww&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh button mushrooms",
+    "photographer": "Waldemar Brandt (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "colacasia": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/29/Taro_corms_2.jpg",
+    "alt": "Fresh taro root corms (Arbi)",
+    "photographer": "Wikimedia Commons",
+    "source": "Wikimedia Commons"
+  },
+  "yam": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/8e/Elephant_foot_yam.jpg",
+    "alt": "Raw elephant foot yam tuber (Suran)",
+    "photographer": "Aravind Sivaraj (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "water chestnut": {
+    "url": "/water_chestnut.jpg",
+    "alt": "water chestnut",
+    "photographer": "Farmezy Verified",
+    "link": "/water_chestnut.jpg"
+  },
+  "cowpea(veg)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/db/Black_Eyed_Peas_2.jpg",
+    "alt": "Fresh cowpea beans",
+    "photographer": "Hunter Kahn (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "rice": {
+    "url": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75",
+    "alt": "Wholesale rice grains",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "paddy(dhan)(common)": {
+    "url": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75",
+    "alt": "Wholesale paddy rice",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "paddy(dhan)(basmati)": {
+    "url": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75",
+    "alt": "Basmati paddy rice",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "wheat": {
+    "url": "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=640&q=75",
+    "alt": "Golden wheat crop",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "maize": {
+    "url": "https://images.unsplash.com/photo-1634467524884-897d0af5e104?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB5ZWxsb3clMjBjb3JuJTIwY29iJTIwbWFpemV8ZW58MXwwfHx8MTc5Mzc5MzcyN3ww&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh yellow corn maize",
+    "photographer": "Wouter Supardi Salari (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "jowar(sorghum)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/37/Sorghum_bicolor_%28Moench%29.JPG",
+    "alt": "Sorghum jowar grains",
+    "photographer": "Daniel Georg Döhne (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "bajra(pearl millet/cumbu)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f0/Grain_millet%2C_early_grain_fill%2C_Tifton%2C_7-3-02.jpg",
+    "alt": "Pearl millet bajra crop",
+    "photographer": "Wikimedia Commons",
+    "source": "Wikimedia Commons"
+  },
+  "barley (jau)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/75/Barley_in_Slovenia.jpg",
+    "alt": "Barley jau grain spikes",
+    "photographer": "Lucash (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "ragi (finger millet)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/31/Food_grain_finger_millet.jpg",
+    "alt": "Raw finger millet ragi grains",
+    "photographer": "Sengai Podhuvan (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "apple": {
+    "url": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByZWQlMjBhcHBsZXMlMjBmcnVpdHxlbnwxfDB8fHwxNzkzNzkzNzIxfDA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh red apples",
+    "photographer": "Matheus Cenali (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "banana": {
+    "url": "https://images.unsplash.com/photo-1640958900081-7b069dd23e9c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB5ZWxsb3clMjBiYW5hbmElMjBidW5jaHxlbnwxfDB8fHwxNzkzNzkzNzIxfDA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh yellow banana bunch",
+    "photographer": "Gabriel Mihalcea (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "mango": {
+    "url": "https://images.unsplash.com/photo-1553279768-865429fa0078?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8Mnx8ZnJlc2glMjByaXBlJTIwbWFuZ28lMjBmcnVpdHxlbnwxfDB8fHwxNzkzNzkzNzIyfDA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh ripe mango fruit",
+    "photographer": "Becky Mattson (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "grapes": {
+    "url": "https://images.unsplash.com/photo-1725195398648-f3454b552b20?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmFwZXMlMjBidW5jaCUyMGZydWl0fGVufDF8MHx8fDE3OTM3OTM3MjN8MA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh grapes bunch",
+    "photographer": "Yasaman Abedini (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "orange": {
+    "url": "https://images.unsplash.com/photo-1609424572698-04d9d2e04954?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByaXBlJTIwb3JhbmdlJTIwZnJ1aXR8ZW58MXwwfHx8MTc5Mzc5MzcyNHww&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh ripe oranges",
+    "photographer": "Chang Duong (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "papaya": {
+    "url": "/papaya.jpg",
+    "alt": "Fresh ripe whole and cut papaya",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "tamarind": {
+    "url": "/tamarind.jpg",
+    "alt": "Fresh harvested tamarind pods and pulp",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "pomegranate": {
+    "url": "/pomegranate.jpg",
+    "alt": "Fresh whole and open red pomegranate",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "guava": {
+    "url": "/guava.jpg",
+    "alt": "Fresh guava fruit",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "watermelon": {
+    "url": "/watermelon.jpg",
+    "alt": "Fresh whole and sliced watermelon",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "pineapple": {
+    "url": "https://images.unsplash.com/photo-1490885578174-acda8905c2c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB3aG9sZSUyMHBpbmVhcHBsZSUyMGZydWl0fGVufDF8MHx8fDE3OTM3OTM3MjV8MA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Fresh whole pineapple",
+    "photographer": "Julien Pianetti (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "tender coconut": {
+    "url": "/tender_coconut.jpg",
+    "alt": "Fresh green tender coconut",
+    "photographer": "Kilimanjaro STUDIOz (Unsplash)",
+    "source": "Farmzy Local Asset"
+  },
+  "bengal gram(gram)(whole)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Chickpea.jpg",
+    "alt": "Raw dried whole chickpeas (Chana)",
+    "photographer": "Wikimedia Commons",
+    "source": "Wikimedia Commons"
+  },
+  "black gram (urad beans)(whole)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/6f/Black_gram.jpg",
+    "alt": "Raw dried whole black gram (Urad)",
+    "photographer": "Sanjay Acharya (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "green gram (moong)(whole)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Vigna_radiata_MHNT.BOT.2009.17.4.jpg",
+    "alt": "Raw dried whole green gram (Moong)",
+    "photographer": "Roger Culos (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "arhar (tur/red gram)(whole)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Straucherbsen_%28Toor_Dal%29_in_einem_indischen_Supermarkt.jpeg",
+    "alt": "Raw dried pigeon peas (Toor dal)",
+    "photographer": "Dahivada (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "lentil (masur)(whole)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/3/38/Masoor_dal.JPG",
+    "alt": "Raw dried red lentils (Masoor)",
+    "photographer": "Rydia (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "cowpea(lobia/karamani)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/db/Black_Eyed_Peas_2.jpg",
+    "alt": "Raw dried black-eyed peas (Lobia)",
+    "photographer": "Hunter Kahn (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "bullar": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/db/Black_Eyed_Peas_2.jpg",
+    "alt": "Field bean pulse (Avare)",
+    "photographer": "Wikimedia Commons",
+    "source": "Wikimedia Commons"
+  },
+  "soyabean": {
+    "url": "/soybean.jpg",
+    "alt": "soyabean",
+    "photographer": "Farmezy Verified",
+    "link": "/soybean.jpg"
+  },
+  "groundnut": {
+    "url": "/groundnut.jpg",
+    "alt": "groundnut",
+    "photographer": "Farmezy Verified",
+    "link": "/groundnut.jpg"
+  },
+  "mustard": {
+    "url": "/mustard.jpg",
+    "alt": "mustard",
+    "photographer": "Farmezy Verified",
+    "link": "/mustard.jpg"
+  },
+  "sesamum(sesame,gingelly,til)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/ef/Sesame-Seeds.jpg",
+    "alt": "Raw white sesame seeds (Til)",
+    "photographer": "Wikimedia Commons",
+    "source": "Wikimedia Commons"
+  },
+  "sunflower": {
+    "url": "/sunflower_seed.jpg",
+    "alt": "sunflower",
+    "photographer": "Farmezy Verified",
+    "link": "/sunflower_seed.jpg"
+  },
+  "turmeric": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/66/Turmeric_%28Curcuma_longa%29.jpg",
+    "alt": "Fresh raw turmeric rhizomes (Haldi)",
+    "photographer": "Wikimedia Commons",
+    "source": "Wikimedia Commons"
+  },
+  "black pepper": {
+    "url": "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=640&q=75",
+    "alt": "Whole black peppercorns",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "cardamom": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/f8/ElettariaCardamomum.jpg",
+    "alt": "Whole green cardamom pods (Elaichi)",
+    "photographer": "Chhe (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "large cardamom": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/8/86/BlackCardamom.jpg",
+    "alt": "Whole black large cardamom pods",
+    "photographer": "Brian Arthur (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "cummin seed(jeera)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/bf/Jeera_Seeds_Closeup.JPG",
+    "alt": "Whole cumin seeds (Jeera)",
+    "photographer": "Chaitanya B D (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "clove": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Clove_close_up.jpg",
+    "alt": "Whole dried clove buds (Laung)",
+    "photographer": "Sanjay Acharya (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "coconut": {
+    "url": "/coconut.jpg",
+    "alt": "Fresh whole mature coconut and cut half",
+    "photographer": "Wikimedia Commons",
+    "source": "Farmzy Local Asset"
+  },
+  "rose(loose))": {
+    "url": "/rose.jpg",
+    "alt": "Fresh rose flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "rose(local)": {
+    "url": "/rose.jpg",
+    "alt": "Fresh local rose flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "rose(tata)": {
+    "url": "/rose.jpg",
+    "alt": "Fresh rose flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "rose": {
+    "url": "/rose.jpg",
+    "alt": "rose",
+    "photographer": "Farmezy Verified",
+    "link": "/rose.jpg"
+  },
+  "marigold(loose)": {
+    "url": "/marigold.jpg",
+    "alt": "Fresh marigold flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "marigold(calcutta)": {
+    "url": "/marigold.jpg",
+    "alt": "Fresh Calcutta marigold flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "marigold": {
+    "url": "/marigold.jpg",
+    "alt": "Fresh marigold flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "jasmine": {
+    "url": "/jasmine.jpg",
+    "alt": "Fresh jasmine flowers and buds",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "kakada": {
+    "url": "/jasmine.jpg",
+    "alt": "Fresh kakada jasmine flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "gladiolus": { url: "/gladiolus.jpg", alt: "Fresh gladiolus cut flowers", photographer: "Farmzy Curated", source: "Farmzy Local Asset" },
+  "gladiolus(cut flower)": {
+    "url": "/gladiolus.jpg",
+    "alt": "Fresh gladiolus cut flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "carnation": {
+    "url": "/carnation.jpg",
+    "alt": "Fresh carnation flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "chrysanthemum": {
+    "url": "/chrysanthemum.jpg",
+    "alt": "Fresh chrysanthemum flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "chrysanthemum(loose)": {
+    "url": "/chrysanthemum.jpg",
+    "alt": "Fresh loose chrysanthemum flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "gerbera": {
+    "url": "/gerbera.jpg",
+    "alt": "Fresh gerbera flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "gladiolus bulb": {
+    "url": "/gladiolus.jpg",
+    "alt": "Gladiolus bulbs",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "lotus": {
+    "url": "/lotus.jpg",
+    "alt": "Fresh sacred lotus flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "lotus sticks": {
+    "url": "/lotus.jpg",
+    "alt": "Lotus stems and flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "orchid": {
+    "url": "/orchid.jpg",
+    "alt": "Fresh orchid flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "tuberose": {
+    "url": "/tuberose.jpg",
+    "alt": "Fresh tuberose flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "tube rose(double)": {
+    "url": "/tuberose.jpg",
+    "alt": "Fresh double tube rose flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "tube rose(loose)": {
+    "url": "/tuberose.jpg",
+    "alt": "Fresh loose tube rose flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "tube rose(single)": {
+    "url": "/tuberose.jpg",
+    "alt": "Fresh single tube rose flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "tube flower": {
+    "url": "/tuberose.jpg",
+    "alt": "Fresh tube flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "tulip": {
+    "url": "/tulip.jpg",
+    "alt": "Fresh tulip flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "crossandra": {
+    "url": "/crossandra.jpg",
+    "alt": "Fresh orange crossandra flowers",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "amaranthus": {
+    "url": "/amaranthus.jpg",
+    "alt": "Fresh edible amaranthus leafy greens",
+    "photographer": "Farmzy Curated",
+    "source": "Farmzy Local Asset"
+  },
+  "almond(badam)": {
+    "url": "https://images.unsplash.com/photo-1608797178974-15b35a64ede9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8cmF3JTIwd2hvbGUlMjBhbG1vbmRzJTIwbnV0c3xlbnwxfDB8fHwxNzkzNzkzNzI4fDA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Raw whole almonds",
+    "photographer": "Mockupo (Unsplash)",
+    "source": "Curated Photography"
+  },
+  "cashewnuts": {
+    "url": "/cashewnuts.jpg",
+    "alt": "cashewnuts",
+    "photographer": "Farmezy Verified",
+    "link": "/cashewnuts.jpg"
+  },
+  "walnut": {
+    "url": "https://images.unsplash.com/photo-1635843108103-9af0ea224a19?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8Mnx8d2hvbGUlMjB3YWxudXRzJTIwbnV0cyUyMGluJTIwc2hlbGx8ZW58MXwwfHx8MTc5Mzc5MzczMHww&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Whole walnuts in shell",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "kismis": {
+    "url": "https://images.unsplash.com/photo-1589733955941-5eeaf752f6dd?auto=format&fit=crop&w=640&q=75",
+    "alt": "Golden raisins / kismis",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "coffee": {
+    "url": "https://images.unsplash.com/photo-1447933601403-0c6688de566e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8cm9hc3RlZCUyMGNvZmZlZSUyMGJlYW5zfGVufDF8MHx8fDE3OTM3OTM3MzF8MA&ixlib=rb-4.1.0&q=80&w=640",
+    "alt": "Whole roasted coffee beans",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "tea": {
+    "url": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=640&q=75",
+    "alt": "Fresh tea leaves",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "cotton": {
+    "url": "/cotton.jpg",
+    "alt": "Harvested white raw cotton bolls and fiber",
+    "photographer": "Mehmet Keskin (Unsplash)",
+    "source": "Farmzy Local Asset"
+  },
+  "jute": {
+    "url": "https://images.unsplash.com/photo-1606041008023-472dfb5e530f?auto=format&fit=crop&w=640&q=75",
+    "alt": "Raw golden jute fiber",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "tobacco": {
+    "url": "/tobacco.jpg",
+    "alt": "tobacco",
+    "photographer": "Farmezy Verified",
+    "link": "/tobacco.jpg"
+  },
+  "betel leaves": {
+    "url": "/betel_leaves.jpg",
+    "alt": "Fresh green betel leaf (Paan)",
+    "photographer": "Farmezy Verified",
+    "source": "Farmzy Local Asset"
+  },
+  "lemongrass": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/b/bd/YosriNov04Pokok_Serai.JPG",
+    "alt": "Fresh green lemongrass stalks",
+    "photographer": "Wikimedia Commons",
+    "source": "Wikimedia Commons"
+  },
+  "arecanut(betelnut/supari)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Areca_nut_in_a_basket.jpg",
+    "alt": "Harvested arecanut / betel nut",
+    "photographer": "Wikimedia Commons",
+    "source": "Wikimedia Commons"
+  },
+  "bamboo": {
+    "url": "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=640&q=75",
+    "alt": "Fresh green bamboo stalks",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "honey": {
+    "url": "https://images.unsplash.com/photo-1471943311424-646960669fbc?auto=format&fit=crop&w=640&q=75",
+    "alt": "Pure natural honey jar",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "absinthe": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/eb/Artemisia_absinthium_P1210748.jpg",
+    "alt": "Artemisia absinthium herb",
+    "photographer": "David Monniaux (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "fish": {
+    "url": "/fish.jpg",
+    "alt": "fish",
+    "photographer": "Farmezy Verified",
+    "link": "/fish.jpg"
+  },
+  "egg": {
+    "url": "https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=640&q=75",
+    "alt": "Fresh farm eggs",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "cock": {
+    "url": "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=640&q=75",
+    "alt": "Farm rooster / cock",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "cow": {
+    "url": "/cow.jpg",
+    "alt": "cow",
+    "photographer": "Farmezy Verified",
+    "link": "/cow.jpg"
+  },
+  "bull": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/1/11/Bos_taurus_indicus.jpg",
+    "alt": "Indian Zebu bull (Bos taurus indicus)",
+    "photographer": "Scott Bauer (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "calf": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/f/fb/New_born_Frisian_red_white_calf.jpg",
+    "alt": "Young newborn calf",
+    "photographer": "Uberprutser (Wikimedia Commons)",
+    "source": "Wikimedia Commons"
+  },
+  "sheep": {
+    "url": "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=640&q=75",
+    "alt": "Farm sheep",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "goat": {
+    "url": "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=640&q=75",
+    "alt": "Farm goat",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "gur(jaggery)": {
+    "url": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Jaggery_blocks.jpg",
+    "alt": "Traditional jaggery blocks",
+    "photographer": "Wikimedia Commons",
+    "source": "Wikimedia Commons"
+  },
+  "sugarcane": {
+    "url": "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&w=640&q=75",
+    "alt": "Fresh harvested sugarcane stalks",
+    "photographer": "Curated Photography",
+    "source": "Curated Photography"
+  },
+  "adrak": {
+    "url": "/ginger.jpg",
+    "alt": "Fresh adrak ginger",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "inji": {
+    "url": "/ginger.jpg",
+    "alt": "Fresh inji ginger",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "allam": {
+    "url": "/ginger.jpg",
+    "alt": "Fresh allam ginger",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "shunti": {
+    "url": "/ginger.jpg",
+    "alt": "Fresh shunti ginger",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "ladies finger": {
+    "url": "/ladies_finger.jpg",
+    "alt": "Fresh green ladies finger pods",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "lady finger": {
+    "url": "/ladies_finger.jpg",
+    "alt": "Fresh green lady finger pods",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "bhindi": {
+    "url": "/ladies_finger.jpg",
+    "alt": "Fresh green bhindi okra pods",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "okra": {
+    "url": "/ladies_finger.jpg",
+    "alt": "Fresh green okra pods",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "patta gobhi": {
+    "url": "/cabbage.jpg",
+    "alt": "Fresh green cabbage head",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "bandha gobhi": {
+    "url": "/cabbage.jpg",
+    "alt": "Fresh green cabbage head",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "muttakose": {
+    "url": "/cabbage.jpg",
+    "alt": "Fresh green muttakose cabbage head",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "moringa": {
+    "url": "/drumstick.jpg",
+    "alt": "Fresh harvested moringa pods",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "sahjan": {
+    "url": "/drumstick.jpg",
+    "alt": "Fresh harvested sahjan pods",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "green banana": {
+    "url": "/green_banana.jpg",
+    "alt": "Fresh raw green cooking bananas",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "banana - green": {
+    "url": "/green_banana.jpg",
+    "alt": "Fresh raw green cooking bananas",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "banana green": {
+    "url": "/green_banana.jpg",
+    "alt": "Fresh raw green cooking bananas",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "plantain": {
+    "url": "/green_banana.jpg",
+    "alt": "Fresh raw green plantains",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "raw banana": {
+    "url": "/green_banana.jpg",
+    "alt": "Fresh raw green cooking bananas",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "mosambi": {
+    "url": "/mosambi.jpg",
+    "alt": "Fresh Indian sweet lime mosambi",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "sweet lime": {
+    "url": "/mosambi.jpg",
+    "alt": "Fresh Indian sweet lime mosambi",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "copra": {
+    "url": "/coconut.jpg",
+    "alt": "Mature coconut and copra kernel",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "nariyal": {
+    "url": "/coconut.jpg",
+    "alt": "Fresh mature nariyal coconut",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "tenginakayi": {
+    "url": "/coconut.jpg",
+    "alt": "Fresh mature tenginakayi coconut",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "thengai": {
+    "url": "/coconut.jpg",
+    "alt": "Fresh mature thengai coconut",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "green coconut": {
+    "url": "/tender_coconut.jpg",
+    "alt": "Fresh green tender coconut",
+    "photographer": "Kilimanjaro STUDIOz (Unsplash)",
+    "link": "https://unsplash.com/photos/WmZLDvHZJfQ"
+  },
+  "elnir": {
+    "url": "/tender_coconut.jpg",
+    "alt": "Fresh green tender coconut elnir",
+    "photographer": "Kilimanjaro STUDIOz (Unsplash)",
+    "link": "https://unsplash.com/photos/WmZLDvHZJfQ"
+  },
+  "elaneer": {
+    "url": "/tender_coconut.jpg",
+    "alt": "Fresh green tender coconut elaneer",
+    "photographer": "Kilimanjaro STUDIOz (Unsplash)",
+    "link": "https://unsplash.com/photos/WmZLDvHZJfQ"
+  },
+  "daab": {
+    "url": "/tender_coconut.jpg",
+    "alt": "Fresh green tender coconut daab",
+    "photographer": "Kilimanjaro STUDIOz (Unsplash)",
+    "link": "https://unsplash.com/photos/WmZLDvHZJfQ"
+  },
+  "imli": {
+    "url": "/tamarind.jpg",
+    "alt": "Fresh harvested imli tamarind pods",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "hunasehannu": {
+    "url": "/tamarind.jpg",
+    "alt": "Fresh hunasehannu tamarind pods",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "puli": {
+    "url": "/tamarind.jpg",
+    "alt": "Fresh puli tamarind pods",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "chintapandu": {
+    "url": "/tamarind.jpg",
+    "alt": "Fresh chintapandu tamarind pods",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "amaranth": {
+    "url": "/amaranthus.jpg",
+    "alt": "Fresh edible amaranth leaves",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "red amaranthus": {
+    "url": "/amaranthus.jpg",
+    "alt": "Fresh edible red amaranthus greens",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "green amaranthus": {
+    "url": "/amaranthus.jpg",
+    "alt": "Fresh edible green amaranthus greens",
+    "photographer": "Wikimedia Commons",
+    "link": "https://commons.wikimedia.org"
+  },
+  "kapas": {
+    "url": "/cotton.jpg",
+    "alt": "Harvested white raw cotton bolls and fiber",
+    "photographer": "Mehmet Keskin (Unsplash)",
+    "link": "https://unsplash.com/photos/CHKPpH62QNk"
+  },
+  "kappas": {
+    "url": "/cotton.jpg",
+    "alt": "Harvested white raw cotton bolls and fiber",
+    "photographer": "Mehmet Keskin (Unsplash)",
+    "link": "https://unsplash.com/photos/CHKPpH62QNk"
+  },
+  "raw cotton": {
+    "url": "/cotton.jpg",
+    "alt": "Harvested white raw cotton bolls and fiber",
+    "photographer": "Mehmet Keskin (Unsplash)",
+    "link": "https://unsplash.com/photos/CHKPpH62QNk"
+  }
+,
+  "roses": {
+    "url": "/rose.jpg",
+    "alt": "roses",
+    "photographer": "Farmezy Verified",
+    "link": "/rose.jpg"
+  }
+,
+  "chicory": {
+    "url": "/chicory.jpg",
+    "alt": "chicory",
+    "photographer": "Farmezy Verified",
+    "link": "/chicory.jpg"
+  }
+,
+  "arecanut": {
+    "url": "/arecanut.jpg",
+    "alt": "arecanut",
+    "photographer": "Farmezy Verified",
+    "link": "/arecanut.jpg"
+  }
+,
+  "almond": {
+    "url": "/almond.jpg",
+    "alt": "almond",
+    "photographer": "Farmezy Verified",
+    "link": "/almond.jpg"
+  }
+,
+  "dry grapes": {
+    "url": "/dry_grapes.jpg",
+    "alt": "dry grapes",
+    "photographer": "Farmezy Verified",
+    "link": "/dry_grapes.jpg"
+  }
+,
+  "wood": {
+    "url": "/wood.jpg",
+    "alt": "wood",
+    "photographer": "Farmezy Verified",
+    "link": "/wood.jpg"
+  }
+,
+  "firewood": {
+    "url": "/firewood.jpg",
+    "alt": "firewood",
+    "photographer": "Farmezy Verified",
+    "link": "/firewood.jpg"
+  }
+,
+  "custard apple": {
+    "url": "/custard_apple.jpg",
+    "alt": "custard apple",
+    "photographer": "Farmezy Verified",
+    "link": "/custard_apple.jpg"
+  }
+,
+  "sitaphal": {
+    "url": "/custard_apple.jpg",
+    "alt": "sitaphal",
+    "photographer": "Farmezy Verified",
+    "link": "/custard_apple.jpg"
+  }
+,
+  "seetapal": {
+    "url": "/custard_apple.jpg",
+    "alt": "seetapal",
+    "photographer": "Farmezy Verified",
+    "link": "/custard_apple.jpg"
+  }
+,
+  "musk melon": {
+    "url": "/musk_melon.jpg",
+    "alt": "musk melon",
+    "photographer": "Farmezy Verified",
+    "link": "/musk_melon.jpg"
+  }
+,
+  "prawn": {
+    "url": "/prawn.jpg",
+    "alt": "prawn",
+    "photographer": "Farmezy Verified",
+    "link": "/prawn.jpg"
+  }
+,
+  "she buffalo": {
+    "url": "/she_buffalo.jpg",
+    "alt": "she buffalo",
+    "photographer": "Farmezy Verified",
+    "link": "/she_buffalo.jpg"
+  }
+,
+  "soybean": {
+    "url": "/soybean.jpg",
+    "alt": "soybean",
+    "photographer": "Farmezy Verified",
+    "link": "/soybean.jpg"
+  }
+,
+  "castor seed": {
+    "url": "/castor_seed.jpg",
+    "alt": "castor seed",
+    "photographer": "Farmezy Verified",
+    "link": "/castor_seed.jpg"
+  }
+,
+  "mustard oil": {
+    "url": "/mustard_oil.jpg",
+    "alt": "mustard oil",
+    "photographer": "Farmezy Verified",
+    "link": "/mustard_oil.jpg"
+  }
+,
+  "coconut oil": {
+    "url": "/coconut_oil.jpg",
+    "alt": "coconut oil",
+    "photographer": "Farmezy Verified",
+    "link": "/coconut_oil.jpg"
+  }
+,
+  "ghee": {
+    "url": "/ghee.jpg",
+    "alt": "ghee",
+    "photographer": "Farmezy Verified",
+    "link": "/ghee.jpg"
+  }
+,
+  "rubber": {
+    "url": "/rubber.jpg",
+    "alt": "rubber",
+    "photographer": "Farmezy Verified",
+    "link": "/rubber.jpg"
+  }
+,
+  "mint": {
+    "url": "/mint.jpg",
+    "alt": "mint",
+    "photographer": "Farmezy Verified",
+    "link": "/mint.jpg"
+  }
+,
+  "amla": {
+    "url": "/amla.jpg",
+    "alt": "amla",
+    "photographer": "Farmezy Verified",
+    "link": "/amla.jpg"
+  }
+,
+  "green gram": {
+    "url": "/green_gram_whole.jpg",
+    "alt": "green gram",
+    "photographer": "Farmezy Verified",
+    "link": "/green_gram_whole.jpg"
+  }
+,
+  "moong dal": {
+    "url": "/green_gram_dal.jpg",
+    "alt": "moong dal",
+    "photographer": "Farmezy Verified",
+    "link": "/green_gram_dal.jpg"
+  }
+,
+  "guar seed": {
+    "url": "/guar_seed.jpg",
+    "alt": "guar seed",
+    "photographer": "Farmezy Verified",
+    "link": "/guar_seed.jpg"
+  }
+,
+  "bengal gram": {
+    "url": "/bengal_gram_whole.jpg",
+    "alt": "bengal gram",
+    "photographer": "Farmezy Verified",
+    "link": "/bengal_gram_whole.jpg"
+  }
+,
+  "chana dal": {
+    "url": "/bengal_gram_dal.jpg",
+    "alt": "chana dal",
+    "photographer": "Farmezy Verified",
+    "link": "/bengal_gram_dal.jpg"
+  }
+,
+  "red gram": {
+    "url": "/red_gram_dal.jpg",
+    "alt": "red gram",
+    "photographer": "Farmezy Verified",
+    "link": "/red_gram_dal.jpg"
+  }
+,
+  "toor dal": {
+    "url": "/red_gram_dal.jpg",
+    "alt": "toor dal",
+    "photographer": "Farmezy Verified",
+    "link": "/red_gram_dal.jpg"
+  }
+,
+  "coriander seed": {
+    "url": "/coriander_seed.jpg",
+    "alt": "coriander seed",
+    "photographer": "Farmezy Verified",
+    "link": "/coriander_seed.jpg"
+  }
+,
+  "dry chillies": {
+    "url": "/dry_chillies.jpg",
+    "alt": "dry chillies",
+    "photographer": "Farmezy Verified",
+    "link": "/dry_chillies.jpg"
+  }
+,
+  "cluster beans": {
+    "url": "/cluster_beans.jpg",
+    "alt": "cluster beans",
+    "photographer": "Farmezy Verified",
+    "link": "/cluster_beans.jpg"
+  }
+,
+  "tapioca": {
+    "url": "/tapioca.jpg",
+    "alt": "tapioca",
+    "photographer": "Farmezy Verified",
+    "link": "/tapioca.jpg"
+  }
+,
+  "ridge gourd": {
+    "url": "/ridge_gourd.jpg",
+    "alt": "ridge gourd",
+    "photographer": "Farmezy Verified",
+    "link": "/ridge_gourd.jpg"
+  }
+,
+  "tinda": {
+    "url": "/tinda.jpg",
+    "alt": "tinda",
+    "photographer": "Farmezy Verified",
+    "link": "/tinda.jpg"
+  }
+,
+  "knool khol": {
+    "url": "/knool_khol.jpg",
+    "alt": "knool khol",
+    "photographer": "Farmezy Verified",
+    "link": "/knool_khol.jpg"
+  },
+  "betal leaves": {
+    "url": "/betel_leaves.jpg",
+    "alt": "betal leaves",
+    "photographer": "Farmezy Verified",
+    "link": "/betel_leaves.jpg"
+  },
+  "same/savi": {
+    "url": "/savi.jpg",
+    "alt": "same/savi",
+    "photographer": "Farmezy Verified",
+    "link": "/savi.jpg"
+  },
+  "savi": {
+    "url": "/savi.jpg",
+    "alt": "savi",
+    "photographer": "Farmezy Verified",
+    "link": "/savi.jpg"
+  },
+  "orsevi": {
+    "url": "/savi.jpg",
+    "alt": "orsevi",
+    "photographer": "Farmezy Verified",
+    "link": "/savi.jpg"
+  },
+  "fig": {
+    "url": "/fig.jpg",
+    "alt": "fig",
+    "photographer": "Farmezy Verified",
+    "link": "/fig.jpg"
+  },
+  "anjur": {
+    "url": "/fig.jpg",
+    "alt": "anjur",
+    "photographer": "Farmezy Verified",
+    "link": "/fig.jpg"
+  },
+  "anjeer": {
+    "url": "/fig.jpg",
+    "alt": "anjeer",
+    "photographer": "Farmezy Verified",
+    "link": "/fig.jpg"
+  },
+  "fig(anjura/anjeer)": {
+    "url": "/fig.jpg",
+    "alt": "fig(anjura/anjeer)",
+    "photographer": "Farmezy Verified",
+    "link": "/fig.jpg"
+  },
+  "groundnuts": { "url": "/groundnut.jpg", "alt": "groundnuts", "photographer": "Farmezy Verified", "link": "/groundnut.jpg" },
+  "safflower": { "url": "/safflower.jpg", "alt": "safflower", "photographer": "Farmezy Verified", "link": "/safflower.jpg" },
+  "kardi": { "url": "/safflower.jpg", "alt": "kardi", "photographer": "Farmezy Verified", "link": "/safflower.jpg" },
+  "ghee": { "url": "/ghee.jpg", "alt": "ghee", "photographer": "Farmezy Verified", "link": "/ghee.jpg" },
+  "bengal gram": { "url": "/bengal_gram_whole.jpg", "alt": "bengal gram", "photographer": "Farmezy Verified", "link": "/bengal_gram_whole.jpg" },
+  "black gram": { "url": "/black_gram.jpg", "alt": "black gram", "photographer": "Farmezy Verified", "link": "/black_gram.jpg" },
+  "black gram(urd beans)(whole)": { "url": "/black_gram.jpg", "alt": "black gram", "photographer": "Farmezy Verified", "link": "/black_gram.jpg" },
+  "black gram dal(urd dal)": { "url": "/black_gram.jpg", "alt": "black gram dal", "photographer": "Farmezy Verified", "link": "/black_gram.jpg" },
+  "urad": { "url": "/black_gram.jpg", "alt": "urad", "photographer": "Farmezy Verified", "link": "/black_gram.jpg" },
+  "masoor dal": { "url": "/masoor_dal.jpg", "alt": "masoor dal", "photographer": "Farmezy Verified", "link": "/masoor_dal.jpg" },
+  "masur dal": { "url": "/masoor_dal.jpg", "alt": "masur dal", "photographer": "Farmezy Verified", "link": "/masoor_dal.jpg" },
+  "coriander seeds": { "url": "/coriander_seed.jpg", "alt": "coriander seeds", "photographer": "Farmezy Verified", "link": "/coriander_seed.jpg" },
+  "poppy seeds": { "url": "/poppy_seeds.jpg", "alt": "poppy seeds", "photographer": "Farmezy Verified", "link": "/poppy_seeds.jpg" },
+  "methi seeds": { "url": "/methi_seeds.jpg", "alt": "methi seeds", "photographer": "Farmezy Verified", "link": "/methi_seeds.jpg" },
+  "ash gourd": { "url": "/ash_gourd.jpg", "alt": "ash gourd", "photographer": "Farmezy Verified", "link": "/ash_gourd.jpg" },
+  "ashgourd": { "url": "/ash_gourd.jpg", "alt": "ashgourd", "photographer": "Farmezy Verified", "link": "/ash_gourd.jpg" },
+  "ascot": { "url": "/ash_gourd.jpg", "alt": "ascot", "photographer": "Farmezy Verified", "link": "/ash_gourd.jpg" },
+  "white pumpkin": { "url": "/ash_gourd.jpg", "alt": "white pumpkin", "photographer": "Farmezy Verified", "link": "/ash_gourd.jpg" },
+  "snake gourd": { "url": "/snake_gourd.jpg", "alt": "snake gourd", "photographer": "Farmezy Verified", "link": "/snake_gourd.jpg" },
+  "snakeguard": { "url": "/snake_gourd.jpg", "alt": "snakeguard", "photographer": "Farmezy Verified", "link": "/snake_gourd.jpg" },
+  "ridge gourd": { "url": "/ridge_gourd.jpg", "alt": "ridge gourd", "photographer": "Farmezy Verified", "link": "/ridge_gourd.jpg" },
+  "ridgeguard(tori)": { "url": "/ridge_gourd.jpg", "alt": "ridgeguard(tori)", "photographer": "Farmezy Verified", "link": "/ridge_gourd.jpg" },
+  "ridge gourd(permal/hybrid gourd)": { "url": "/ridge_gourd.jpg", "alt": "ridge gourd", "photographer": "Farmezy Verified", "link": "/ridge_gourd.jpg" }
 }
 
 function findCuratedCropImage(name) {
@@ -1260,7 +2407,7 @@ const BOTANICALLY_SENSITIVE_FALLBACK_CROPS = [
   "watermelon", "watermelons", "tarbooz", "kallangadi", "tharpoos", "puchakaya",
   "cabbage", "patta gobhi", "bandha gobhi", "muttakose",
   "okra", "ladies finger", "lady finger", "lady s finger", "bhindi", "bhendi", "vendakkai", "bende", "bendakaya",
-  "bengal gram", "chana", "arecanut", "gur", "jaggery"
+  "bengal gram", "chana", "arecanut", "gur", "jaggery", "savi", "same", "orsevi", "betel", "betal", "fig", "anjur", "anjeer", "chicory", "groundnuts", "safflower", "kardi", "black gram", "urad", "masoor", "masur", "poppy", "methi", "fenugreek", "ash gourd", "ashgourd", "ascot", "white pumpkin", "snake gourd", "snakeguard", "ridge gourd", "ridgeguard"
 ]
 
 function isBotanicallySensitiveCrop(name) {
@@ -1907,7 +3054,7 @@ async function handleRequest(req, res) {
 
       if (image && listing.imageSource !== "farmer") {
         const cached = imageCache.get(String(listing.crop || "").toLowerCase().trim())
-        if (cached?.data?.url && cached.data.url !== "/placeholder.png" && !cached.data.url.startsWith("/")) {
+        if (cached?.data?.url && cached.data.url !== "/placeholder.png") {
           image = cached.data.url
         }
         if (cached?.data?.photographer) {
@@ -2053,6 +3200,367 @@ async function handleRequest(req, res) {
     return
   }
 
+  
+  if (requestUrl.pathname === "/api/notifications/stream" && req.method === "GET") {
+    const userId = requestUrl.searchParams.get("userId") || ""
+    const phone = requestUrl.searchParams.get("phone") || ""
+    const role = requestUrl.searchParams.get("role") || ""
+
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      "Connection": "keep-alive",
+      "Access-Control-Allow-Origin": "*",
+      "X-Accel-Buffering": "no"
+    })
+
+    const clientId = "sse_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7)
+    sseClients.set(clientId, { res, userId, phone, role })
+
+    res.write(": connection established\n\n")
+
+    notifications = loadNotifications()
+    const userNotifs = notifications.filter(n => matchesUser(n, userId, phone))
+    const unreadCount = userNotifs.filter(n => !n.read).length
+    res.write("data: " + JSON.stringify({ type: "init", unreadCount }) + "\n\n")
+
+    req.on("close", () => {
+      sseClients.delete(clientId)
+    })
+    return
+  }
+
+  if (requestUrl.pathname === "/api/notifications" && req.method === "GET") {
+    notifications = loadNotifications()
+    const userId = requestUrl.searchParams.get("userId")
+    const phone = requestUrl.searchParams.get("phone")
+    const role = requestUrl.searchParams.get("role")
+
+    let result = notifications
+    if (userId || phone) {
+      result = result.filter(n => matchesUser(n, userId, phone))
+    }
+    if (role) {
+      result = result.filter(n => !n.role || n.role === role)
+    }
+
+    const unreadCount = result.filter(n => !n.read).length
+    res.writeHead(200).end(JSON.stringify({ notifications: result, unreadCount }))
+    return
+  }
+
+  if (requestUrl.pathname.startsWith("/api/notifications/") && requestUrl.pathname.endsWith("/read") && req.method === "PATCH") {
+    const parts = requestUrl.pathname.split("/")
+    const notifId = parts[3]
+    notifications = loadNotifications()
+    const notif = notifications.find(n => n.id === notifId)
+    if (!notif) {
+      res.writeHead(404).end(JSON.stringify({ error: "Notification not found" }))
+      return
+    }
+    notif.read = true
+    notif.readAt = new Date().toISOString()
+    saveNotifications(notifications)
+    res.writeHead(200).end(JSON.stringify({ success: true, notification: notif }))
+    return
+  }
+
+  if (requestUrl.pathname === "/api/notifications/read-all" && req.method === "POST") {
+    try {
+      let body = ""
+      for await (const chunk of req) body += chunk
+      const data = JSON.parse(body || "{}")
+      const { userId, phone, role } = data
+
+      notifications = loadNotifications()
+      let updatedCount = 0
+      notifications.forEach(n => {
+        if (matchesUser(n, userId, phone)) {
+          if (!role || n.role === role) {
+            if (!n.read) {
+              n.read = true
+              n.readAt = new Date().toISOString()
+              updatedCount++
+            }
+          }
+        }
+      })
+
+      if (updatedCount > 0) {
+        saveNotifications(notifications)
+      }
+
+      res.writeHead(200).end(JSON.stringify({ success: true, updatedCount }))
+    } catch (err) {
+      res.writeHead(400).end(JSON.stringify({ error: "Failed to mark all as read: " + err.message }))
+    }
+    return
+  }
+
+  
+  // --- REVIEWS & RATINGS APIS ---
+  if (requestUrl.pathname === "/api/reviews" && req.method === "GET") {
+    reviews = loadReviews()
+    const crop = requestUrl.searchParams.get("crop")?.trim()?.toLowerCase()
+    const farmerId = requestUrl.searchParams.get("farmerId")?.trim()
+    const customerId = requestUrl.searchParams.get("customerId")?.trim()
+    const orderId = requestUrl.searchParams.get("orderId")?.trim()
+    const listingId = requestUrl.searchParams.get("listingId")?.trim()
+
+    let filtered = reviews
+    if (crop) {
+      filtered = filtered.filter(r => String(r.crop || "").toLowerCase() === crop || String(r.crop || "").toLowerCase().includes(crop))
+    }
+    if (farmerId) {
+      filtered = filtered.filter(r => String(r.farmerId) === farmerId)
+    }
+    if (customerId) {
+      filtered = filtered.filter(r => String(r.customerId) === customerId)
+    }
+    if (orderId) {
+      filtered = filtered.filter(r => String(r.orderId) === orderId)
+    }
+    if (listingId) {
+      filtered = filtered.filter(r => String(r.listingId) === listingId)
+    }
+
+    // Build crop breakdown stats
+    const allCropStats = {}
+    reviews.forEach(r => {
+      const c = String(r.crop || "").toLowerCase()
+      if (!allCropStats[c]) allCropStats[c] = []
+      allCropStats[c].push(r)
+    })
+    const cropStatsMap = {}
+    for (const [k, list] of Object.entries(allCropStats)) {
+      cropStatsMap[k] = calculateReviewStats(list)
+    }
+
+    // Build farmer breakdown stats
+    const allFarmerStats = {}
+    reviews.forEach(r => {
+      const f = String(r.farmerId || "")
+      if (!allFarmerStats[f]) allFarmerStats[f] = []
+      allFarmerStats[f].push(r)
+    })
+    const farmerStatsMap = {}
+    for (const [k, list] of Object.entries(allFarmerStats)) {
+      farmerStatsMap[k] = calculateReviewStats(list)
+    }
+
+    res.writeHead(200).end(JSON.stringify({
+      reviews: filtered,
+      stats: calculateReviewStats(filtered),
+      cropStats: cropStatsMap,
+      farmerStats: farmerStatsMap
+    }))
+    return
+  }
+
+  if (requestUrl.pathname === "/api/reviews" && req.method === "POST") {
+    try {
+      const data = await parseBody(req)
+      const required = ["orderId", "crop", "rating", "reviewText", "customerId"]
+      const missing = required.filter(f => !String(data[f] ?? "").trim())
+      if (missing.length) {
+        res.writeHead(400).end(JSON.stringify({ error: "Missing required fields: " + missing.join(", ") }))
+        return
+      }
+
+      reviews = loadReviews()
+
+      // Prevent duplicate review for the same order
+      const existing = reviews.find(r => String(r.orderId) === String(data.orderId))
+      if (existing) {
+        res.writeHead(400).end(JSON.stringify({ error: "You have already reviewed this purchase." }))
+        return
+      }
+
+      // Verify that order actually exists in orders.json
+      orders = loadOrders()
+      const verifiedOrder = orders.find(o => String(o.id) === String(data.orderId))
+
+      const ratingNum = Math.min(5, Math.max(1, Number(data.rating) || 5))
+      const farmerRatingNum = Math.min(5, Math.max(1, Number(data.farmerRating || data.rating) || 5))
+
+      const newReview = {
+        id: "rev_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+        orderId: String(data.orderId),
+        listingId: String(data.listingId || verifiedOrder?.listingId || ""),
+        crop: String(data.crop || verifiedOrder?.crop || ""),
+        farmerId: String(data.farmerId || verifiedOrder?.farmerId || ""),
+        farmerName: String(data.farmerName || verifiedOrder?.farmerName || "Farmer"),
+        customerId: String(data.customerId),
+        customerName: String(data.customerName || verifiedOrder?.customerName || "Customer"),
+        rating: ratingNum,
+        farmerRating: farmerRatingNum,
+        reviewText: String(data.reviewText || "").trim(),
+        verifiedPurchase: Boolean(verifiedOrder),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+
+      reviews = [newReview, ...reviews]
+      saveReviews(reviews)
+
+      res.writeHead(201).end(JSON.stringify({ success: true, review: newReview }))
+    } catch (err) {
+      res.writeHead(400).end(JSON.stringify({ error: "Invalid review submission: " + err.message }))
+    }
+    return
+  }
+
+  if (requestUrl.pathname.startsWith("/api/reviews/") && req.method === "PUT") {
+    try {
+      const id = requestUrl.pathname.split("/").pop()
+      const data = await parseBody(req)
+      reviews = loadReviews()
+      const review = reviews.find(r => r.id === id)
+      if (!review) {
+        res.writeHead(404).end(JSON.stringify({ error: "Review not found." }))
+        return
+      }
+
+      if (data.rating !== undefined) {
+        review.rating = Math.min(5, Math.max(1, Number(data.rating) || 5))
+      }
+      if (data.farmerRating !== undefined) {
+        review.farmerRating = Math.min(5, Math.max(1, Number(data.farmerRating) || 5))
+      }
+      if (data.reviewText !== undefined) {
+        review.reviewText = String(data.reviewText).trim()
+      }
+      review.updatedAt = new Date().toISOString()
+      saveReviews(reviews)
+
+      res.writeHead(200).end(JSON.stringify({ success: true, review }))
+    } catch (err) {
+      res.writeHead(400).end(JSON.stringify({ error: "Invalid review update: " + err.message }))
+    }
+    return
+  }
+
+  if (requestUrl.pathname.startsWith("/api/reviews/") && req.method === "DELETE") {
+    try {
+      const id = requestUrl.pathname.split("/").pop()
+      reviews = loadReviews()
+      const beforeCount = reviews.length
+      reviews = reviews.filter(r => r.id !== id)
+      if (reviews.length === beforeCount) {
+        res.writeHead(404).end(JSON.stringify({ error: "Review not found." }))
+        return
+      }
+      saveReviews(reviews)
+      res.writeHead(200).end(JSON.stringify({ success: true }))
+    } catch (err) {
+      res.writeHead(400).end(JSON.stringify({ error: "Could not delete review: " + err.message }))
+    }
+    return
+  }
+
+  // --- INVOICE DETAILS API ---
+  if (requestUrl.pathname.startsWith("/api/invoices/") && req.method === "GET") {
+    const orderId = requestUrl.pathname.split("/").pop()
+    orders = loadOrders()
+    const order = orders.find(o => String(o.id) === String(orderId))
+    if (!order) {
+      res.writeHead(404).end(JSON.stringify({ error: "Order not found for invoice." }))
+      return
+    }
+
+    const qty = Number(order.quantity) || 1
+    const price = Number(order.price) || 0
+    const subtotal = qty * price
+    const delivery = 0
+    const discount = 0
+    const grandTotal = subtotal + delivery - discount
+
+    const invoice = {
+      invoiceNumber: order.invoiceNumber || ("INV-" + String(order.id).slice(-6).toUpperCase()),
+      orderId: order.id,
+      date: order.createdAt,
+      crop: order.crop,
+      quantity: order.quantity,
+      unit: order.unit || "kg",
+      price: order.price,
+      subtotal,
+      delivery,
+      discount,
+      grandTotal,
+      farmerId: order.farmerId,
+      farmerName: order.farmerName,
+      farmerPhone: order.farmerPhone || "",
+      farmerAddress: order.farmerAddress || order.address || "Farmgate, India",
+      customerId: order.customerId,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone || "",
+      customerLocation: order.customerLocation || "Direct Farmgate Pickup",
+      paymentMethod: order.paymentMethod || "Direct Farmgate Pay on Delivery / UPI",
+      paymentStatus: order.status === "Completed" ? "Paid" : "Pending on Delivery",
+      status: order.status
+    }
+
+    res.writeHead(200).end(JSON.stringify({ invoice }))
+    return
+  }
+
+  // GET /api/listings/:id - Fetch single crop listing details dynamically
+  if (requestUrl.pathname.startsWith("/api/listings/") && req.method === "GET") {
+    const id = requestUrl.pathname.replace(/^\/api\/listings\/?/, "").trim()
+    if (!id) {
+      res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Missing listing ID." }))
+      return
+    }
+    listings = loadListings()
+    const item = listings.find(l => String(l.id) === id)
+    if (!item) {
+      res.writeHead(404, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Listing not found." }))
+      return
+    }
+
+    let farmerPhone = item.farmerPhone
+    if (!farmerPhone) {
+      const existingContactPhone = item.contact?.phone || item.contact?.whatsapp || ""
+      const contactDigits = String(existingContactPhone).replace(/\D/g, "")
+      if (contactDigits.length === 10) farmerPhone = contactDigits
+      else {
+        const digits = String(item.farmerId || "").replace(/\D/g, "")
+        if (digits.length === 10) farmerPhone = digits
+      }
+    }
+
+    let image = item.image
+    let imagePhotographer = item.imagePhotographer
+    let imageLink = item.imageLink
+
+    if (image && item.imageSource !== "farmer") {
+      const cached = imageCache.get(String(item.crop || "").toLowerCase().trim())
+      if (cached?.data?.url && cached.data.url !== "/placeholder.png" && !cached.data.url.startsWith("/")) {
+        image = cached.data.url
+      }
+      if (cached?.data?.photographer) {
+        imagePhotographer = cached.data.photographer
+        imageLink = cached.data.link
+      }
+    }
+
+    const safeItem = {
+      ...item,
+      farmerPhone,
+      image,
+      imagePhotographer,
+      imageLink
+    }
+    // Do not expose raw private GPS coordinates in public detail response
+    delete safeItem.latitude
+    delete safeItem.longitude
+    delete safeItem.farmerLat
+    delete safeItem.farmerLng
+
+    res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ listing: safeItem }))
+    return
+  }
+
   if (requestUrl.pathname === "/api/orders" && req.method === "GET") {
     const farmerId = requestUrl.searchParams.get("farmerId")
     const customerId = requestUrl.searchParams.get("customerId")
@@ -2100,6 +3608,28 @@ async function handleRequest(req, res) {
 
       orders = [order, ...orders]
       saveOrders(orders)
+
+      // Notify Farmer in real-time
+      try {
+        createAndDispatchNotification({
+          userId: order.farmerId,
+          userPhone: order.farmerPhone,
+          role: "Farmer",
+          orderId: order.id,
+          type: "ORDER_RECEIVED",
+          title: "🔔 New Order Received!",
+          message: "Customer " + (order.customerName || "Customer") + " has placed an order for " + order.quantity + " " + (order.unit || "kg") + " of " + order.crop + ".",
+          customerName: order.customerName,
+          farmerName: order.farmerName,
+          crop: order.crop,
+          quantity: order.quantity,
+          unit: order.unit || "kg",
+          price: order.price,
+          status: order.status
+        })
+      } catch (notifErr) {
+        console.warn("Failed to create farmer order notification:", notifErr.message)
+      }
       res.writeHead(201).end(JSON.stringify({ order }))
     } catch {
       res.writeHead(400).end(JSON.stringify({ error: "Invalid order data." }))
@@ -2118,13 +3648,69 @@ async function handleRequest(req, res) {
         res.writeHead(404).end(JSON.stringify({ error: "Order not found." }))
         return
       }
-      if (!["Accepted", "Rejected", "Ready", "Completed"].includes(data.status)) {
-        res.writeHead(400).end(JSON.stringify({ error: "Invalid order status." }))
+      const allowedStatuses = ["Accepted", "Preparing", "Ready", "Dispatched", "Completed", "Cancelled", "Rejected"]
+      if (!allowedStatuses.includes(data.status)) {
+        res.writeHead(400).end(JSON.stringify({ error: "Invalid order status. Allowed: " + allowedStatuses.join(", ") }))
         return
       }
-      order.status = data.status
+      const prevStatus = order.status
+      const nextStatus = data.status
+      order.status = nextStatus
       order.updatedAt = new Date().toISOString()
       saveOrders(orders)
+
+      if (prevStatus !== nextStatus) {
+        try {
+          let notifType = "ORDER_STATUS_CHANGED"
+          let title = "🔔 Order " + nextStatus + "!"
+          let message = "Your order for " + order.quantity + " " + (order.unit || "kg") + " of " + order.crop + " has been updated to " + nextStatus + "."
+
+          if (nextStatus === "Accepted") {
+            notifType = "ORDER_ACCEPTED"
+            title = "🔔 Order Accepted!"
+            message = "Great news! Your order for " + order.quantity + " " + (order.unit || "kg") + " of " + order.crop + " has been accepted by the farmer."
+          } else if (nextStatus === "Preparing") {
+            notifType = "ORDER_PREPARING"
+            title = "🔔 Order Preparation Started!"
+            message = "Your order is now being prepared by the farmer."
+          } else if (nextStatus === "Ready") {
+            notifType = "ORDER_READY"
+            title = "🔔 Order Ready!"
+            message = "Your order is ready! You can proceed with the next step."
+          } else if (nextStatus === "Dispatched") {
+            notifType = "ORDER_DISPATCHED"
+            title = "🔔 Order Dispatched!"
+            message = "Your order has been dispatched and is on its way."
+          } else if (nextStatus === "Completed") {
+            notifType = "ORDER_COMPLETED"
+            title = "🔔 Order Completed!"
+            message = "Your order has been successfully completed. Thank you for shopping with FarmZey!"
+          } else if (nextStatus === "Cancelled" || nextStatus === "Rejected") {
+            notifType = "ORDER_CANCELLED"
+            title = "🔔 Order Cancelled!"
+            message = "Your order has been cancelled. Please check the order details for more information."
+          }
+
+          createAndDispatchNotification({
+            userId: order.customerId,
+            userPhone: order.customerPhone,
+            role: "Customer",
+            orderId: order.id,
+            type: notifType,
+            title,
+            message,
+            customerName: order.customerName,
+            farmerName: order.farmerName,
+            crop: order.crop,
+            quantity: order.quantity,
+            unit: order.unit || "kg",
+            price: order.price,
+            status: nextStatus
+          })
+        } catch (notifErr) {
+          console.warn("Failed to create customer status notification:", notifErr.message)
+        }
+      }
       res.writeHead(200).end(JSON.stringify({ order }))
     } catch {
       res.writeHead(400).end(JSON.stringify({ error: "Invalid order update." }))
@@ -2132,28 +3718,114 @@ async function handleRequest(req, res) {
     return
   }
 
+  // --- FARMER LISTING OWNERSHIP & ACCESS CONTROL HELPERS ---
+  function getAuthUser(req) {
+    const authHeader = req.headers["authorization"] || req.headers["Authorization"] || ""
+    let tokenUser = null
+    if (authHeader.startsWith("Bearer ") || authHeader.startsWith("bearer ")) {
+      const token = authHeader.slice(7).trim()
+      const parts = token.split(".")
+      if (parts.length === 3) {
+        try {
+          const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"))
+          if (payload && (payload.sub || payload.id)) {
+            tokenUser = {
+              userId: String(payload.sub || payload.id).trim(),
+              email: String(payload.email || "").trim(),
+              role: String(payload.user_metadata?.role || "Farmer").trim(),
+              farmerId: String(payload.user_metadata?.farmerId || "").trim(),
+              phone: String(payload.user_metadata?.phone || "").trim(),
+              name: String(payload.user_metadata?.name || "").trim()
+            }
+          }
+        } catch {}
+      }
+    }
+
+    const headerUserId = req.headers["x-user-id"] ? String(req.headers["x-user-id"]).trim() : ""
+    const headerUserRole = req.headers["x-user-role"] ? String(req.headers["x-user-role"]).trim() : ""
+    const headerFarmerId = req.headers["x-farmer-id"] ? String(req.headers["x-farmer-id"]).trim() : ""
+    const headerUserPhone = req.headers["x-user-phone"] ? String(req.headers["x-user-phone"]).trim() : ""
+    const headerUserName = req.headers["x-user-name"] ? String(req.headers["x-user-name"]).trim() : ""
+    const headerUserEmail = req.headers["x-user-email"] ? String(req.headers["x-user-email"]).trim() : ""
+
+    const userId = tokenUser?.userId || headerUserId
+    if (!userId) {
+      return null
+    }
+
+    return {
+      userId,
+      role: tokenUser?.role || headerUserRole || "Farmer",
+      farmerId: tokenUser?.farmerId || headerFarmerId || "",
+      phone: tokenUser?.phone || headerUserPhone || "",
+      name: tokenUser?.name || headerUserName || "",
+      email: tokenUser?.email || headerUserEmail || ""
+    }
+  }
+
+  function verifyListingOwnership(listing, authUser) {
+    if (!listing || !authUser) return false
+    const authUserId = String(authUser.userId || "").trim()
+    if (!authUserId) return false
+
+    // 1. Strict primary check: If listing has ownerUserId, it MUST match authUser.userId
+    if (listing.ownerUserId) {
+      return String(listing.ownerUserId).trim() === authUserId
+    }
+
+    // 2. Legacy listing check: Only if listing does not have ownerUserId
+    // Verify against registered farmerId and/or phone number
+    if (listing.farmerId && authUser.farmerId && String(listing.farmerId).trim() === String(authUser.farmerId).trim()) {
+      if (listing.farmerPhone && authUser.phone) {
+        const lPhone = String(listing.farmerPhone).replace(/\D/g, "")
+        const uPhone = String(authUser.phone).replace(/\D/g, "")
+        if (lPhone && uPhone && lPhone !== uPhone) return false
+      }
+      return true
+    }
+
+    if (listing.farmerPhone && authUser.phone) {
+      const lPhone = String(listing.farmerPhone).replace(/\D/g, "")
+      const uPhone = String(authUser.phone).replace(/\D/g, "")
+      if (lPhone && uPhone && lPhone === uPhone) {
+        return true
+      }
+    }
+
+    return false
+  }
+
   if (requestUrl.pathname === "/api/listings" && req.method === "POST") {
     try {
+      const authUser = getAuthUser(req)
+      if (!authUser || !authUser.userId) {
+        res.writeHead(401, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Unauthorized: You must be logged in as a farmer to create a listing."
+        }))
+        return
+      }
+
       let body = ""
       for await (const chunk of req) body += chunk
       const data = JSON.parse(body || "{}")
 
-      const required = ["crop", "quantity", "unit", "price", "address", "farmerId", "farmerName"]
+      const required = ["crop", "quantity", "unit", "price", "address"]
       const missing = required.filter(field => !String(data[field] ?? "").trim())
       if (missing.length) {
-        res.writeHead(400).end(JSON.stringify({ error: "Missing required fields: " + missing.join(", ") }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Missing required fields: " + missing.join(", ") }))
         return
       }
 
       const numQuantity = Number(data.quantity)
       if (!Number.isFinite(numQuantity) || numQuantity < 0) {
-        res.writeHead(400).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
         return
       }
 
       const numPrice = Number(data.price)
       if (!Number.isFinite(numPrice) || numPrice < 0) {
-        res.writeHead(400).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
         return
       }
 
@@ -2162,11 +3834,11 @@ async function handleRequest(req, res) {
       const expiryDate = String(data.expiryDate || "").trim()
 
       if (harvestDate && expiryDate && expiryDate < harvestDate) {
-        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
         return
       }
       if (availableFrom && expiryDate && expiryDate < availableFrom) {
-        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
         return
       }
 
@@ -2188,8 +3860,16 @@ async function handleRequest(req, res) {
           console.warn("Auto image lookup error on create listing:", err.message)
         }
       }
+
+      // STRICT OWNERSHIP: Bind to authenticated user ID (never trust client owner ID)
+      const ownerUserId = authUser.userId
+      const finalFarmerId = authUser.farmerId || (data.farmerId && !data.farmerId.includes("undefined") ? String(data.farmerId).trim() : ("farmer-" + ownerUserId.slice(0, 8)))
+      const finalFarmerName = authUser.name || String(data.farmerName || "Farmer").trim()
+      const finalFarmerPhone = authUser.phone || String(data.farmerPhone || "").trim()
+
       const item = {
         id: Date.now().toString(),
+        ownerUserId, // IMMUTABLE AUTHENTICATED USER ID
         crop,
         category,
         variety: String(data.variety || "").trim(),
@@ -2220,9 +3900,9 @@ async function handleRequest(req, res) {
         deliveryRadius: String(data.deliveryRadius || "").trim(),
         notes: String(data.notes || data.description || "").trim(),
         description: String(data.description || data.notes || "").trim(),
-        farmerId: String(data.farmerId).trim(),
-        farmerName: String(data.farmerName).trim(),
-        farmerPhone: String(data.farmerPhone || "").trim(),
+        farmerId: finalFarmerId,
+        farmerName: finalFarmerName,
+        farmerPhone: finalFarmerPhone,
         farmerLocation: String(data.address || data.farmerLocation || "").trim(),
         farmerDistrict: String(data.district || data.farmerDistrict || "").trim(),
         farmerState: String(data.state || data.farmerState || "").trim(),
@@ -2243,15 +3923,23 @@ async function handleRequest(req, res) {
 
       listings = [item, ...listings]
       saveListings(listings)
-      res.writeHead(201).end(JSON.stringify({ listing: item }))
+      res.writeHead(201, { "Content-Type": "application/json" }).end(JSON.stringify({ listing: item }))
     } catch {
-      res.writeHead(400).end(JSON.stringify({ error: "Invalid listing data." }))
+      res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Invalid listing data." }))
     }
     return
   }
 
   if ((requestUrl.pathname.startsWith("/api/listings/") || requestUrl.pathname === "/api/listings") && (req.method === "PUT" || req.method === "PATCH")) {
     try {
+      const authUser = getAuthUser(req)
+      if (!authUser || !authUser.userId) {
+        res.writeHead(401, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Unauthorized: You must be logged in to update a listing."
+        }))
+        return
+      }
+
       const pathId = requestUrl.pathname.replace(/^\/api\/listings\/?/, "")
       let body = ""
       for await (const chunk of req) body += chunk
@@ -2259,22 +3947,30 @@ async function handleRequest(req, res) {
       const targetId = String(pathId || data.id || requestUrl.searchParams.get("id"))
       const index = listings.findIndex(item => String(item.id) === targetId)
       if (index === -1) {
-        res.writeHead(404).end(JSON.stringify({ error: "Listing not found." }))
+        res.writeHead(404, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Listing not found." }))
         return
       }
       const existing = listings[index]
 
+      // STRICT OWNERSHIP AUTHORIZATION CHECK:
+      if (!verifyListingOwnership(existing, authUser)) {
+        res.writeHead(403, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Forbidden: You do not have permission to edit another farmer's listing."
+        }))
+        return
+      }
+
       if (data.quantity !== undefined) {
         const numQty = Number(data.quantity)
         if (!Number.isFinite(numQty) || numQty < 0) {
-          res.writeHead(400).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
+          res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Quantity must be a valid non-negative number." }))
           return
         }
       }
       if (data.price !== undefined) {
         const numP = Number(data.price)
         if (!Number.isFinite(numP) || numP < 0) {
-          res.writeHead(400).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
+          res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Price must be a valid non-negative number." }))
           return
         }
       }
@@ -2284,19 +3980,23 @@ async function handleRequest(req, res) {
       const expiryDate = data.expiryDate !== undefined ? String(data.expiryDate).trim() : (existing.expiryDate || existing.date || "")
 
       if (harvestDate && expiryDate && expiryDate < harvestDate) {
-        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the harvest date." }))
         return
       }
       if (availableFrom && expiryDate && expiryDate < availableFrom) {
-        res.writeHead(400).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Expiry / available-until date cannot be earlier than the available-from date." }))
         return
       }
 
       const crop = String(data.crop || existing.crop).trim()
       const category = String(data.category || existing.category || categoryForCommodity(crop)).trim()
 
+      // Bind ownerUserId permanently upon verified update
+      const ownerUserId = existing.ownerUserId || authUser.userId
+
       const updated = {
         ...existing,
+        ownerUserId,
         crop,
         category,
         variety: String(data.variety !== undefined ? data.variety : (existing.variety || "")).trim(),
@@ -2335,33 +4035,54 @@ async function handleRequest(req, res) {
         image: String(data.image !== undefined ? data.image : existing.image).trim(),
         updatedAt: new Date().toISOString()
       }
+
+      // Immutability: ownerUserId remains the verified owner
+      updated.ownerUserId = ownerUserId
       listings[index] = updated
       saveListings(listings)
-      res.writeHead(200).end(JSON.stringify({ listing: updated }))
+      res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ listing: updated }))
     } catch {
-      res.writeHead(400).end(JSON.stringify({ error: "Could not update listing." }))
+      res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Could not update listing." }))
     }
     return
   }
 
   if ((requestUrl.pathname.startsWith("/api/listings/") || requestUrl.pathname === "/api/listings") && req.method === "DELETE") {
     try {
+      const authUser = getAuthUser(req)
+      if (!authUser || !authUser.userId) {
+        res.writeHead(401, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Unauthorized: You must be logged in to delete a listing."
+        }))
+        return
+      }
+
       const pathId = requestUrl.pathname.replace(/^\/api\/listings\/?/, "")
       const id = pathId || requestUrl.searchParams.get("id")
       if (!id) {
-        res.writeHead(400).end(JSON.stringify({ error: "Missing listing id." }))
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Missing listing id." }))
         return
       }
       const index = listings.findIndex(item => String(item.id) === String(id))
       if (index === -1) {
-        res.writeHead(404).end(JSON.stringify({ error: "Listing not found." }))
+        res.writeHead(404, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Listing not found." }))
         return
       }
+      const existing = listings[index]
+
+      // STRICT OWNERSHIP AUTHORIZATION CHECK:
+      if (!verifyListingOwnership(existing, authUser)) {
+        res.writeHead(403, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "Forbidden: You do not have permission to delete another farmer's listing."
+        }))
+        return
+      }
+
       const [deleted] = listings.splice(index, 1)
       saveListings(listings)
-      res.writeHead(200).end(JSON.stringify({ success: true, listing: deleted }))
+      res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ success: true, listing: deleted }))
     } catch {
-      res.writeHead(500).end(JSON.stringify({ error: "Could not delete listing." }))
+      res.writeHead(500, { "Content-Type": "application/json" }).end(JSON.stringify({ error: "Could not delete listing." }))
     }
     return
   }

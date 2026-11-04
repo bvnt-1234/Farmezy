@@ -1,0 +1,50 @@
+[
+  {
+    "id": "rev_1793283100001",
+    "orderId": "1793282931637",
+    "listingId": "1793416995236",
+    "crop": "tomato",
+    "farmerId": "farmer-demo-1",
+    "farmerName": "Ramesh Farmer",
+    "customerId": "customer-demo-2",
+    "customerName": "Priya Customer",
+    "rating": 5,
+    "farmerRating": 5,
+    "reviewText": "Super fresh, firm farmgate tomatoes! Directly harvested and packed with great care. Will order again every week.",
+    "verifiedPurchase": true,
+    "createdAt": "2026-10-31T05:30:00.000Z",
+    "updatedAt": "2026-10-31T05:30:00.000Z"
+  },
+  {
+    "id": "rev_1793263000002",
+    "orderId": "1793262872691",
+    "listingId": "1793416995236",
+    "crop": "tomato",
+    "farmerId": "farmer-demo-1",
+    "farmerName": "Ramesh Farmer",
+    "customerId": "customer-demo-3",
+    "customerName": "Anand Kumar",
+    "rating": 5,
+    "farmerRating": 4,
+    "reviewText": "Excellent harvest quality at fair APMC rates. Directly saved ₹15/kg compared to local retail grocery.",
+    "verifiedPurchase": true,
+    "createdAt": "2026-10-30T10:15:00.000Z",
+    "updatedAt": "2026-10-30T10:15:00.000Z"
+  },
+  {
+    "id": "rev_1793369900003",
+    "orderId": "1793369656587",
+    "listingId": "1793369656587",
+    "crop": "Mango",
+    "farmerId": "farmer-demo-chitra",
+    "farmerName": "Chitra T",
+    "customerId": "customer-demo-4",
+    "customerName": "Kavitha S",
+    "rating": 5,
+    "farmerRating": 5,
+    "reviewText": "Sweet naturally ripened mangoes from the orchard. Direct farmer interaction was polite and prompt.",
+    "verifiedPurchase": true,
+    "createdAt": "2026-11-01T14:20:00.000Z",
+    "updatedAt": "2026-11-01T14:20:00.000Z"
+  }
+]

@@ -1,53 +1,39 @@
 {
   "green chilli": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1576763595295-c0371a32af78?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8Mnx8Z3JlZW4lMjBjaGlsbGklMjBmcmVzaCUyMGhhcnZlc3QlMjBwcm9kdWNlJTIwdmVnZXRhYmxlJTIwZnJ1aXR8ZW58MXwwfHx8MTc5MzQ3NDgxNnww&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "green pepper lot",
-      "photographer": "Vipul Borade (Unsplash)",
-      "link": "https://unsplash.com/photos/green-pepper-lot-FvvgvCO-0gI?utm_source=farmezy&utm_medium=referral",
-      "source": "unsplash"
+      "url": "https://images.unsplash.com/photo-1599987141071-f5810d32e21a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmVlbiUyMGNoaWxpJTIwcGVwcGVyc3xlbnwxfDB8fHwxNzkzNzkzNzE1fDA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh green chilli peppers",
+      "photographer": "Hari Krishnan (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1599987141071-f5810d32e21a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmVlbiUyMGNoaWxpJTIwcGVwcGVyc3xlbnwxfDB8fHwxNzkzNzkzNzE1fDA&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793474817140
-  },
-  "carrot": {
-    "data": {
-      "url": "https://images.unsplash.com/photo-1633380110125-f6e685676160?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByYXclMjBjYXJyb3RzJTIwaGFydmVzdCUyMGZhcm18ZW58MXwwfHx8MTc5MzU5OTg5NHww&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "a pile of carrots with green tops and leaves",
-      "photographer": "Nick Fewings (Unsplash)",
-      "link": "https://unsplash.com/photos/a-pile-of-carrots-with-green-tops-and-leaves-IZq1FV87qpM?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/IZq1FV87qpM/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByYXclMjBjYXJyb3RzJTIwaGFydmVzdCUyMGZhcm18ZW58MXwwfHx8MTc5MzU5OTg5NHww",
-      "source": "unsplash"
-    },
-    "savedAt": 1793599894871
+    "savedAt": 1793798401600
   },
   "beetroot": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1744028982670-67ca067bedfa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8YmVldHJvb3QlMjBmcmVzaCUyMGhhcnZlc3QlMjBwcm9kdWNlJTIwdmVnZXRhYmxlJTIwZnJ1aXR8ZW58MXwwfHx8MTc5MzQ3NDgxNnww&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "Freshly cut beets displayed in macro close-up",
+      "url": "https://images.unsplash.com/photo-1744028982670-67ca067bedfa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByYXclMjBiZWV0cm9vdCUyMHZlZ2V0YWJsZXxlbnwxfDB8fHwxNzkzNzkzNzIwfDA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh raw beetroot",
       "photographer": "Ksenia Pixelesse (Unsplash)",
-      "link": "https://unsplash.com/photos/freshly-cut-beets-displayed-in-macro-close-up-v-8GWPhPQfI?utm_source=farmezy&utm_medium=referral",
-      "source": "unsplash"
+      "link": "https://images.unsplash.com/photo-1744028982670-67ca067bedfa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByYXclMjBiZWV0cm9vdCUyMHZlZ2V0YWJsZXxlbnwxfDB8fHwxNzkzNzkzNzIwfDA&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793474817485
+    "savedAt": 1793798401600
   },
   "cucumbar(kheera)": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1604977042946-1eecc30f269e?auto=format&fit=crop&w=640&q=75",
-      "alt": "Fresh cucumber / kheera",
-      "photographer": "Unsplash",
-      "link": "https://unsplash.com"
+      "url": "https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmVlbiUyMGN1Y3VtYmVyfGVufDF8MHx8fDE3OTM3OTM3MTN8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh green cucumber",
+      "photographer": "Harshal S. Hirve (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmVlbiUyMGN1Y3VtYmVyfGVufDF8MHx8fDE3OTM3OTM3MTN8MA&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793477294628
+    "savedAt": 1793798401600
   },
   "rice": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1686820740687-426a7b9b2043?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8cmljZSUyMGZyZXNoJTIwaGFydmVzdCUyMHByb2R1Y2UlMjB2ZWdldGFibGUlMjBmcnVpdHxlbnwxfDB8fHwxNzkzNDc3Mjk0fDA&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "a pile of white rice sitting on top of a table",
-      "photographer": "Kseniya Nekrasova (Unsplash)",
-      "link": "https://unsplash.com/photos/a-pile-of-white-rice-sitting-on-top-of-a-table-M5hX7319EBA?utm_source=farmezy&utm_medium=referral",
-      "source": "unsplash"
+      "url": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75",
+      "alt": "Wholesale rice grains",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75"
     },
-    "savedAt": 1793477294856
+    "savedAt": 1793798401600
   },
   "ragi": {
     "data": {
@@ -77,15 +63,6 @@
     "savedAt": 1793477344952
   },
   "moong": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/8/86/Mung_beans_%28Vigna_radiata%29.jpg",
-      "alt": "Whole dry green mung beans (Vigna radiata)",
-      "photographer": "Ivar Leidus (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Mung_beans_(Vigna_radiata).jpg"
-    },
-    "savedAt": 1793477344953
-  },
-  "green gram (moong)(whole)": {
     "data": {
       "url": "https://upload.wikimedia.org/wikipedia/commons/8/86/Mung_beans_%28Vigna_radiata%29.jpg",
       "alt": "Whole dry green mung beans (Vigna radiata)",
@@ -133,20 +110,11 @@
   "brinjal": {
     "data": {
       "url": "/brinjal.jpg",
-      "alt": "Fresh purple brinjal fruit (Solanum melongena)",
+      "alt": "Fresh purple brinjal eggplants",
       "photographer": "Wikimedia Commons",
-      "link": "https://commons.wikimedia.org"
+      "link": "https://farmezy.internal"
     },
-    "savedAt": 1793734913325
-  },
-  "bottle gourd": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a2/Courge_encore_verte.jpg",
-      "alt": "Fresh green bottle gourd / calabash (Lagenaria siceraria)",
-      "photographer": "Kusabana Photo Studio (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Courge_encore_verte.jpg"
-    },
-    "savedAt": 1793479659695
+    "savedAt": 1793798401600
   },
   "sesame": {
     "data": {
@@ -186,21 +154,21 @@
   },
   "cauliflower": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1568584711075-3d021a7c3ca3?auto=format&fit=crop&w=640&q=75",
-      "alt": "Fresh white cauliflower",
-      "photographer": "Unsplash",
-      "link": "https://unsplash.com"
+      "url": "https://images.unsplash.com/photo-1692956706779-576c151ec712?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8Y2F1bGlmbG93ZXIlMjBoZWFkJTIwdmVnZXRhYmxlfGVufDF8MHx8fDE3OTM3OTM3MTF8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh cauliflower head",
+      "photographer": "engin akyurt (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1692956706779-576c151ec712?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8Y2F1bGlmbG93ZXIlMjBoZWFkJTIwdmVnZXRhYmxlfGVufDF8MHx8fDE3OTM3OTM3MTF8MA&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793537332982
+    "savedAt": 1793798401600
   },
   "spinach": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=640&q=75",
-      "alt": "Fresh spinach leaves",
-      "photographer": "Unsplash",
-      "link": "https://unsplash.com"
+      "url": "https://images.unsplash.com/photo-1598278242809-6c21ee17aef1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8Mnx8ZnJlc2glMjBncmVlbiUyMHNwaW5hY2glMjBsZWF2ZXN8ZW58MXwwfHx8MTc5Mzc5MzcxNnww&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh green spinach leaves",
+      "photographer": "Elly Brian (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1598278242809-6c21ee17aef1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8Mnx8ZnJlc2glMjBncmVlbiUyMHNwaW5hY2glMjBsZWF2ZXN8ZW58MXwwfHx8MTc5Mzc5MzcxNnww&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793537332983
+    "savedAt": 1793798401600
   },
   "cucumber": {
     "data": {
@@ -213,48 +181,48 @@
   },
   "pumpkin": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1570586437263-ab629fccc818?auto=format&fit=crop&w=640&q=75",
-      "alt": "Fresh pumpkin",
-      "photographer": "Unsplash",
-      "link": "https://unsplash.com"
+      "url": "https://images.unsplash.com/photo-1728945208979-3aee32965b2f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8d2hvbGUlMjBvcmFuZ2UlMjBwdW1wa2luJTIwdmVnZXRhYmxlfGVufDF8MHx8fDE3OTM3OTM3MTd8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Whole ripe pumpkin",
+      "photographer": "Giorgio Trovato (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1728945208979-3aee32965b2f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8d2hvbGUlMjBvcmFuZ2UlMjBwdW1wa2luJTIwdmVnZXRhYmxlfGVufDF8MHx8fDE3OTM3OTM3MTd8MA&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793537332987
+    "savedAt": 1793798401600
   },
   "banana": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=640&q=75",
-      "alt": "Fresh bananas",
-      "photographer": "Unsplash",
-      "link": "https://unsplash.com"
+      "url": "https://images.unsplash.com/photo-1640958900081-7b069dd23e9c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB5ZWxsb3clMjBiYW5hbmElMjBidW5jaHxlbnwxfDB8fHwxNzkzNzkzNzIxfDA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh yellow banana bunch",
+      "photographer": "Gabriel Mihalcea (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1640958900081-7b069dd23e9c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB5ZWxsb3clMjBiYW5hbmElMjBidW5jaHxlbnwxfDB8fHwxNzkzNzkzNzIxfDA&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793537332990
+    "savedAt": 1793798401600
   },
   "apple": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=640&q=75",
-      "alt": "Fresh apples",
-      "photographer": "Unsplash",
-      "link": "https://unsplash.com"
+      "url": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByZWQlMjBhcHBsZXMlMjBmcnVpdHxlbnwxfDB8fHwxNzkzNzkzNzIxfDA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh red apples",
+      "photographer": "Matheus Cenali (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByZWQlMjBhcHBsZXMlMjBmcnVpdHxlbnwxfDB8fHwxNzkzNzkzNzIxfDA&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793537332992
+    "savedAt": 1793798401600
   },
   "mango": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&w=640&q=75",
-      "alt": "Fresh mangoes",
-      "photographer": "Unsplash",
-      "link": "https://unsplash.com"
+      "url": "https://images.unsplash.com/photo-1553279768-865429fa0078?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8Mnx8ZnJlc2glMjByaXBlJTIwbWFuZ28lMjBmcnVpdHxlbnwxfDB8fHwxNzkzNzkzNzIyfDA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh ripe mango fruit",
+      "photographer": "Becky Mattson (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1553279768-865429fa0078?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8Mnx8ZnJlc2glMjByaXBlJTIwbWFuZ28lMjBmcnVpdHxlbnwxfDB8fHwxNzkzNzkzNzIyfDA&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793752682615
+    "savedAt": 1793798401600
   },
   "maize": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=640&q=75",
-      "alt": "Fresh corn / maize",
-      "photographer": "Unsplash",
-      "link": "https://unsplash.com"
+      "url": "https://images.unsplash.com/photo-1634467524884-897d0af5e104?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB5ZWxsb3clMjBjb3JuJTIwY29iJTIwbWFpemV8ZW58MXwwfHx8MTc5Mzc5MzcyN3ww&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh yellow corn maize",
+      "photographer": "Wouter Supardi Salari (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1634467524884-897d0af5e104?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB5ZWxsb3clMjBjb3JuJTIwY29iJTIwbWFpemV8ZW58MXwwfHx8MTc5Mzc5MzcyN3ww&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793537445648
+    "savedAt": 1793798401600
   },
   "peanut": {
     "data": {
@@ -280,117 +248,39 @@
   },
   "orange": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1549888834-3ec93abae044?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8b3JhbmdlJTIwZnJlc2glMjBhZ3JpY3VsdHVyYWwlMjBwcm9kdWNlJTIwZmFybSUyMGhhcnZlc3R8ZW58MXwwfHx8MTc5MzUzNzQ0N3ww&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "bunch of orange fruits",
-      "photographer": "Graphic Node (Unsplash)",
-      "link": "https://unsplash.com/photos/bunch-of-orange-fruits-yi1YB_FubH8?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/yi1YB_FubH8/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8b3JhbmdlJTIwZnJlc2glMjBhZ3JpY3VsdHVyYWwlMjBwcm9kdWNlJTIwZmFybSUyMGhhcnZlc3R8ZW58MXwwfHx8MTc5MzUzNzQ0N3ww",
-      "source": "unsplash"
+      "url": "https://images.unsplash.com/photo-1609424572698-04d9d2e04954?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByaXBlJTIwb3JhbmdlJTIwZnJ1aXR8ZW58MXwwfHx8MTc5Mzc5MzcyNHww&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh ripe oranges",
+      "photographer": "Chang Duong (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1609424572698-04d9d2e04954?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByaXBlJTIwb3JhbmdlJTIwZnJ1aXR8ZW58MXwwfHx8MTc5Mzc5MzcyNHww&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793537447961
+    "savedAt": 1793798401600
   },
   "pomegranate": {
     "data": {
       "url": "/pomegranate.jpg",
-      "alt": "Fresh whole and cut pomegranate fruits with ruby arils (Punica granatum)",
+      "alt": "Fresh whole and open red pomegranate",
       "photographer": "Wikimedia Commons",
-      "link": "https://commons.wikimedia.org"
+      "link": "https://farmezy.internal"
     },
-    "savedAt": 1793734913327
+    "savedAt": 1793798401600
   },
   "wheat": {
     "data": {
       "url": "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=640&q=75",
       "alt": "Golden wheat crop",
-      "photographer": "Unsplash",
-      "link": "https://unsplash.com"
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?auto=format&fit=crop&w=640&q=75"
     },
-    "savedAt": 1793538727314
+    "savedAt": 1793798401600
   },
   "turmeric": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1741513599050-487ccfb86275?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8Mnx8ZnJlc2glMjByYXclMjB0dXJtZXJpYyUyMHJvb3QlMjByaGl6b21lJTIwaGFydmVzdHxlbnwxfDB8fHwxNzkzNTM4NzI4fDA&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "Dried turmeric root is shown",
-      "photographer": "Marek Piwnicki (Unsplash)",
-      "link": "https://unsplash.com/photos/dried-turmeric-root-is-shown-zALm5VkUBWw?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/zALm5VkUBWw/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8Mnx8ZnJlc2glMjByYXclMjB0dXJtZXJpYyUyMHJvb3QlMjByaGl6b21lJTIwaGFydmVzdHxlbnwxfDB8fHwxNzkzNTM4NzI4fDA",
-      "source": "unsplash"
-    },
-    "savedAt": 1793538728589
-  },
-  "tomato": {
-    "data": {
-      "url": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=640&q=75",
-      "alt": "Fresh red vine tomatoes (Solanum lycopersicum)",
-      "photographer": "Thomas Martinsen (Unsplash)",
-      "link": "https://unsplash.com/photos/fresh-red-tomatoes-on-vine-Xb_a0YjD3Gg?utm_source=farmezy&utm_medium=referral"
-    },
-    "savedAt": 1793752682220
-  },
-  "onion": {
-    "data": {
-      "url": "https://images.unsplash.com/photo-1683355739329-cea18ba93f02?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8M3x8cmVkJTIwb25pb24lMjBidWxiJTIwZnJlc2glMjBmYXJtJTIwaGFydmVzdCUyMHJhd3xlbnwxfDB8fHwxNzkzNTM4NzU1fDA&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "a pile of red onions sitting next to each other",
-      "photographer": "engin akyurt (Unsplash)",
-      "link": "https://unsplash.com/photos/a-pile-of-red-onions-sitting-next-to-each-other-Mpnv7-1mNzg?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/Mpnv7-1mNzg/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8M3x8cmVkJTIwb25pb24lMjBidWxiJTIwZnJlc2glMjBmYXJtJTIwaGFydmVzdCUyMHJhd3xlbnwxfDB8fHwxNzkzNTM4NzU1fDA",
-      "source": "unsplash"
-    },
-    "savedAt": 1793538755877
-  },
-  "ash gourd": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/b/ba/Benincasa_hispida-1-selvapuram-coimbatore-India.jpg",
-      "alt": "Fresh authentic ash gourd / wax gourd (Benincasa hispida)",
-      "photographer": "Yercaud-elango (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Benincasa_hispida-1-selvapuram-coimbatore-India.jpg"
-    },
-    "savedAt": 1793538756395
-  },
-  "bitter gourd": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/e/eb/Momordica_charantia.jpg",
-      "alt": "Fresh authentic bitter gourd / bitter melon (Momordica charantia)",
-      "photographer": "Eric in SF (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Momordica_charantia.jpg"
-    },
-    "savedAt": 1793605748514
-  },
-  "potato": {
-    "data": {
-      "url": "/potato.jpg",
-      "alt": "Fresh raw harvested potatoes (Solanum tuberosum)",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/66/Turmeric_%28Curcuma_longa%29.jpg",
+      "alt": "Fresh raw turmeric rhizomes (Haldi)",
       "photographer": "Wikimedia Commons",
-      "link": "https://commons.wikimedia.org"
+      "link": "https://upload.wikimedia.org/wikipedia/commons/6/66/Turmeric_%28Curcuma_longa%29.jpg"
     },
-    "savedAt": 1793728109919
-  },
-  "okra": {
-    "data": {
-      "url": "/ladies_finger.jpg",
-      "alt": "Fresh green okra pods (Abelmoschus esculentus)",
-      "photographer": "Wikimedia Commons",
-      "link": "https://commons.wikimedia.org"
-    },
-    "savedAt": 1793734913331
-  },
-  "cabbage": {
-    "data": {
-      "url": "/cabbage.jpg",
-      "alt": "Fresh green cabbage head (Brassica oleracea)",
-      "photographer": "Wikimedia Commons",
-      "link": "https://commons.wikimedia.org"
-    },
-    "savedAt": 1793734913329
-  },
-  "bengal gram": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/1/12/Cicer_arietinum_%284217744781%29.jpg",
-      "alt": "Dried whole chickpea / Bengal gram grains (Cicer arietinum)",
-      "photographer": "Dinesh Valke (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Cicer_arietinum_(4217744781).jpg"
-    },
-    "savedAt": 1793538757197
+    "savedAt": 1793798401600
   },
   "elephant foot yam": {
     "data": {
@@ -404,31 +294,11 @@
   "mustard": {
     "data": {
       "url": "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=640&q=75",
-      "alt": "Natural whole raw mustard seeds (Brassica)",
-      "photographer": "Towfiqu barbhuiya (Unsplash)",
-      "link": "https://unsplash.com/photos/a-close-up-of-mustard-seeds-EmA2RjP_13Y?utm_source=farmezy&utm_medium=referral"
+      "alt": "Yellow and black mustard seeds",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1615485290382-441e4d049cb5?auto=format&fit=crop&w=640&q=75"
     },
-    "savedAt": 1793538758839
-  },
-  "ridgeguard(tori)": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/5/59/Luffa_acutangula.jpg",
-      "alt": "Fresh green ridge gourd / tori (Luffa acutangula)",
-      "photographer": "SarKaLay (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Luffa_acutangula.jpg"
-    },
-    "savedAt": 1793539554188
-  },
-  "ladies finger": {
-    "data": {
-      "url": "https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBva3JhJTIwcG9kcyUyMHJhdyUyMHZlZ2V0YWJsZSUyMGhhcnZlc3R8ZW58MXwwfHx8MTc5MzUzODc1Nnww&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "Okra vegetable in white bowl",
-      "photographer": "Neha Deshmukh (Unsplash)",
-      "link": "https://unsplash.com/photos/okra-vegetable-in-white-bowl-CoIJlCZEjnw?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/CoIJlCZEjnw/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBva3JhJTIwcG9kcyUyMHJhdyUyMHZlZ2V0YWJsZSUyMGhhcnZlc3R8ZW58MXwwfHx8MTc5MzUzODc1Nnww",
-      "source": "unsplash"
-    },
-    "savedAt": 1793539554654
+    "savedAt": 1793798401600
   },
   "chilly capsicum": {
     "data": {
@@ -444,22 +314,20 @@
   "drumstick": {
     "data": {
       "url": "/drumstick.jpg",
-      "alt": "Fresh harvested moringa / drumstick pods (Moringa oleifera)",
+      "alt": "Fresh drumstick moringa pods",
       "photographer": "Wikimedia Commons",
-      "link": "https://commons.wikimedia.org"
+      "link": "https://farmezy.internal"
     },
-    "savedAt": 1793734913310
+    "savedAt": 1793798401600
   },
   "capsicum": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1622376242797-538aa64a9d38?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmVlbiUyMGNhcHNpY3VtJTIwYmVsbCUyMHBlcHBlciUyMGhhcnZlc3QlMjBmYXJtfGVufDF8MHx8fDE3OTM1NTIxOTJ8MA&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "green bell pepper on black textile",
+      "url": "https://images.unsplash.com/photo-1622376242797-538aa64a9d38?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8Z3JlZW4lMjBiZWxsJTIwcGVwcGVyJTIwY2Fwc2ljdW18ZW58MXwwfHx8MTc5Mzc5MzcxNHww&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh green capsicum bell pepper",
       "photographer": "Çağlar Oskay (Unsplash)",
-      "link": "https://unsplash.com/photos/green-bell-pepper-on-black-textile-edAQ_EZ9HHA?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/edAQ_EZ9HHA/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmVlbiUyMGNhcHNpY3VtJTIwYmVsbCUyMHBlcHBlciUyMGhhcnZlc3QlMjBmYXJtfGVufDF8MHx8fDE3OTM1NTIxOTJ8MA",
-      "source": "unsplash"
+      "link": "https://images.unsplash.com/photo-1622376242797-538aa64a9d38?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8Z3JlZW4lMjBiZWxsJTIwcGVwcGVyJTIwY2Fwc2ljdW18ZW58MXwwfHx8MTc5Mzc5MzcxNHww&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793552192904
+    "savedAt": 1793798401600
   },
   "knol khol": {
     "data": {
@@ -488,24 +356,6 @@
     },
     "savedAt": 1793556179088
   },
-  "beans": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Green_beans_2_-_Massachusetts.jpg",
-      "alt": "Fresh authentic green beans / French beans (Phaseolus vulgaris)",
-      "photographer": "Daderot (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Green_beans_2_-_Massachusetts.jpg"
-    },
-    "savedAt": 1793608128328
-  },
-  "snakeguard": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Trichosanthes_cucumerina_%28snake_gourd%29.jpg",
-      "alt": "Fresh authentic snake gourd (Trichosanthes cucumerina)",
-      "photographer": "Augustus Binu (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Trichosanthes_cucumerina_(snake_gourd).jpg"
-    },
-    "savedAt": 1793608128332
-  },
   "radish": {
     "data": {
       "url": "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg",
@@ -514,15 +364,6 @@
       "link": "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg"
     },
     "savedAt": 1793634409269
-  },
-  "raddish": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/5/57/Daikon%2C_Nara_Prefecture%2C_Japan.jpg",
-      "alt": "Fresh authentic long white daikon radishes (Raphanus sativus var. longipinnatus)",
-      "photographer": "jetsun (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Daikon,_Nara_Prefecture,_Japan.jpg"
-    },
-    "savedAt": 1793600820272
   },
   "mooli": {
     "data": {
@@ -786,20 +627,20 @@
   "watermelon": {
     "data": {
       "url": "/watermelon.jpg",
-      "alt": "Fresh whole and sliced watermelon fruit (Citrullus lanatus)",
-      "photographer": "Art Rachen (Unsplash)",
-      "link": "https://unsplash.com/photos/izi5AnlbRIA"
+      "alt": "Fresh whole and sliced watermelon",
+      "photographer": "Wikimedia Commons",
+      "link": "https://farmezy.internal"
     },
-    "savedAt": 1793734886930
+    "savedAt": 1793798401600
   },
   "guava": {
     "data": {
       "url": "/guava.jpg",
-      "alt": "Fresh whole and cut guava fruit (Psidium guajava)",
-      "photographer": "Muhammad Mahdi Karim (Wikimedia Commons)",
-      "link": "https://commons.wikimedia.org/wiki/File:Guava_pink_fruit.jpg"
+      "alt": "Fresh guava fruit",
+      "photographer": "Wikimedia Commons",
+      "link": "https://farmezy.internal"
     },
-    "savedAt": 1793734886927
+    "savedAt": 1793798401600
   },
   "amrood": {
     "data": {
@@ -821,7 +662,7 @@
   },
   "arrowroot": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/3/32/Forra%C3%A7ao2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/32/Forra%C3%A7ao2.jpg",
       "alt": "Forraçao2",
       "photographer": "Wikimedia Commons",
       "license": "CC BY-SA 3.0",
@@ -832,7 +673,7 @@
   },
   "ashwagandha": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Ashwagandha_%28Withania_somnifera%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Ashwagandha_%28Withania_somnifera%29.jpg",
       "alt": "Ashwagandha (Withania somnifera)",
       "photographer": "Cliff from I now live in Arlington, VA (Outside Washington DC), USA",
       "license": "CC BY 2.0",
@@ -843,7 +684,7 @@
   },
   "astera": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Asteras_Tripolis_emblem.gif?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/e3/Asteras_Tripolis_emblem.gif",
       "alt": "Asteras Tripolis emblem",
       "photographer": "Sotoyolo",
       "license": "CC BY-SA 4.0",
@@ -854,7 +695,7 @@
   },
   "behada": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Terminalia_bellirica.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Terminalia_bellirica.jpg",
       "alt": "Terminalia bellirica",
       "photographer": "Jan Ainali",
       "license": "CC BY-SA 3.0",
@@ -865,7 +706,7 @@
   },
   "blackcurrant": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Schwarzejohannisbeere.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Schwarzejohannisbeere.jpg",
       "alt": "Schwarzejohannisbeere",
       "photographer": "Wikimedia Commons",
       "license": "Public domain",
@@ -876,7 +717,7 @@
   },
   "blueberry": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8b/Vaccinium.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8b/Vaccinium.jpg",
       "alt": "Vaccinium",
       "photographer": "Kazvorpal at English Wikipedia",
       "license": "CC BY-SA 3.0",
@@ -887,7 +728,7 @@
   },
   "bottlegourd": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Lagenaria_siceraria_Clavata_Group1SHSU.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/cd/Lagenaria_siceraria_Clavata_Group1SHSU.jpg",
       "alt": "Lagenaria siceraria Clavata Group1SHSU",
       "photographer": "Shu Suehiro",
       "license": "CC BY 3.0",
@@ -898,7 +739,7 @@
   },
   "broomstickflowerbroom": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Broom_%28PSF%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Broom_%28PSF%29.jpg",
       "alt": "Broom (PSF)",
       "photographer": "Pearson Scott Foresman",
       "license": "Public domain",
@@ -909,7 +750,7 @@
   },
   "buttery": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Frank_Buttery.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Frank_Buttery.jpg",
       "alt": "Frank Buttery",
       "photographer": "unknown\n\nUploaded by Penale52 at en.wikipedia",
       "license": "Public domain",
@@ -920,18 +761,16 @@
   },
   "cashewnuts": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/0/0e/Anacardium_occidentale_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-010.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Anacardium occidentale - Köhler–s Medizinal-Pflanzen-010",
-      "photographer": "Franz Eugen Köhler, Köhler's Medizinal-Pflanzen",
-      "license": "Public domain",
-      "link": "https://commons.wikimedia.org/wiki/File:Anacardium_occidentale_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-010.jpg",
-      "source": "wikimedia"
+      "url": "https://images.unsplash.com/photo-1726771517475-e7acdd34cd8a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8cmF3JTIwd2hvbGUlMjBjYXNoZXclMjBudXRzfGVufDF8MHx8fDE3OTM3OTM3Mjl8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Raw whole cashew nuts",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1726771517475-e7acdd34cd8a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8cmF3JTIwd2hvbGUlMjBjYXNoZXclMjBudXRzfGVufDF8MHx8fDE3OTM3OTM3Mjl8MA&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793758349948
+    "savedAt": 1793798401600
   },
   "castoroil": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/8/81/Lets_grow_Castor-oil_plant_for_eagle.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/81/Lets_grow_Castor-oil_plant_for_eagle.JPG",
       "alt": "Lets grow Castor-oil plant for eagle",
       "photographer": "Unknown authorUnknown author",
       "license": "Public domain",
@@ -942,7 +781,7 @@
   },
   "catechublackcutchkhairkatha": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Acacia_catechu_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-003.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Acacia_catechu_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-003.jpg",
       "alt": "Acacia catechu - Köhler–s Medizinal-Pflanzen-003",
       "photographer": "Franz Eugen Köhler, Köhler's Medizinal-Pflanzen",
       "license": "Public domain",
@@ -953,7 +792,7 @@
   },
   "chestnut": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Water-caltrops.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Water-caltrops.jpg",
       "alt": "Water-caltrops",
       "photographer": "Wikimedia Commons",
       "license": "CC BY-SA 3.0",
@@ -964,7 +803,7 @@
   },
   "clarkia": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Clarkia_amoena.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Clarkia_amoena.jpg",
       "alt": "Clarkia amoena",
       "photographer": "Wikimedia Commons",
       "license": "CC BY-SA 3.0",
@@ -975,7 +814,7 @@
   },
   "clusterbeans": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Cluster_bean-guar-Cyamopsis_psoralioides-Cyamopsis_tetragonolobus-TAMIL_NADU73.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Cluster_bean-guar-Cyamopsis_psoralioides-Cyamopsis_tetragonolobus-TAMIL_NADU73.jpg",
       "alt": "Cluster bean-guar-Cyamopsis psoralioides-Cyamopsis tetragonolobus-TAMIL NADU73",
       "photographer": "த*உழவன்",
       "license": "Public domain",
@@ -986,7 +825,7 @@
   },
   "cloves": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Syzygium_aromaticum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-030.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Syzygium_aromaticum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-030.jpg",
       "alt": "Syzygium aromaticum - Köhler–s Medizinal-Pflanzen-030",
       "photographer": "Franz Eugen Köhler, Köhler's Medizinal-Pflanzen",
       "license": "Public domain",
@@ -997,7 +836,7 @@
   },
   "cineraria": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Cineraria_geifolia_28092003_Afrique_du_sud.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Cineraria_geifolia_28092003_Afrique_du_sud.jpg",
       "alt": "Cineraria geifolia 28092003 Afrique du sud",
       "photographer": "H Brisse (upload by Abalg)",
       "license": "CC BY-SA 3.0",
@@ -1008,7 +847,7 @@
   },
   "curryleaf": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Murraya_koenigii_botanic_illustration.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/0f/Murraya_koenigii_botanic_illustration.jpg",
       "alt": "Murraya koenigii botanic illustration",
       "photographer": "T. Boys",
       "license": "Public domain",
@@ -1019,7 +858,7 @@
   },
   "dailachandni": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Daila_Lama_1M_US%24_banknote.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b9/Daila_Lama_1M_US%24_banknote.jpg",
       "alt": "Daila Lama 1M US$ banknote",
       "photographer": "US Federal Reserve Bank",
       "license": "Public domain",
@@ -1030,7 +869,7 @@
   },
   "dates": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/1/17/Dates_on_date_palm.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/17/Dates_on_date_palm.jpg",
       "alt": "Dates on date palm",
       "photographer": "Wikimedia Commons",
       "license": "Public domain",
@@ -1041,7 +880,7 @@
   },
   "dryfodder": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/8/85/Winter_fodder%2C_Tomvaich_-_geograph.org.uk_-_525273.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/85/Winter_fodder%2C_Tomvaich_-_geograph.org.uk_-_525273.jpg",
       "alt": "Winter fodder, Tomvaich - geograph.org.uk - 525273",
       "photographer": "Richard Webb",
       "license": "CC BY-SA 2.0",
@@ -1052,7 +891,7 @@
   },
   "fieldpea": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/6/67/Pea_field_-_geograph.org.uk_-_460876.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/67/Pea_field_-_geograph.org.uk_-_460876.jpg",
       "alt": "Pea field - geograph.org.uk - 460876",
       "photographer": "Donnylad",
       "license": "CC BY-SA 2.0",
@@ -1063,7 +902,7 @@
   },
   "flowerbroom": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/5/52/Broom_in_flower_-_geograph.org.uk_-_179007.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/52/Broom_in_flower_-_geograph.org.uk_-_179007.jpg",
       "alt": "Broom in flower - geograph.org.uk - 179007",
       "photographer": "Penny Mayes",
       "license": "CC BY-SA 2.0",
@@ -1074,18 +913,16 @@
   },
   "garlic": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/3/39/Allium_sativum_Woodwill_1793.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Allium sativum Woodwill 1793",
-      "photographer": "Wikimedia Commons",
-      "license": "Public domain",
-      "link": "https://commons.wikimedia.org/wiki/File:Allium_sativum_Woodwill_1793.jpg",
-      "source": "wikimedia"
+      "url": "https://images.unsplash.com/photo-1636210589096-a53d5dacd702?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8Z2FybGljJTIwYnVsYiUyMGNsb3Zlc3xlbnwxfDB8fHwxNzkzNzkzNzEyfDA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Garlic bulb and cloves",
+      "photographer": "Surya Prakash (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1636210589096-a53d5dacd702?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8Z2FybGljJTIwYnVsYiUyMGNsb3Zlc3xlbnwxfDB8fHwxNzkzNzkzNzEyfDA&ixlib=rb-4.1.0&q=80&w=640"
     },
-    "savedAt": 1793758399935
+    "savedAt": 1793798401600
   },
   "goldenrod": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/0/03/Golden_rod_-_geograph.org.uk_-_536399.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/03/Golden_rod_-_geograph.org.uk_-_536399.jpg",
       "alt": "Golden rod - geograph.org.uk - 536399",
       "photographer": "Derek Harper",
       "license": "CC BY-SA 2.0",
@@ -1096,7 +933,7 @@
   },
   "gramflour": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Chickpea.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/3d/Chickpea.jpg",
       "alt": "Chickpea",
       "photographer": "Wikimedia Commons",
       "license": "Public domain",
@@ -1107,7 +944,7 @@
   },
   "gooseberrynellikkai": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/2/24/Stachelbeere_%28Ribes_uva-crispa%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/24/Stachelbeere_%28Ribes_uva-crispa%29.jpg",
       "alt": "Stachelbeere (Ribes uva-crispa)",
       "photographer": "Darkone",
       "license": "CC BY-SA 2.5",
@@ -1118,7 +955,7 @@
   },
   "guar": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Cluster_bean-guar-Cyamopsis_psoralioides-Cyamopsis_tetragonolobus-TAMIL_NADU73.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Cluster_bean-guar-Cyamopsis_psoralioides-Cyamopsis_tetragonolobus-TAMIL_NADU73.jpg",
       "alt": "Cluster bean-guar-Cyamopsis psoralioides-Cyamopsis tetragonolobus-TAMIL NADU73",
       "photographer": "த*உழவன்",
       "license": "Public domain",
@@ -1129,7 +966,7 @@
   },
   "gulli": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Gulli_arrive_sur_la_TNT.PNG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/9b/Gulli_arrive_sur_la_TNT.PNG",
       "alt": "Gulli arrive sur la TNT",
       "photographer": "Tatou 30",
       "license": "Public domain",
@@ -1140,7 +977,7 @@
   },
   "guggal": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/6/63/Commiphora-wightii-resin.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/63/Commiphora-wightii-resin.jpg",
       "alt": "Commiphora-wightii-resin",
       "photographer": "derivative work: Photohound (talk)\nIncenseWikiVers.jpg: Transferred from en.wikipedia to Commons by Trengarasu using CommonsHelper.\nThe original uploader was Sjschen at English Wikipedia.",
       "license": "CC BY-SA 2.5",
@@ -1151,7 +988,7 @@
   },
   "heena": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/f/fb/Heena_Sidhu%2C_promo_for_2014_CWG.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/fb/Heena_Sidhu%2C_promo_for_2014_CWG.jpg",
       "alt": "Heena Sidhu, promo for 2014 CWG",
       "photographer": "TEN Sports",
       "license": "CC BY 3.0",
@@ -1162,7 +999,7 @@
   },
   "hongeseed": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/6/61/Pongamia_pinnata.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/61/Pongamia_pinnata.jpg",
       "alt": "Pongamia pinnata",
       "photographer": "Ulhaspa",
       "license": "CC BY-SA 3.0",
@@ -1173,7 +1010,7 @@
   },
   "indianbeansseam": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/0/09/Indian_Bean_Tree_-_geograph.org.uk_-_648858.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/09/Indian_Bean_Tree_-_geograph.org.uk_-_648858.jpg",
       "alt": "Indian Bean Tree - geograph.org.uk - 648858",
       "photographer": "Eirian Evans",
       "license": "CC BY-SA 2.0",
@@ -1184,7 +1021,7 @@
   },
   "indiancolzasarson": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7f/319marot10.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7f/319marot10.jpg",
       "alt": "319marot10",
       "photographer": "Naeemakram319",
       "license": "Public domain",
@@ -1195,7 +1032,7 @@
   },
   "jaee": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/4/48/JaiCourtneySept2013TIFF.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/48/JaiCourtneySept2013TIFF.jpg",
       "alt": "JaiCourtneySept2013TIFF",
       "photographer": "gdcgraphics",
       "license": "CC BY-SA 2.0",
@@ -1206,7 +1043,7 @@
   },
   "leek": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/9/90/Leeks.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/90/Leeks.JPG",
       "alt": "Leeks",
       "photographer": "TadejM",
       "license": "CC BY-SA 3.0",
@@ -1217,7 +1054,7 @@
   },
   "lime": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Ripekeylime.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Ripekeylime.jpg",
       "alt": "Ripekeylime",
       "photographer": "Averette at English Wikipedia",
       "license": "CC BY 3.0",
@@ -1228,7 +1065,7 @@
   },
   "liquorturmeric": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Curcuma_longa_%28Haldi%29_Im_IMG_2441.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Curcuma_longa_%28Haldi%29_Im_IMG_2441.jpg",
       "alt": "Curcuma longa (Haldi) Im IMG 2441",
       "photographer": "J.M.Garg",
       "license": "CC BY 3.0",
@@ -1239,7 +1076,7 @@
   },
   "limoniastatus": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Limonia.nubeculosa.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Limonia.nubeculosa.jpg",
       "alt": "Limonia.nubeculosa",
       "photographer": "James K. Lindsey",
       "license": "CC BY-SA 3.0",
@@ -1250,7 +1087,7 @@
   },
   "lint": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Pieter_van_Lint_-_Het_Gulden_Cabinet.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Pieter_van_Lint_-_Het_Gulden_Cabinet.png",
       "alt": "Pieter van Lint - Het Gulden Cabinet",
       "photographer": "Pieter de Jode II / After Pieter van Lint / Joannes Meyssens",
       "license": "Public domain",
@@ -1261,7 +1098,7 @@
   },
   "littlegourdkundru": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/3/37/Coccinia_grandis.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/37/Coccinia_grandis.jpg",
       "alt": "Coccinia grandis",
       "photographer": "Wikimedia Commons",
       "license": "Public domain",
@@ -1272,7 +1109,7 @@
   },
   "macoy": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/b/ba/Ferdinand_Marcos_as_a_soldier.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/ba/Ferdinand_Marcos_as_a_soldier.jpg",
       "alt": "Ferdinand Marcos as a soldier",
       "photographer": "Unknown authorUnknown author",
       "license": "Public domain",
@@ -1283,7 +1120,7 @@
   },
   "mahedi": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Md_Mahedi_Hasan.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5e/Md_Mahedi_Hasan.jpg",
       "alt": "Md Mahedi Hasan",
       "photographer": "Mahedi mh",
       "license": "CC BY-SA 4.0",
@@ -1294,7 +1131,7 @@
   },
   "maidaatta": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/5/53/Marie_Wilkins_%28d._1883%29_%2870%29_in_%22Miss_Multon%22_Union_Square_Theatre_-_DPLA_-_22c485a4bee56431d4a7945252fb8349_%28page_1%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/53/Marie_Wilkins_%28d._1883%29_%2870%29_in_%22Miss_Multon%22_Union_Square_Theatre_-_DPLA_-_22c485a4bee56431d4a7945252fb8349_%28page_1%29.jpg",
       "alt": "Marie Wilkins (d. 1883) (70) in \"Miss Multon\" Union Square Theatre - DPLA - 22c485a4bee56431d4a7945252fb8349 (page 1)",
       "photographer": "Napoleon Sarony",
       "license": "Public domain",
@@ -1305,7 +1142,7 @@
   },
   "makhanafoxnut": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Euryale_ferox.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Euryale_ferox.jpg",
       "alt": "Euryale ferox",
       "photographer": "John Sims",
       "license": "Public domain",
@@ -1314,20 +1151,9 @@
     },
     "savedAt": 1793758469782
   },
-  "masurdal": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/0/00/%D0%92%D0%BB%D0%B0%D0%B4_%D0%9C%D0%B0%D0%B7%D1%83%D1%80.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Влад Мазур",
-      "photographer": "Влад Мазур",
-      "license": "CC BY-SA 4.0",
-      "link": "https://commons.wikimedia.org/wiki/File:%D0%92%D0%BB%D0%B0%D0%B4_%D0%9C%D0%B0%D0%B7%D1%83%D1%80.jpg",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758475064
-  },
   "methileaves": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Junger_Bockshornklee.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/15/Junger_Bockshornklee.jpg",
       "alt": "Junger Bockshornklee",
       "photographer": "Yak",
       "license": "CC BY-SA 3.0",
@@ -1338,7 +1164,7 @@
   },
   "methiseeds": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Methi_Plot_on_Versova_Beach.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Methi_Plot_on_Versova_Beach.jpg",
       "alt": "Methi Plot on Versova Beach",
       "photographer": "Ravi Khemka",
       "license": "CC BY 2.0",
@@ -1349,7 +1175,7 @@
   },
   "menthaoil": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Mentha%2C_The_Chefs_Boy.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Mentha%2C_The_Chefs_Boy.jpg",
       "alt": "Mentha, The Chefs Boy",
       "photographer": "Édouard Mentha",
       "license": "Public domain",
@@ -1360,7 +1186,7 @@
   },
   "mousambisweetlime": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Ripekeylime.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Ripekeylime.jpg",
       "alt": "Ripekeylime",
       "photographer": "Averette at English Wikipedia",
       "license": "CC BY 3.0",
@@ -1371,7 +1197,7 @@
   },
   "mintpudina": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Mint_Band.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/dd/Mint_Band.png",
       "alt": "Mint Band",
       "photographer": "Kxm at Dutch Wikipedia",
       "license": "CC BY-SA 3.0",
@@ -1382,7 +1208,7 @@
   },
   "mustardoil": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/3/34/Brassica_nigra_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-170.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/34/Brassica_nigra_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-170.jpg",
       "alt": "Brassica nigra - Köhler–s Medizinal-Pflanzen-170",
       "photographer": "Walther Otto Müller",
       "license": "Public domain",
@@ -1393,7 +1219,7 @@
   },
   "nargasi": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Process_interception_of_anti_tank_missile.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7b/Process_interception_of_anti_tank_missile.png",
       "alt": "Process interception of anti tank missile",
       "photographer": "AdiNargasi",
       "license": "CC BY-SA 4.0",
@@ -1404,7 +1230,7 @@
   },
   "nigella": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Nigella_damascena_fruit.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b3/Nigella_damascena_fruit.jpg",
       "alt": "Nigella damascena fruit",
       "photographer": "Wikimedia Commons",
       "license": "CC BY-SA 2.1 es",
@@ -1415,7 +1241,7 @@
   },
   "nigellaseeds": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Nigella_sativa_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-227.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Nigella_sativa_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-227.jpg",
       "alt": "Nigella sativa - Köhler–s Medizinal-Pflanzen-227",
       "photographer": "Franz Eugen Köhler, Köhler's Medizinal-Pflanzen",
       "license": "Public domain",
@@ -1426,7 +1252,7 @@
   },
   "peaswet": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Pea_crop_in_field_-_geograph.org.uk_-_1004503.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Pea_crop_in_field_-_geograph.org.uk_-_1004503.jpg",
       "alt": "Pea crop in field - geograph.org.uk - 1004503",
       "photographer": "Evelyn Simak",
       "license": "CC BY-SA 2.0",
@@ -1437,7 +1263,7 @@
   },
   "persimonjapanifal": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Kaki_20041002.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Kaki_20041002.jpg",
       "alt": "Kaki 20041002",
       "photographer": "Sphl",
       "license": "CC BY-SA 3.0",
@@ -1448,7 +1274,7 @@
   },
   "pinenutchilgozaniyoza": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Pinoli.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Pinoli.jpg",
       "alt": "Pinoli",
       "photographer": "Quellenangabe und Beleg an burgkirsch(at)web.de erbeten.",
       "license": "CC BY-SA 2.0 de",
@@ -1459,7 +1285,7 @@
   },
   "pomelo": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Citrus_maxima0.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Citrus_maxima0.jpg",
       "alt": "Citrus maxima0",
       "photographer": "Kurt Stüber [1]",
       "license": "CC BY-SA 3.0",
@@ -1470,7 +1296,7 @@
   },
   "popularwood": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Popular_Cafe_in_the_wood_near_Fimber_roundabout_-_geograph.org.uk_-_198903.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8c/Popular_Cafe_in_the_wood_near_Fimber_roundabout_-_geograph.org.uk_-_198903.jpg",
       "alt": "Popular Cafe in the wood near Fimber roundabout - geograph.org.uk - 198903",
       "photographer": "Phil Catterall",
       "license": "CC BY-SA 2.0",
@@ -1481,7 +1307,7 @@
   },
   "prosomillet": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Panicum_miliaceum0.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Panicum_miliaceum0.jpg",
       "alt": "Panicum miliaceum0",
       "photographer": "Kurt Stüber [1]",
       "license": "CC BY-SA 3.0",
@@ -1492,7 +1318,7 @@
   },
   "pundi": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b6/Pundi_-_The_Rice_Dumpling_Food_Item_from_Tulunadu%2C_India..jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/b6/Pundi_-_The_Rice_Dumpling_Food_Item_from_Tulunadu%2C_India..jpg",
       "alt": "Pundi - The Rice Dumpling Food Item from Tulunadu, India.",
       "photographer": "A Y KUMAR",
       "license": "CC BY-SA 4.0",
@@ -1503,7 +1329,7 @@
   },
   "quincenakh": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Quince_flowers.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Quince_flowers.jpg",
       "alt": "Quince flowers",
       "photographer": "Fir0002 at English Wikipedia",
       "license": "CC BY-SA 3.0",
@@ -1514,7 +1340,7 @@
   },
   "quinoa": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Chenopodium_quinoa0.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f4/Chenopodium_quinoa0.jpg",
       "alt": "Chenopodium quinoa0",
       "photographer": "Kurt Stueber",
       "license": "CC BY-SA 3.0",
@@ -1525,7 +1351,7 @@
   },
   "ramphal": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Ramphal_%28Annona_Reticulata%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Ramphal_%28Annona_Reticulata%29.jpg",
       "alt": "Ramphal (Annona Reticulata)",
       "photographer": "User:Abhi",
       "license": "CC BY-SA 3.0",
@@ -1536,7 +1362,7 @@
   },
   "rawbiomassagroresidue": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/3/31/A_crop_of_sorghum_%28Sorghum_bicolor%29_-_geograph.org.uk_-_1070422.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/31/A_crop_of_sorghum_%28Sorghum_bicolor%29_-_geograph.org.uk_-_1070422.jpg",
       "alt": "A crop of sorghum (Sorghum bicolor) - geograph.org.uk - 1070422",
       "photographer": "Evelyn Simak",
       "license": "CC BY-SA 2.0",
@@ -1545,20 +1371,9 @@
     },
     "savedAt": 1793758520806
   },
-  "ridgeguardtori": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Ridgeguard.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Ridgeguard",
-      "photographer": "HeraldDesa at English Wikipedia",
-      "license": "CC BY-SA 3.0",
-      "link": "https://commons.wikimedia.org/wiki/File:Ridgeguard.jpg",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758525850
-  },
   "roundgourd": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/9/96/Bringals_%26_Gourd.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/96/Bringals_%26_Gourd.jpg",
       "alt": "Bringals & Gourd",
       "photographer": "Donald Coutinho",
       "license": "Public domain",
@@ -1569,7 +1384,7 @@
   },
   "roundchilli": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Black_chilli.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Black_chilli.JPG",
       "alt": "Black chilli",
       "photographer": "Praptipanigrahi",
       "license": "CC BY-SA 3.0",
@@ -1578,20 +1393,9 @@
     },
     "savedAt": 1793758527748
   },
-  "safflower": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Safflower.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Safflower",
-      "photographer": "Wikimedia Commons",
-      "license": "Copyrighted free use",
-      "link": "https://commons.wikimedia.org/wiki/File:Safflower.jpg",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758529340
-  },
   "sanaisunhemp": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/8/87/Crotalaria_agatiflora_9575235528%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/87/Crotalaria_agatiflora_9575235528%29.jpg",
       "alt": "Crotalaria agatiflora 9575235528)",
       "photographer": "Dick Culbert from Gibsons, B.C., Canada",
       "license": "CC BY 2.0",
@@ -1602,7 +1406,7 @@
   },
   "sanay": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Rhacophorus_malabaricus.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Rhacophorus_malabaricus.jpg",
       "alt": "Rhacophorus malabaricus",
       "photographer": "L. Shyamal",
       "license": "CC BY-SA 3.0",
@@ -1613,7 +1417,7 @@
   },
   "sandalwood": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/0/00/Sandalwood_harvest.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/00/Sandalwood_harvest.jpg",
       "alt": "Sandalwood harvest",
       "photographer": "Government Photographer",
       "license": "Public domain",
@@ -1624,7 +1428,7 @@
   },
   "sem": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Shem02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Shem02.jpg",
       "alt": "Shem02",
       "photographer": "Published by Guillaume Rouille(1518?-1589)",
       "license": "Public domain",
@@ -1635,7 +1439,7 @@
   },
   "sesamumsesamegingellytil": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Sesamum_indicum_2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1a/Sesamum_indicum_2.jpg",
       "alt": "Sesamum indicum 2",
       "photographer": "Franz Xaver",
       "license": "CC BY-SA 3.0",
@@ -1646,7 +1450,7 @@
   },
   "shankhpushpi": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Dwarf_Morning-glory_%28Evolvulus_alsinoides%29_in_Talakona_forest%2C_AP_W2_IMG_8526.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Dwarf_Morning-glory_%28Evolvulus_alsinoides%29_in_Talakona_forest%2C_AP_W2_IMG_8526.jpg",
       "alt": "Dwarf Morning-glory (Evolvulus alsinoides) in Talakona forest, AP W2 IMG 8526",
       "photographer": "J.M.Garg",
       "license": "CC BY-SA 4.0",
@@ -1657,7 +1461,7 @@
   },
   "snowmountaingarlic": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/3/39/Allium_sativum_Woodwill_1793.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/39/Allium_sativum_Woodwill_1793.jpg",
       "alt": "Allium sativum Woodwill 1793",
       "photographer": "Wikimedia Commons",
       "license": "Public domain",
@@ -1668,7 +1472,7 @@
   },
   "soha": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Soha_Ali_Khan_still10.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/1d/Soha_Ali_Khan_still10.jpg",
       "alt": "Soha Ali Khan still10",
       "photographer": "Bollywood Hungama",
       "license": "CC BY 3.0",
@@ -1677,20 +1481,9 @@
     },
     "savedAt": 1793758548373
   },
-  "soyabean": {
-    "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/8/82/Soybean.USDA.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Soybean.USDA",
-      "photographer": "Wikimedia Commons",
-      "license": "Public domain",
-      "link": "https://commons.wikimedia.org/wiki/File:Soybean.USDA.jpg",
-      "source": "wikimedia"
-    },
-    "savedAt": 1793758549538
-  },
   "soji": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Soji_Shimada_signature.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Soji_Shimada_signature.png",
       "alt": "Soji Shimada signature",
       "photographer": "Soji Shimada",
       "license": "Public domain",
@@ -1701,7 +1494,7 @@
   },
   "soursop": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Soursop_fruit.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Soursop_fruit.jpg",
       "alt": "Soursop fruit",
       "photographer": "USGov",
       "license": "Public domain",
@@ -1712,7 +1505,7 @@
   },
   "spikenard": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Nardostachys_grandiflora.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/aa/Nardostachys_grandiflora.jpg",
       "alt": "Nardostachys grandiflora",
       "photographer": "Joseph Dalton Hooker (1817-1911)",
       "license": "Public domain",
@@ -1723,7 +1516,7 @@
   },
   "stonepulverizer": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/c/cd/The_stone_dust_pile_Gelligaer_Quarry_-_geograph.org.uk_-_88548.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/cd/The_stone_dust_pile_Gelligaer_Quarry_-_geograph.org.uk_-_88548.jpg",
       "alt": "The stone dust pile Gelligaer Quarry - geograph.org.uk - 88548",
       "photographer": "nantcoly",
       "license": "CC BY-SA 2.0",
@@ -1734,7 +1527,7 @@
   },
   "strawberry": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/d/de/FraiseFruitPhoto.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/de/FraiseFruitPhoto.jpg",
       "alt": "FraiseFruitPhoto",
       "photographer": "FoeNyx, France",
       "license": "CC BY-SA 3.0",
@@ -1745,18 +1538,16 @@
   },
   "sugarcane": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/7/74/Saccharum_officinarum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-125.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Saccharum officinarum - Köhler–s Medizinal-Pflanzen-125",
-      "photographer": "Franz Eugen Köhler, Köhler's Medizinal-Pflanzen",
-      "license": "Public domain",
-      "link": "https://commons.wikimedia.org/wiki/File:Saccharum_officinarum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-125.jpg",
-      "source": "wikimedia"
+      "url": "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&w=640&q=75",
+      "alt": "Fresh harvested sugarcane stalks",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&w=640&q=75"
     },
-    "savedAt": 1793758555284
+    "savedAt": 1793798401600
   },
   "suratbeanspapadi": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/3/37/Fotothek_df_pk_0000139_041_Reportagen.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/37/Fotothek_df_pk_0000139_041_Reportagen.jpg",
       "alt": "Fotothek df pk 0000139 041 Reportagen",
       "photographer": "Abraham Pisarek",
       "license": "CC BY-SA 3.0 de",
@@ -1767,7 +1558,7 @@
   },
   "sweetcorn": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/7/79/VegCorn.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/79/VegCorn.jpg",
       "alt": "VegCorn",
       "photographer": "The original Uploader was wstoakLL at English Wikipedia",
       "license": "Public domain",
@@ -1778,7 +1569,7 @@
   },
   "sweetpotato": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a3/234_Solanum_tuberosum_L.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a3/234_Solanum_tuberosum_L.jpg",
       "alt": "234 Solanum tuberosum L",
       "photographer": "Amédée Masclef",
       "license": "Public domain",
@@ -1789,7 +1580,7 @@
   },
   "sweetsultan": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8d/Amberboa_moschata1UME.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/8d/Amberboa_moschata1UME.jpg",
       "alt": "Amberboa moschata1UME",
       "photographer": "Epibase",
       "license": "CC BY 3.0",
@@ -1800,7 +1591,7 @@
   },
   "sweetwilliam": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Dianthus_barbatus_PID1688-4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/4/4f/Dianthus_barbatus_PID1688-4.jpg",
       "alt": "Dianthus barbatus PID1688-4",
       "photographer": "Benjamin Zwittnig",
       "license": "CC BY 2.5 si",
@@ -1811,7 +1602,7 @@
   },
   "tapioca": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Tapioca-1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Tapioca-1.jpg",
       "alt": "Tapioca-1",
       "photographer": "Una Smith",
       "license": "CC BY-SA 3.0",
@@ -1822,7 +1613,7 @@
   },
   "taroarvistem": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/6/61/Dried_taro_stems.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/61/Dried_taro_stems.jpg",
       "alt": "Dried taro stems",
       "photographer": "경빈마마",
       "license": "CC BY 4.0",
@@ -1833,7 +1624,7 @@
   },
   "tesuflower": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/e/ef/Butea_monosperma_%28Dhak%29_flowers_%26_fruits_W2_IMG_7495.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/ef/Butea_monosperma_%28Dhak%29_flowers_%26_fruits_W2_IMG_7495.jpg",
       "alt": "Butea monosperma (Dhak) flowers & fruits W2 IMG 7495",
       "photographer": "J.M.Garg",
       "license": "CC BY 3.0",
@@ -1844,18 +1635,16 @@
   },
   "tobacco": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/f/fc/Nicotiana_tabacum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-098.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
-      "alt": "Nicotiana tabacum - Köhler–s Medizinal-Pflanzen-098",
-      "photographer": "Franz Eugen Köhler, Köhler's Medizinal-Pflanzen",
-      "license": "Public domain",
-      "link": "https://commons.wikimedia.org/wiki/File:Nicotiana_tabacum_-_K%C3%B6hler%E2%80%93s_Medizinal-Pflanzen-098.jpg",
-      "source": "wikimedia"
+      "url": "https://images.unsplash.com/photo-1527661591475-527312dd65f5?auto=format&fit=crop&w=640&q=75",
+      "alt": "Cured tobacco leaves",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1527661591475-527312dd65f5?auto=format&fit=crop&w=640&q=75"
     },
-    "savedAt": 1793758572937
+    "savedAt": 1793798401600
   },
   "toria": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/1/11/Pss_Victoria_of_UK_colour.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/1/11/Pss_Victoria_of_UK_colour.jpg",
       "alt": "Pss Victoria of UK colour",
       "photographer": "Peter symonds",
       "license": "CC BY-SA 4.0",
@@ -1866,7 +1655,7 @@
   },
   "turmericpowder": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Curcuma_longa_%28Haldi%29_Im_IMG_2441.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Curcuma_longa_%28Haldi%29_Im_IMG_2441.jpg",
       "alt": "Curcuma longa (Haldi) Im IMG 2441",
       "photographer": "J.M.Garg",
       "license": "CC BY 3.0",
@@ -1877,7 +1666,7 @@
   },
   "turmericraw": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Curcuma_longa_%28Haldi%29_Im_IMG_2441.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Curcuma_longa_%28Haldi%29_Im_IMG_2441.jpg",
       "alt": "Curcuma longa (Haldi) Im IMG 2441",
       "photographer": "J.M.Garg",
       "license": "CC BY 3.0",
@@ -1888,7 +1677,7 @@
   },
   "waterchestnut": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Water_chestnut_CDC.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/ab/Water_chestnut_CDC.jpg",
       "alt": "Water chestnut CDC",
       "photographer": "Wikimedia Commons",
       "license": "Public domain",
@@ -1899,7 +1688,7 @@
   },
   "whitepumpkin": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/e/eb/White_pumpkin_flowers.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/eb/White_pumpkin_flowers.png",
       "alt": "White pumpkin flowers",
       "photographer": "لجين جهاد دنديس",
       "license": "CC BY-SA 4.0",
@@ -1910,7 +1699,7 @@
   },
   "whitepeas": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/3/31/Harvesting_Peas_near_White_Hart_Farm_-_geograph.org.uk_-_1393419.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/31/Harvesting_Peas_near_White_Hart_Farm_-_geograph.org.uk_-_1393419.jpg",
       "alt": "Harvesting Peas near White Hart Farm - geograph.org.uk - 1393419",
       "photographer": "David Wright",
       "license": "CC BY-SA 2.0",
@@ -1921,7 +1710,7 @@
   },
   "wildgarlicshoots": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/3/39/Allium_sativum_Woodwill_1793.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/3/39/Allium_sativum_Woodwill_1793.jpg",
       "alt": "Allium sativum Woodwill 1793",
       "photographer": "Wikimedia Commons",
       "license": "Public domain",
@@ -1932,7 +1721,7 @@
   },
   "woodveneer": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Feuilles_de_placage.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Feuilles_de_placage.jpg",
       "alt": "Feuilles de placage",
       "photographer": "Neri.jp",
       "license": "CC BY-SA 3.0",
@@ -1943,7 +1732,7 @@
   },
   "yamratalu": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/9/96/Dioscorea_balcanica_BotGardBln310505.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/96/Dioscorea_balcanica_BotGardBln310505.jpg",
       "alt": "Dioscorea balcanica BotGardBln310505",
       "photographer": "Wikimedia Commons",
       "license": "CC BY-SA 3.0",
@@ -1954,7 +1743,7 @@
   },
   "apple::royaldelicious": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Baker%27s_Delicious_on_tree%2C_National_Fruit_Collection_%28acc._1947-039%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/d/d4/Baker%27s_Delicious_on_tree%2C_National_Fruit_Collection_%28acc._1947-039%29.jpg",
       "alt": "Royal Delicious Apple",
       "photographer": "National Fruit Collection, Brogdale.",
       "license": "OGL 2",
@@ -1965,7 +1754,7 @@
   },
   "apple::american": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Cross_section_of_American_Beauty%2C_National_Fruit_Collection_%28acc._1947-333%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/6a/Cross_section_of_American_Beauty%2C_National_Fruit_Collection_%28acc._1947-333%29.jpg",
       "alt": "American Apple",
       "photographer": "National Fruit Collection, Brogdale.",
       "license": "OGL 2",
@@ -1976,7 +1765,7 @@
   },
   "grapes::sharadseedless": {
     "data": {
-      "url": "https://upload.wikimedia.org/wikipedia/commons/6/63/Black_Monukka%2C_Armstrong_1924.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/6/63/Black_Monukka%2C_Armstrong_1924.jpg",
       "alt": "Sharad Seedless Grapes",
       "photographer": "Armstrong Nurseries (Ontario, California)",
       "license": "Public domain",
@@ -1986,163 +1775,763 @@
     "savedAt": 1793758676495
   },
   "coconut": {
-    "url": "/coconut.jpg",
-    "alt": "Fresh whole mature coconut and cracked half (Cocos nucifera)",
-    "photographer": "Michele Wales (Unsplash)",
-    "link": "https://unsplash.com/photos/Y4JLPY9mzQA",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/coconut.jpg",
+      "alt": "Fresh whole mature coconut and cut half",
+      "photographer": "Wikimedia Commons",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "tender coconut": {
-    "url": "/tender_coconut.jpg",
-    "alt": "Fresh green tender coconut fruit (Cocos nucifera)",
-    "photographer": "Kilimanjaro STUDIOz (Unsplash)",
-    "link": "https://unsplash.com/photos/WmZLDvHZJfQ",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/tender_coconut.jpg",
+      "alt": "Fresh green tender coconut",
+      "photographer": "Kilimanjaro STUDIOz (Unsplash)",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "papaya": {
-    "url": "/papaya.jpg",
-    "alt": "Fresh ripe whole and cut papaya fruit with seeds (Carica papaya)",
-    "photographer": "BNC (Wikimedia Commons)",
-    "link": "https://commons.wikimedia.org/wiki/File:Carica_papaya.jpg",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/papaya.jpg",
+      "alt": "Fresh ripe whole and cut papaya",
+      "photographer": "Wikimedia Commons",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "tamarind": {
-    "url": "/tamarind.jpg",
-    "alt": "Fresh harvested tamarind pods and pulp (Tamarindus indica)",
-    "photographer": "B.navez (Wikimedia Commons)",
-    "link": "https://commons.wikimedia.org/wiki/File:Tamarindus_indica.jpg",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/tamarind.jpg",
+      "alt": "Fresh harvested tamarind pods and pulp",
+      "photographer": "Wikimedia Commons",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "amaranthus": {
-    "url": "/amaranthus.jpg",
-    "alt": "Fresh green edible amaranthus leafy vegetable bunch",
-    "photographer": "Wikimedia Commons",
-    "link": "https://commons.wikimedia.org",
-    "source": "curated",
-    "savedAt": 1793791785562
-  },
-  "ginger": {
-    "url": "/ginger.jpg",
-    "alt": "Fresh raw ginger rhizomes isolated on clean background (Zingiber officinale)",
-    "photographer": "Mockup Graphics (Unsplash)",
-    "link": "https://unsplash.com/photos/c94e896edbae",
-    "source": "curated",
-    "savedAt": 1793791785562
-  },
-  "green ginger": {
-    "url": "/ginger.jpg",
-    "alt": "Fresh green ginger rhizomes isolated on clean background (Zingiber officinale)",
-    "photographer": "Mockup Graphics (Unsplash)",
-    "link": "https://unsplash.com/photos/c94e896edbae",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/amaranthus.jpg",
+      "alt": "Fresh edible amaranthus leafy greens",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "cotton": {
-    "url": "/cotton.jpg",
-    "alt": "Harvested white raw cotton bolls and natural fiber (Gossypium)",
-    "photographer": "Mehmet Keskin (Unsplash)",
-    "link": "https://unsplash.com/photos/CHKPpH62QNk",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/cotton.jpg",
+      "alt": "Harvested white raw cotton bolls and fiber",
+      "photographer": "Mehmet Keskin (Unsplash)",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "jasmine": {
-    "url": "/jasmine.jpg",
-    "alt": "Fresh white jasmine blossoms (Jasminum sambac)",
-    "photographer": "Wikimedia Commons",
-    "link": "https://commons.wikimedia.org/wiki/File:Jasminum_sambac.jpg",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/jasmine.jpg",
+      "alt": "Fresh jasmine flowers and buds",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "marigold": {
-    "url": "/marigold.jpg",
-    "alt": "Fresh vibrant orange-yellow marigold blossoms (Tagetes)",
-    "photographer": "Tawseem Hakak (Unsplash)",
-    "link": "https://unsplash.com",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/marigold.jpg",
+      "alt": "Fresh marigold flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "rose": {
-    "url": "/rose.jpg",
-    "alt": "Fresh red rose flower bloom isolated on clean background (Rosa)",
-    "photographer": "Jerry Klein (Unsplash)",
-    "link": "https://unsplash.com",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/rose.jpg",
+      "alt": "Fresh rose flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "chrysanthemum": {
-    "url": "/chrysanthemum.jpg",
-    "alt": "Fresh chrysanthemum blossoms (Chrysanthemum)",
-    "photographer": "Unsplash",
-    "link": "https://unsplash.com",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/chrysanthemum.jpg",
+      "alt": "Fresh chrysanthemum flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "carnation": {
-    "url": "/carnation.jpg",
-    "alt": "Fresh carnation flower blossoms (Dianthus caryophyllus)",
-    "photographer": "Unsplash",
-    "link": "https://unsplash.com",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/carnation.jpg",
+      "alt": "Fresh carnation flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "gerbera": {
-    "url": "/gerbera.jpg",
-    "alt": "Fresh colorful gerbera daisy flowers (Gerbera)",
-    "photographer": "Unsplash",
-    "link": "https://unsplash.com",
-    "source": "curated",
-    "savedAt": 1793791785562
-  },
-  "gladiolus": {
-    "url": "/gladiolus.jpg",
-    "alt": "Fresh gladiolus flower spikes blossoms",
-    "photographer": "Unsplash",
-    "link": "https://unsplash.com",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/gerbera.jpg",
+      "alt": "Fresh gerbera flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "lotus": {
-    "url": "/lotus.jpg",
-    "alt": "Fresh sacred pink lotus flower blossom (Nelumbo nucifera)",
-    "photographer": "Unsplash",
-    "link": "https://unsplash.com",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/lotus.jpg",
+      "alt": "Fresh sacred lotus flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "orchid": {
-    "url": "/orchid.jpg",
-    "alt": "Fresh exotic orchid flower blossoms (Orchidaceae)",
-    "photographer": "Unsplash",
-    "link": "https://unsplash.com",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/orchid.jpg",
+      "alt": "Fresh orchid flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "tulip": {
-    "url": "/tulip.jpg",
-    "alt": "Fresh tulip flower blossoms (Tulipa)",
-    "photographer": "Unsplash",
-    "link": "https://unsplash.com",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/tulip.jpg",
+      "alt": "Fresh tulip flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "tuberose": {
-    "url": "/tuberose.jpg",
-    "alt": "Fresh white tuberose / rajanigandha flower spikes (Polianthes tuberosa)",
-    "photographer": "Wikimedia Commons",
-    "link": "https://commons.wikimedia.org",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/tuberose.jpg",
+      "alt": "Fresh tuberose flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
   },
   "crossandra": {
-    "url": "/crossandra.jpg",
-    "alt": "Fresh bright orange crossandra / kanakambaram flowers (Crossandra infundibuliformis)",
-    "photographer": "Wikimedia Commons",
-    "link": "https://commons.wikimedia.org",
-    "source": "curated",
-    "savedAt": 1793791785562
+    "data": {
+      "url": "/crossandra.jpg",
+      "alt": "Fresh orange crossandra flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "ginger(green)": {
+    "data": {
+      "url": "/ginger_green.jpg",
+      "alt": "Fresh green ginger rhizome",
+      "photographer": "Wikimedia Commons",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "peas wet": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1587735243615-c03f25aaff15?auto=format&fit=crop&w=640&q=75",
+      "alt": "Fresh green peas in pods",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1587735243615-c03f25aaff15?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "green peas": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1587735243615-c03f25aaff15?auto=format&fit=crop&w=640&q=75",
+      "alt": "Fresh green peas in pods",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1587735243615-c03f25aaff15?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "sweet potato": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1730815048561-45df6f7f331d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8cmF3JTIwc3dlZXQlMjBwb3RhdG8lMjB0dWJlcnxlbnwxfDB8fHwxNzkzNzkzNzE5fDA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Raw sweet potato tubers",
+      "photographer": "Glen Hayoge (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1730815048561-45df6f7f331d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8cmF3JTIwc3dlZXQlMjBwb3RhdG8lMjB0dWJlcnxlbnwxfDB8fHwxNzkzNzkzNzE5fDA&ixlib=rb-4.1.0&q=80&w=640"
+    },
+    "savedAt": 1793798401600
+  },
+  "coriander(leaves)": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=640&q=75",
+      "alt": "Fresh coriander leaves",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1589927986089-35812388d1f4?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "mint(pudina)": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?auto=format&fit=crop&w=640&q=75",
+      "alt": "Fresh mint pudina leaves",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "lemon": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1568569350062-ebfa3cb195df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB5ZWxsb3clMjBsZW1vbnMlMjBmcnVpdHxlbnwxfDB8fHwxNzkzNzkzNzI2fDA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh yellow lemons",
+      "photographer": "Han Lahandoe (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1568569350062-ebfa3cb195df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB5ZWxsb3clMjBsZW1vbnMlMjBmcnVpdHxlbnwxfDB8fHwxNzkzNzkzNzI2fDA&ixlib=rb-4.1.0&q=80&w=640"
+    },
+    "savedAt": 1793798401600
+  },
+  "mushroom": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1552825897-bb5efa86eab1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBidXR0b24lMjBtdXNocm9vbXMlMjB2ZWdldGFibGV8ZW58MXwwfHx8MTc5Mzc5MzcxOHww&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh button mushrooms",
+      "photographer": "Waldemar Brandt (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1552825897-bb5efa86eab1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBidXR0b24lMjBtdXNocm9vbXMlMjB2ZWdldGFibGV8ZW58MXwwfHx8MTc5Mzc5MzcxOHww&ixlib=rb-4.1.0&q=80&w=640"
+    },
+    "savedAt": 1793798401600
+  },
+  "paddy(dhan)(common)": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75",
+      "alt": "Wholesale paddy rice",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "paddy(dhan)(basmati)": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75",
+      "alt": "Basmati paddy rice",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "grapes": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1725195398648-f3454b552b20?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmFwZXMlMjBidW5jaCUyMGZydWl0fGVufDF8MHx8fDE3OTM3OTM3MjN8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh grapes bunch",
+      "photographer": "Yasaman Abedini (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1725195398648-f3454b552b20?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjBncmFwZXMlMjBidW5jaCUyMGZydWl0fGVufDF8MHx8fDE3OTM3OTM3MjN8MA&ixlib=rb-4.1.0&q=80&w=640"
+    },
+    "savedAt": 1793798401600
+  },
+  "pineapple": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1490885578174-acda8905c2c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB3aG9sZSUyMHBpbmVhcHBsZSUyMGZydWl0fGVufDF8MHx8fDE3OTM3OTM3MjV8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Fresh whole pineapple",
+      "photographer": "Julien Pianetti (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1490885578174-acda8905c2c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjB3aG9sZSUyMHBpbmVhcHBsZSUyMGZydWl0fGVufDF8MHx8fDE3OTM3OTM3MjV8MA&ixlib=rb-4.1.0&q=80&w=640"
+    },
+    "savedAt": 1793798401600
+  },
+  "sesamum(sesame,gingelly,til)": {
+    "data": {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/e/ef/Sesame-Seeds.jpg",
+      "alt": "Raw white sesame seeds (Til)",
+      "photographer": "Wikimedia Commons",
+      "link": "https://upload.wikimedia.org/wikipedia/commons/e/ef/Sesame-Seeds.jpg"
+    },
+    "savedAt": 1793798401600
+  },
+  "sunflower": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=640&q=75",
+      "alt": "Sunflower bloom and oilseeds",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1597848212624-a19eb35e2651?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "black pepper": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=640&q=75",
+      "alt": "Whole black peppercorns",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "rose(loose))": {
+    "data": {
+      "url": "/rose.jpg",
+      "alt": "Fresh rose flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "rose(local)": {
+    "data": {
+      "url": "/rose.jpg",
+      "alt": "Fresh local rose flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "rose(tata)": {
+    "data": {
+      "url": "/rose.jpg",
+      "alt": "Fresh rose flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "marigold(loose)": {
+    "data": {
+      "url": "/marigold.jpg",
+      "alt": "Fresh marigold flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "marigold(calcutta)": {
+    "data": {
+      "url": "/marigold.jpg",
+      "alt": "Fresh Calcutta marigold flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "kakada": {
+    "data": {
+      "url": "/jasmine.jpg",
+      "alt": "Fresh kakada jasmine flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "gladiolus(cut flower)": {
+    "data": {
+      "url": "/gladiolus.jpg",
+      "alt": "Fresh gladiolus cut flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "chrysanthemum(loose)": {
+    "data": {
+      "url": "/chrysanthemum.jpg",
+      "alt": "Fresh loose chrysanthemum flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "gladiolus bulb": {
+    "data": {
+      "url": "/gladiolus.jpg",
+      "alt": "Gladiolus bulbs",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "lotus sticks": {
+    "data": {
+      "url": "/lotus.jpg",
+      "alt": "Lotus stems and flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "tube rose(double)": {
+    "data": {
+      "url": "/tuberose.jpg",
+      "alt": "Fresh double tube rose flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "tube rose(loose)": {
+    "data": {
+      "url": "/tuberose.jpg",
+      "alt": "Fresh loose tube rose flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "tube rose(single)": {
+    "data": {
+      "url": "/tuberose.jpg",
+      "alt": "Fresh single tube rose flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "tube flower": {
+    "data": {
+      "url": "/tuberose.jpg",
+      "alt": "Fresh tube flowers",
+      "photographer": "Farmzy Curated",
+      "link": "https://farmezy.internal"
+    },
+    "savedAt": 1793798401600
+  },
+  "almond(badam)": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1608797178974-15b35a64ede9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8cmF3JTIwd2hvbGUlMjBhbG1vbmRzJTIwbnV0c3xlbnwxfDB8fHwxNzkzNzkzNzI4fDA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Raw whole almonds",
+      "photographer": "Mockupo (Unsplash)",
+      "link": "https://images.unsplash.com/photo-1608797178974-15b35a64ede9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8cmF3JTIwd2hvbGUlMjBhbG1vbmRzJTIwbnV0c3xlbnwxfDB8fHwxNzkzNzkzNzI4fDA&ixlib=rb-4.1.0&q=80&w=640"
+    },
+    "savedAt": 1793798401600
+  },
+  "walnut": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1635843108103-9af0ea224a19?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8Mnx8d2hvbGUlMjB3YWxudXRzJTIwbnV0cyUyMGluJTIwc2hlbGx8ZW58MXwwfHx8MTc5Mzc5MzczMHww&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Whole walnuts in shell",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1635843108103-9af0ea224a19?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8Mnx8d2hvbGUlMjB3YWxudXRzJTIwbnV0cyUyMGluJTIwc2hlbGx8ZW58MXwwfHx8MTc5Mzc5MzczMHww&ixlib=rb-4.1.0&q=80&w=640"
+    },
+    "savedAt": 1793798401600
+  },
+  "kismis": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1589733955941-5eeaf752f6dd?auto=format&fit=crop&w=640&q=75",
+      "alt": "Golden raisins / kismis",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1589733955941-5eeaf752f6dd?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "coffee": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1447933601403-0c6688de566e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8cm9hc3RlZCUyMGNvZmZlZSUyMGJlYW5zfGVufDF8MHx8fDE3OTM3OTM3MzF8MA&ixlib=rb-4.1.0&q=80&w=640",
+      "alt": "Whole roasted coffee beans",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1447933601403-0c6688de566e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8cm9hc3RlZCUyMGNvZmZlZSUyMGJlYW5zfGVufDF8MHx8fDE3OTM3OTM3MzF8MA&ixlib=rb-4.1.0&q=80&w=640"
+    },
+    "savedAt": 1793798401600
+  },
+  "tea": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=640&q=75",
+      "alt": "Fresh tea leaves",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "jute": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1606041008023-472dfb5e530f?auto=format&fit=crop&w=640&q=75",
+      "alt": "Raw golden jute fiber",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1606041008023-472dfb5e530f?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "betel leaves": {
+    "data": {
+      "url": "/betel_leaves.jpg",
+      "alt": "Fresh green betel leaf (Paan)",
+      "photographer": "Farmezy Verified",
+      "source": "Farmzy Local Asset",
+      "link": "https://unsplash.com"
+    },
+    "savedAt": 1793817790912
+  },
+  "lemongrass": {
+    "data": {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/b/bd/YosriNov04Pokok_Serai.JPG",
+      "alt": "Fresh green lemongrass stalks",
+      "photographer": "Wikimedia Commons",
+      "link": "https://upload.wikimedia.org/wikipedia/commons/b/bd/YosriNov04Pokok_Serai.JPG"
+    },
+    "savedAt": 1793798401600
+  },
+  "bamboo": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=640&q=75",
+      "alt": "Fresh green bamboo stalks",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "honey": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1471943311424-646960669fbc?auto=format&fit=crop&w=640&q=75",
+      "alt": "Pure natural honey jar",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1471943311424-646960669fbc?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "fish": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1534483509719-3feaee7c30da?auto=format&fit=crop&w=640&q=75",
+      "alt": "Fresh catch whole fish",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1534483509719-3feaee7c30da?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "egg": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=640&q=75",
+      "alt": "Fresh farm eggs",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1506976785307-8732e854ad03?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "cock": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=640&q=75",
+      "alt": "Farm rooster / cock",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "cow": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=640&q=75",
+      "alt": "Dairy cow in pasture",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "sheep": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=640&q=75",
+      "alt": "Farm sheep",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1484557052118-f32bd25b45b5?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "goat": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=640&q=75",
+      "alt": "Farm goat",
+      "photographer": "Curated Photography",
+      "link": "https://images.unsplash.com/photo-1524024973431-2ad916746881?auto=format&fit=crop&w=640&q=75"
+    },
+    "savedAt": 1793798401600
+  },
+  "tomato": {
+    "data": {
+      "url": "https://images.unsplash.com/photo-1576856497337-4f2be24683da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByZWQlMjB0b21hdG9lcyUyMGlzb2xhdGVkJTIwb24lMjBhJTIwY2xlYW4lMjBiYWNrZ3JvdW5kfGVufDF8MHx8fDE3OTM4MDIyMTd8MA&ixlib=rb-4.1.0&q=80&w=400",
+      "alt": "two red tomatoes in green background",
+      "photographer": "Suri Huang (Unsplash)",
+      "link": "https://unsplash.com/photos/two-red-tomatoes-in-green-background-Cp1LK6zNEZ8?utm_source=farmezy&utm_medium=referral",
+      "downloadLocation": "https://api.unsplash.com/photos/Cp1LK6zNEZ8/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByZWQlMjB0b21hdG9lcyUyMGlzb2xhdGVkJTIwb24lMjBhJTIwY2xlYW4lMjBiYWNrZ3JvdW5kfGVufDF8MHx8fDE3OTM4MDIyMTd8MA",
+      "source": "unsplash"
+    },
+    "savedAt": 1793802218207
+  },
+  "chicory": {
+    "data": {
+      "url": "/chicory.jpg",
+      "alt": "chicory",
+      "photographer": "Farmezy Verified",
+      "link": "/chicory.jpg"
+    },
+    "savedAt": 1793817790904
+  },
+  "savi": {
+    "data": {
+      "url": "/savi.jpg",
+      "alt": "savi",
+      "photographer": "Farmezy Verified",
+      "link": "/savi.jpg"
+    },
+    "savedAt": 1793817790908
+  },
+  "fig": {
+    "data": {
+      "url": "/fig.jpg",
+      "alt": "fig",
+      "photographer": "Farmezy Verified",
+      "link": "/fig.jpg"
+    },
+    "savedAt": 1793817790931
+  },
+  "onion": {
+    "data": {
+      "url": "/onion.jpg",
+      "alt": "Fresh red onion bulbs",
+      "photographer": "Wikimedia Commons",
+      "source": "Farmzy Local Asset",
+      "link": "https://unsplash.com"
+    },
+    "savedAt": 1793817771446
+  },
+  "orsevi": {
+    "data": {
+      "url": "/savi.jpg",
+      "alt": "orsevi",
+      "photographer": "Farmezy Verified",
+      "link": "/savi.jpg"
+    },
+    "savedAt": 1793817790910
+  },
+  "groundnuts": {
+    "data": {
+      "url": "/groundnut.jpg",
+      "alt": "groundnuts",
+      "photographer": "Farmezy Verified",
+      "link": "/groundnut.jpg"
+    },
+    "savedAt": 1793817790921
+  },
+  "safflower": {
+    "data": {
+      "url": "/safflower.jpg",
+      "alt": "safflower",
+      "photographer": "Farmezy Verified",
+      "link": "/safflower.jpg"
+    },
+    "savedAt": 1793817790924
+  },
+  "anjur": {
+    "data": {
+      "url": "/fig.jpg",
+      "alt": "anjur",
+      "photographer": "Farmezy Verified",
+      "link": "/fig.jpg"
+    },
+    "savedAt": 1793817790935
+  },
+  "bengal gram": {
+    "data": {
+      "url": "/bengal_gram_whole.jpg",
+      "alt": "bengal gram",
+      "photographer": "Farmezy Verified",
+      "link": "/bengal_gram_whole.jpg"
+    },
+    "savedAt": 1793817790938
+  },
+  "beans": {
+    "data": {
+      "url": "/beans.jpg",
+      "alt": "beans",
+      "photographer": "Farmezy Verified",
+      "link": "/beans.jpg"
+    },
+    "savedAt": 1793817790940
+  },
+  "black gram": {
+    "data": {
+      "url": "/black_gram.jpg",
+      "alt": "black gram",
+      "photographer": "Farmezy Verified",
+      "link": "/black_gram.jpg"
+    },
+    "savedAt": 1793817790943
+  },
+  "masoor dal": {
+    "data": {
+      "url": "/masoor_dal.jpg",
+      "alt": "masoor dal",
+      "photographer": "Farmezy Verified",
+      "link": "/masoor_dal.jpg"
+    },
+    "savedAt": 1793817790945
+  },
+  "poppy seeds": {
+    "data": {
+      "url": "/poppy_seeds.jpg",
+      "alt": "poppy seeds",
+      "photographer": "Farmezy Verified",
+      "link": "/poppy_seeds.jpg"
+    },
+    "savedAt": 1793817790950
+  },
+  "methi seeds": {
+    "data": {
+      "url": "/methi_seeds.jpg",
+      "alt": "methi seeds",
+      "photographer": "Farmezy Verified",
+      "link": "/methi_seeds.jpg"
+    },
+    "savedAt": 1793817790952
+  },
+  "ash gourd": {
+    "data": {
+      "url": "/ash_gourd.jpg",
+      "alt": "ash gourd",
+      "photographer": "Farmezy Verified",
+      "link": "/ash_gourd.jpg"
+    },
+    "savedAt": 1793817790954
+  },
+  "ascot": {
+    "data": {
+      "url": "/ash_gourd.jpg",
+      "alt": "ascot",
+      "photographer": "Farmezy Verified",
+      "link": "/ash_gourd.jpg"
+    },
+    "savedAt": 1793817790956
+  },
+  "snake gourd": {
+    "data": {
+      "url": "/snake_gourd.jpg",
+      "alt": "snake gourd",
+      "photographer": "Farmezy Verified",
+      "link": "/snake_gourd.jpg"
+    },
+    "savedAt": 1793817790958
+  },
+  "ridge gourd": {
+    "data": {
+      "url": "/ridge_gourd.jpg",
+      "alt": "ridge gourd",
+      "photographer": "Farmezy Verified",
+      "link": "/ridge_gourd.jpg"
+    },
+    "savedAt": 1793817790960
+  },
+  "soybean": {
+    "data": {
+      "url": "/soybean.jpg",
+      "alt": "soybean",
+      "photographer": "Farmezy Verified",
+      "link": "/soybean.jpg"
+    },
+    "savedAt": 1793817791781
+  },
+  "coriander seeds": {
+    "data": {
+      "url": "/coriander_seed.jpg",
+      "alt": "coriander seeds",
+      "photographer": "Farmezy Verified",
+      "link": "/coriander_seed.jpg"
+    },
+    "savedAt": 1793817791789
+  },
+  "ghee": {
+    "data": {
+      "url": "/ghee.jpg",
+      "alt": "ghee",
+      "photographer": "Farmezy Verified",
+      "link": "/ghee.jpg"
+    },
+    "savedAt": 1793817791808
   }
 }
