@@ -979,32 +979,144 @@
   overflow-x: hidden;
   overflow-y: auto;
 }
+/* ==========================================================================
+   ENHANCED WORKSPACE CARDS (SIDEBAR "YOUR WORKSPACE")
+   Clean, modern, professional cards with subtle borders, soft shadows,
+   smooth hover transitions, and distinct active state.
+   ========================================================================== */
+
 .role-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  background: transparent;
+  border: none;
   min-width: 0;
-  overflow: hidden;
 }
-.role-switch button {
-  white-space: nowrap;
+
+.role-switch button,
+.workspace-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  background: #ffffff;
+  color: #4b584e;
+  border: 1px solid #e1e7df;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(36, 52, 43, 0.05);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  box-sizing: border-box;
   overflow: hidden;
-  text-overflow: ellipsis;
+  user-select: none;
+}
+
+/* Icons */
+.workspace-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
+
+/* Text */
+.role-switch button .role-text,
+.workspace-card .role-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.1px;
+}
+
+/* Hover effect on unselected card */
+.role-switch button:hover:not(.active),
+.workspace-card:hover:not(.active) {
+  background: #f7faf6;
+  border-color: #c9d8c9;
+  color: #243a2c;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(36, 52, 43, 0.08);
+}
+
+.role-switch button:hover:not(.active) .workspace-icon,
+.workspace-card:hover:not(.active) .workspace-icon {
+  transform: scale(1.08);
+}
+
+/* Selected / Active Workspace Card */
+.role-switch button.active,
+.workspace-card.active {
+  background: #edf6ef;
+  border: 1.5px solid #2f6d44;
+  color: #1e5231;
+  font-weight: 700;
+  box-shadow: 0 2px 7px rgba(47, 109, 68, 0.14);
+}
+
+.role-switch button.active:hover,
+.workspace-card.active:hover {
+  background: #e6f2e8;
+  border-color: #265937;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(47, 109, 68, 0.18);
+}
+
+/* Click / Active press feedback */
+.role-switch button:active,
+.workspace-card:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(36, 52, 43, 0.08);
+}
+
+/* Responsive adjustments */
+@media(max-width: 1000px) {
+  .role-switch {
+    gap: 6px;
+  }
+  .role-switch button,
+  .workspace-card {
+    min-height: 42px;
+    padding: 7px 6px;
+    font-size: 11.5px;
+    gap: 5px;
+  }
+  .workspace-icon {
+    font-size: 14px;
+  }
+}
+
 @media(max-width: 650px) {
   .role-switch {
     grid-template-columns: 1fr;
-    gap: 4px;
-    padding: 3px;
+    gap: 6px;
+    margin: 0;
   }
-  .role-switch button span.role-text {
+  .role-switch button,
+  .workspace-card {
+    min-height: 38px;
+    padding: 6px 0;
+    justify-content: center;
+  }
+  .role-switch button .role-text,
+  .workspace-card .role-text {
     display: none;
   }
-  .role-switch button {
-    padding: 8px 0;
+  .workspace-icon {
     font-size: 18px;
-    justify-content: center;
   }
 }
 
@@ -1660,4 +1772,435 @@
   padding: 0 4px;
   font-size: 11px;
   color: #374151;
+}
+
+
+/* ==========================================================================
+   DYNAMIC CROP DETAILS MODAL & OVERLAY STYLING
+   ========================================================================== */
+
+.crop-details-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 30, 22, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.crop-details-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(18, 30, 22, 0.25);
+  width: 100%;
+  max-width: 920px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dbe5da;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.crop-details-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: #f7faf6;
+  border-bottom: 1px solid #e5ebe3;
+  flex-shrink: 0;
+}
+
+.btn-back-details {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #c9d8c9;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2b5f39;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-back-details:hover {
+  background: #edf5ee;
+  border-color: #2f6d44;
+  color: #1e5231;
+}
+
+.details-modal-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #38493d;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.btn-close-details {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #dce5db;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  font-size: 15px;
+  color: #556658;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-close-details:hover {
+  background: #f0f4ef;
+  color: #223226;
+  border-color: #bccbbd;
+}
+
+.crop-details-content {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  padding: 24px;
+  overflow-y: auto;
+  max-height: calc(90vh - 65px);
+}
+
+.crop-details-media-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.crop-details-image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #eef3ec;
+  border: 1px solid #e0e8de;
+}
+
+.crop-details-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.crop-details-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #6d7f70;
+  font-size: 12px;
+}
+
+.crop-details-photo-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(30, 50, 35, 0.85);
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  backdrop-filter: blur(4px);
+}
+
+.crop-details-photo-credit {
+  font-size: 10.5px;
+  color: #6a7c6e;
+  text-decoration: none;
+  display: block;
+  text-align: center;
+}
+
+.crop-details-photo-credit:hover {
+  text-decoration: underline;
+  color: #2f6d44;
+}
+
+.crop-details-price-card {
+  background: linear-gradient(135deg, #f3f9f3 0%, #edf6ef 100%);
+  border: 1px solid #cce1cd;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.price-tag-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.price-amount {
+  font-size: 28px;
+  font-weight: 800;
+  color: #215c34;
+  letter-spacing: -0.5px;
+}
+
+.price-basis {
+  font-size: 13px;
+  color: #4b6652;
+  font-weight: 600;
+}
+
+.price-sub-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: #556c5a;
+  border-top: 1px dashed #c0d8c2;
+  padding-top: 8px;
+  margin-top: 2px;
+}
+
+.crop-details-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-details-buy {
+  width: 100%;
+  background: #2e7d32;
+  color: #ffffff;
+  border: none;
+  border-radius: 9px;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.22);
+  transition: all 0.15s ease;
+}
+
+.btn-details-buy:hover {
+  background: #256628;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(46, 125, 50, 0.3);
+}
+
+.btn-details-call {
+  width: 100%;
+  background: #f4f8f4;
+  color: #274b30;
+  border: 1px solid #c7dcc8;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+}
+
+.btn-details-call:hover {
+  background: #e8f2e9;
+  border-color: #2f6d44;
+}
+
+.btn-details-whatsapp {
+  width: 100%;
+  background: #e8f5e9;
+  color: #1b5e20;
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.btn-details-whatsapp:hover {
+  background: #c8e6c9;
+  border-color: #2e7d32;
+}
+
+.crop-details-info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.crop-details-heading {
+  border-bottom: 1px solid #eef2ec;
+  padding-bottom: 14px;
+}
+
+.crop-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.crop-title-row h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: #1f3024;
+}
+
+.crop-category-badge {
+  background: #e8f2e6;
+  color: #225c34;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid #cbe0cb;
+}
+
+.crop-badges-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.crop-details-section {
+  background: #ffffff;
+  border: 1px solid #e6ede4;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.crop-details-section h4 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #3b4d40;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #f0f4ee;
+  padding-bottom: 6px;
+}
+
+.details-grid-spec {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px 16px;
+}
+
+.spec-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spec-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #728375;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.spec-value {
+  font-size: 12.5px;
+  color: #203125;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.spec-description {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2ebe0;
+  font-size: 12px;
+  color: #425245;
+  line-height: 1.5;
+}
+
+.spec-description p {
+  margin: 4px 0 0;
+  white-space: pre-line;
+}
+
+.farmer-origin-section {
+  background: #fbfcfa;
+  border-color: #dbe6d9;
+}
+
+.details-owner-bar {
+  background: #eef4fe;
+  border: 1px solid #bfd3f6;
+  border-radius: 9px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.btn-action-details {
+  background: #f1f6ef;
+  color: #275634;
+  border: 1px solid #c9dac9;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-action-details:hover {
+  background: #e2ede0;
+  border-color: #2f6d44;
+}
+
+@media(max-width: 768px) {
+  .crop-details-content {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 16px;
+  }
+  .crop-details-modal {
+    max-height: 94vh;
+  }
+  .details-grid-spec {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }
