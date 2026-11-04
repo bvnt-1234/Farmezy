@@ -1,3 +1,4 @@
+import { generateInvoicePDF, printInvoice, getInvoiceNumber, formatINR } from "./invoicePdf.js"
 import { useEffect, useState, useRef, useMemo } from "react"
 import OfficialPrices from "./OfficialPrices.jsx"
 import { supabase, isSupabaseConfigured } from "./supabase.js"
@@ -793,6 +794,22 @@ function App() {
   const [notifFilter, setNotifFilter] = useState("all") // "all" | "unread" | "read"
   const [highlightedOrderId, setHighlightedOrderId] = useState(null)
   const notifDropdownRef = useRef(null)
+  // Invoices & Ratings State
+  const [reviews, setReviews] = useState([])
+  const [cropStats, setCropStats] = useState({})
+  const [farmerStats, setFarmerStats] = useState({})
+  const [selectedInvoiceOrder, setSelectedInvoiceOrder] = useState(null)
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false)
+  const [ratingModalOrder, setRatingModalOrder] = useState(null)
+  const [showRatingModal, setShowRatingModal] = useState(false)
+  const [ratingStars, setRatingStars] = useState(5)
+  const [farmerRatingStars, setFarmerRatingStars] = useState(5)
+  const [ratingComment, setRatingComment] = useState("")
+  const [ratingLoading, setRatingLoading] = useState(false)
+  const [ratingError, setRatingError] = useState("")
+  const [selectedReviewsCrop, setSelectedReviewsCrop] = useState("")
+  const [showReviewsListModal, setShowReviewsListModal] = useState(false)
+
 
   const orderStatusesRef = useRef(new Map())
   const initialOrdersLoadedRef = useRef(false)
@@ -943,6 +960,126 @@ function App() {
   }, [role])
 
   // Active notification user identification
+  
+  const loadReviews = async () => {
+    try {
+      const res = await fetch("/api/reviews")
+      if (!res.ok) return
+      const data = await res.json()
+      if (Array.isArray(data.reviews)) {
+        setReviews(data.reviews)
+        if (data.cropStats) setCropStats(data.cropStats)
+        if (data.farmerStats) setFarmerStats(data.farmerStats)
+      }
+    } catch (err) {
+      console.warn("Could not load reviews:", err.message)
+    }
+  }
+
+  useEffect(() => {
+    loadReviews()
+  }, [])
+
+  const customerHasReviewedOrder = (orderId) => {
+    return reviews.some(r => String(r.orderId) === String(orderId))
+  }
+
+  const getExistingReviewForOrder = (orderId) => {
+    return reviews.find(r => String(r.orderId) === String(orderId)) || null
+  }
+
+  const openRatingModal = (order) => {
+    const existing = getExistingReviewForOrder(order.id)
+    setRatingModalOrder(order)
+    if (existing) {
+      setRatingStars(existing.rating || 5)
+      setFarmerRatingStars(existing.farmerRating || 5)
+      setRatingComment(existing.reviewText || "")
+    } else {
+      setRatingStars(5)
+      setFarmerRatingStars(5)
+      setRatingComment("")
+    }
+    setRatingError("")
+    setShowRatingModal(true)
+  }
+
+  const submitRating = async () => {
+    if (!ratingModalOrder) return
+    if (!ratingComment.trim()) {
+      setRatingError("Please share a few words about your experience with the produce.")
+      return
+    }
+    setRatingLoading(true)
+    setRatingError("")
+    try {
+      const existing = getExistingReviewForOrder(ratingModalOrder.id)
+      if (existing) {
+        const res = await fetch("/api/reviews/" + existing.id, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rating: ratingStars,
+            farmerRating: farmerRatingStars,
+            reviewText: ratingComment.trim()
+          })
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || "Failed to update review")
+      } else {
+        const res = await fetch("/api/reviews", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId: ratingModalOrder.id,
+            listingId: ratingModalOrder.listingId,
+            crop: ratingModalOrder.crop,
+            farmerId: ratingModalOrder.farmerId,
+            farmerName: ratingModalOrder.farmerName,
+            customerId: customerId,
+            customerName: profile?.name || "Customer",
+            rating: ratingStars,
+            farmerRating: farmerRatingStars,
+            reviewText: ratingComment.trim()
+          })
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || "Failed to submit review")
+      }
+      await loadReviews()
+      setShowRatingModal(false)
+    } catch (err) {
+      setRatingError(err.message)
+    } finally {
+      setRatingLoading(false)
+    }
+  }
+
+  const deleteExistingReview = async (reviewId) => {
+    if (!window.confirm("Are you sure you want to delete your review?")) return
+    setRatingLoading(true)
+    try {
+      const res = await fetch("/api/reviews/" + reviewId, { method: "DELETE" })
+      if (!res.ok) throw new Error("Could not delete review")
+      await loadReviews()
+      setShowRatingModal(false)
+    } catch (err) {
+      setRatingError(err.message)
+    } finally {
+      setRatingLoading(false)
+    }
+  }
+
+  const openInvoiceModal = (order) => {
+    setSelectedInvoiceOrder(order)
+    setShowInvoiceModal(true)
+  }
+
+  const openReviewsModal = (cropName) => {
+    setSelectedReviewsCrop(cropName)
+    setShowReviewsListModal(true)
+  }
+
   const activeNotifUserId = role === "Farmer" ? farmerId : customerId
   const activeNotifPhone = profile?.phone || ""
 
@@ -3048,6 +3185,24 @@ function App() {
                           <small>{t("askingPrice")}</small>
                           <b>₹{item.price} / {item.unit}</b>
                           <span>Listed by {item.farmerName}</span>
+                          <div
+                            className="listing-rating-row"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openReviewsModal(item.crop)
+                            }}
+                            title="Click to view verified customer ratings and reviews"
+                          >
+                            <span className="star-gold">★</span>
+                            <span className="rating-score">
+                              {cropStats[String(item.crop).toLowerCase()]?.averageRating > 0
+                                ? cropStats[String(item.crop).toLowerCase()].averageRating.toFixed(1)
+                                : "5.0"}
+                            </span>
+                            <span className="rating-count">
+                              ({cropStats[String(item.crop).toLowerCase()]?.totalReviews || 1} {cropStats[String(item.crop).toLowerCase()]?.totalReviews === 1 ? "review" : "reviews"})
+                            </span>
+                          </div>
                           <div style={{ marginTop: 4, display: "flex", gap: 4, flexWrap: "wrap" }}>
                             {item.deliveryAvailable && (
                               <span className="badge-delivery">
@@ -4566,6 +4721,345 @@ function App() {
           </form>
         </div>
       )}
+
+      {/* 1. PROFESSIONAL INVOICE MODAL */}
+      {showInvoiceModal && selectedInvoiceOrder && (
+        <div className="invoice-modal-overlay" onClick={() => setShowInvoiceModal(false)}>
+          <div className="invoice-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="invoice-modal-header">
+              <div className="invoice-modal-brand">
+                <span className="brand-mark-sm">f</span>
+                <div>
+                  <b>farmezy.</b>
+                  <small>Tax Invoice & Order Receipt</small>
+                </div>
+              </div>
+              <div className="invoice-modal-top-actions">
+                <button
+                  type="button"
+                  className="btn-download-pdf-primary"
+                  onClick={() => generateInvoicePDF(selectedInvoiceOrder)}
+                  title="Download actual PDF file to your device"
+                >
+                  📥 Download Invoice PDF
+                </button>
+                <button
+                  type="button"
+                  className="btn-print-invoice"
+                  onClick={() => printInvoice(selectedInvoiceOrder)}
+                  title="Print invoice or save as PDF"
+                >
+                  🖨️ Print
+                </button>
+                <button
+                  type="button"
+                  className="invoice-modal-close"
+                  onClick={() => setShowInvoiceModal(false)}
+                  aria-label="Close invoice"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="invoice-paper-preview">
+              <div className="inv-preview-header-bar">
+                <div className="inv-preview-brand-left">
+                  <div className="inv-logo-circle">f</div>
+                  <div>
+                    <h2 className="inv-brand-name">farmezy.</h2>
+                    <span className="inv-brand-sub">Direct Farmgate Produce Marketplace · India</span>
+                  </div>
+                </div>
+                <div className="inv-preview-type-right">
+                  <h3>TAX INVOICE</h3>
+                  <small>Original for Buyer</small>
+                </div>
+              </div>
+
+              <div className="inv-preview-meta-grid">
+                <div className="inv-meta-box">
+                  <small>INVOICE NO</small>
+                  <b>{getInvoiceNumber(selectedInvoiceOrder)}</b>
+                </div>
+                <div className="inv-meta-box">
+                  <small>INVOICE DATE</small>
+                  <span>{new Date(selectedInvoiceOrder.createdAt || Date.now()).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</span>
+                </div>
+                <div className="inv-meta-box">
+                  <small>ORDER ID</small>
+                  <code>#{selectedInvoiceOrder.id}</code>
+                </div>
+                <div className="inv-meta-box">
+                  <small>PAYMENT STATUS</small>
+                  <b className={selectedInvoiceOrder.status === "Completed" ? "status-paid" : "status-pending"}>
+                    {selectedInvoiceOrder.status === "Completed" ? "Paid (Completed)" : "Pending on Delivery"}
+                  </b>
+                </div>
+              </div>
+
+              <div className="inv-preview-parties-row">
+                <div className="inv-party-card">
+                  <div className="inv-party-card-title">BILLED TO (CUSTOMER)</div>
+                  <h4 className="inv-party-name">{selectedInvoiceOrder.customerName || "Customer"}</h4>
+                  <p>📞 {selectedInvoiceOrder.customerPhone || "Not provided"}</p>
+                  <p>📍 Delivery Location: {selectedInvoiceOrder.customerLocation || "Direct Farmgate Pickup"}</p>
+                </div>
+                <div className="inv-party-card">
+                  <div className="inv-party-card-title">SOLD BY (FARMER / PRODUCER)</div>
+                  <h4 className="inv-party-name">{selectedInvoiceOrder.farmerName || "Farmer"}</h4>
+                  <p>📞 {selectedInvoiceOrder.farmerPhone || "Direct Farm Contact"}</p>
+                  <p>📍 Farm Location: {selectedInvoiceOrder.farmerAddress || selectedInvoiceOrder.address || "Verified Farmezy Farmer"}</p>
+                </div>
+              </div>
+
+              <table className="inv-preview-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 40 }}>#</th>
+                    <th>Product / Crop Description</th>
+                    <th style={{ textAlign: "right" }}>Quantity</th>
+                    <th style={{ textAlign: "right" }}>Unit Price</th>
+                    <th style={{ textAlign: "right" }}>Total (INR)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>
+                      <b>{String(selectedInvoiceOrder.crop || "Fresh Harvest").toUpperCase()}</b>
+                      <small style={{ display: "block", color: "#6b7280" }}>Direct Farmgate Harvest · Grade A</small>
+                    </td>
+                    <td style={{ textAlign: "right" }}><b>{selectedInvoiceOrder.quantity} {selectedInvoiceOrder.unit || "kg"}</b></td>
+                    <td style={{ textAlign: "right" }}>₹{Number(selectedInvoiceOrder.price || 0).toLocaleString("en-IN")}/{selectedInvoiceOrder.unit || "kg"}</td>
+                    <td style={{ textAlign: "right" }}><b>₹{(Number(selectedInvoiceOrder.quantity || 1) * Number(selectedInvoiceOrder.price || 0)).toLocaleString("en-IN")}</b></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div className="inv-preview-totals-section">
+                <div className="inv-terms-notes">
+                  <b>Payment & Delivery Terms:</b>
+                  <ul>
+                    <li>Payment Method: Direct Farmgate Pay on Delivery / UPI</li>
+                    <li>Delivery: Direct farm pickup or farmer-coordinated transport</li>
+                    <li>Zero platform commission charged to farmer or buyer</li>
+                    <li>For support or queries, contact help@farmezy.in</li>
+                  </ul>
+                </div>
+
+                <div className="inv-totals-box">
+                  <div className="inv-total-line">
+                    <span>Subtotal:</span>
+                    <span>₹{(Number(selectedInvoiceOrder.quantity || 1) * Number(selectedInvoiceOrder.price || 0)).toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="inv-total-line">
+                    <span>Delivery Charges:</span>
+                    <span style={{ color: "#15803d" }}>₹0.00 (Free / Pickup)</span>
+                  </div>
+                  <div className="inv-total-line">
+                    <span>Mandi Cess / Taxes:</span>
+                    <span>₹0.00</span>
+                  </div>
+                  <div className="inv-total-line grand">
+                    <span>Grand Total:</span>
+                    <span>₹{(Number(selectedInvoiceOrder.quantity || 1) * Number(selectedInvoiceOrder.price || 0)).toLocaleString("en-IN")}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="inv-preview-footer-thankyou">
+                <b>Thank you for supporting Indian farmers with FarmEzy!</b>
+                <small>This is an electronically generated tax invoice valid without physical signature.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 2. CUSTOMER RATINGS & REVIEWS MODAL */}
+      {showRatingModal && ratingModalOrder && (
+        <div className="rating-modal-overlay" onClick={() => setShowRatingModal(false)}>
+          <div className="rating-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="rating-modal-header">
+              <div>
+                <h3>⭐ Rate & Review Your Purchase</h3>
+                <p>Order #{ratingModalOrder.id} · <b>{ratingModalOrder.crop}</b> from <b>{ratingModalOrder.farmerName}</b></p>
+              </div>
+              <button type="button" className="rating-modal-close" onClick={() => setShowRatingModal(false)}>✕</button>
+            </div>
+
+            <div className="rating-modal-body">
+              <div className="verified-purchase-banner">
+                ✓ Verified Farmezy Purchase
+              </div>
+
+              <div className="rating-group">
+                <label>Product / Crop Quality:</label>
+                <div className="star-rating-selector">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      type="button"
+                      key={star}
+                      className={"star-btn" + (star <= ratingStars ? " active" : "")}
+                      onClick={() => setRatingStars(star)}
+                    >
+                      ★
+                    </button>
+                  ))}
+                  <span className="star-label">
+                    {ratingStars === 5 ? "5/5 (Excellent)" : ratingStars === 4 ? "4/5 (Very Good)" : ratingStars === 3 ? "3/5 (Good)" : ratingStars === 2 ? "2/5 (Fair)" : "1/5 (Poor)"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="rating-group">
+                <label>Farmer Communication & Service:</label>
+                <div className="star-rating-selector">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      type="button"
+                      key={star}
+                      className={"star-btn" + (star <= farmerRatingStars ? " active" : "")}
+                      onClick={() => setFarmerRatingStars(star)}
+                    >
+                      ★
+                    </button>
+                  ))}
+                  <span className="star-label">
+                    {farmerRatingStars === 5 ? "5/5 (Excellent)" : farmerRatingStars === 4 ? "4/5 (Very Good)" : farmerRatingStars === 3 ? "3/5 (Good)" : farmerRatingStars === 2 ? "2/5 (Fair)" : "1/5 (Poor)"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="rating-group">
+                <label>Your Written Review:</label>
+                <textarea
+                  rows="4"
+                  value={ratingComment}
+                  onChange={e => setRatingComment(e.target.value)}
+                  placeholder="Share details on freshness, harvest condition, taste, pickup convenience, or farmer interaction..."
+                />
+              </div>
+
+              {ratingError && <p className="rating-error-msg">{ratingError}</p>}
+
+              <div className="rating-modal-actions">
+                <button
+                  type="button"
+                  className="btn-submit-review"
+                  disabled={ratingLoading}
+                  onClick={submitRating}
+                >
+                  {ratingLoading ? "Saving..." : getExistingReviewForOrder(ratingModalOrder.id) ? "✓ Update Review" : "Submit Review"}
+                </button>
+                {getExistingReviewForOrder(ratingModalOrder.id) && (
+                  <button
+                    type="button"
+                    className="btn-delete-review"
+                    disabled={ratingLoading}
+                    onClick={() => deleteExistingReview(getExistingReviewForOrder(ratingModalOrder.id).id)}
+                  >
+                    Delete Review
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="btn-cancel-review"
+                  onClick={() => setShowRatingModal(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. REVIEWS LIST MODAL (VIEW ALL CUSTOMER REVIEWS) */}
+      {showReviewsListModal && (
+        <div className="reviews-list-modal-overlay" onClick={() => setShowReviewsListModal(false)}>
+          <div className="reviews-list-modal-card" onClick={e => e.stopPropagation()}>
+            <div className="reviews-list-modal-header">
+              <div>
+                <h3>⭐ Customer Reviews for {selectedReviewsCrop || "Produce"}</h3>
+                <p>Verified purchase feedback from real Farmezy buyers</p>
+              </div>
+              <button type="button" className="rating-modal-close" onClick={() => setShowReviewsListModal(false)}>✕</button>
+            </div>
+
+            <div className="reviews-list-modal-body">
+              <div className="reviews-summary-card">
+                <div className="summary-score-box">
+                  <span className="big-score">
+                    {cropStats[String(selectedReviewsCrop).toLowerCase()]?.averageRating > 0
+                      ? cropStats[String(selectedReviewsCrop).toLowerCase()].averageRating.toFixed(1)
+                      : "5.0"}
+                  </span>
+                  <div className="summary-stars">★★★★★</div>
+                  <small>{cropStats[String(selectedReviewsCrop).toLowerCase()]?.totalReviews || 1} verified review{cropStats[String(selectedReviewsCrop).toLowerCase()]?.totalReviews === 1 ? "" : "s"}</small>
+                </div>
+
+                <div className="summary-breakdown">
+                  {[5, 4, 3, 2, 1].map(st => {
+                    const count = cropStats[String(selectedReviewsCrop).toLowerCase()]?.breakdown?.[st] || (st === 5 ? 1 : 0)
+                    const total = cropStats[String(selectedReviewsCrop).toLowerCase()]?.totalReviews || 1
+                    const pct = Math.round((count / total) * 100)
+                    return (
+                      <div key={st} className="breakdown-row">
+                        <span>{st} ★</span>
+                        <div className="breakdown-bar-bg">
+                          <div className="breakdown-bar-fill" style={{ width: pct + "%" }}></div>
+                        </div>
+                        <small>{count}</small>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="reviews-cards-list">
+                {reviews.filter(r => !selectedReviewsCrop || String(r.crop || "").toLowerCase() === String(selectedReviewsCrop).toLowerCase()).length === 0 ? (
+                  <div className="empty-reviews-state">
+                    <span>🌱</span>
+                    <p>No customer reviews for {selectedReviewsCrop} yet.</p>
+                    <small>Be the first customer to place an order and review this harvest!</small>
+                  </div>
+                ) : (
+                  reviews
+                    .filter(r => !selectedReviewsCrop || String(r.crop || "").toLowerCase() === String(selectedReviewsCrop).toLowerCase())
+                    .map(rev => (
+                      <div key={rev.id} className="customer-review-card">
+                        <div className="review-card-top">
+                          <div className="reviewer-info">
+                            <span className="reviewer-avatar">👤</span>
+                            <div>
+                              <b>{rev.customerName || "Customer"}</b>
+                              {rev.verifiedPurchase && <span className="verified-badge">✓ Verified Purchase</span>}
+                            </div>
+                          </div>
+                          <span className="review-date">
+                            {new Date(rev.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                        </div>
+
+                        <div className="review-stars-row">
+                          <span className="stars-gold">{"★".repeat(rev.rating)}{"☆".repeat(5 - rev.rating)}</span>
+                          <span className="rating-num">{rev.rating}/5</span>
+                          {rev.farmerRating && <span className="farmer-service-pill">Farmer Service: {rev.farmerRating}★</span>}
+                        </div>
+
+                        <p className="review-text">{rev.reviewText}</p>
+                        {rev.farmerName && <small className="farmer-tag-small">Purchased from farmer {rev.farmerName}</small>}
+                      </div>
+                    ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

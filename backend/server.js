@@ -32,6 +32,7 @@ const writableDataDir = isVercel
 const listingsFile = path.join(writableDataDir, "listings.json")
 const ordersFile = path.join(writableDataDir, "orders.json")
 const notificationsFile = path.join(writableDataDir, "notifications.json")
+const reviewsFile = path.join(writableDataDir, "reviews.json")
 const imageCacheFile = path.join(writableDataDir, "image-cache.json")
 const catalogueFile = path.join(dataDir, "agmarknet-catalogue.json")
 const masterFile = path.join(dataDir, "commodity-master.json")
@@ -508,6 +509,61 @@ function saveNotifications(newNotifications) {
 }
 
 let notifications = loadNotifications()
+
+function loadReviews() {
+  try {
+    if (!existsSync(reviewsFile)) {
+      const defaultFile = path.join(dataDir, "reviews.json")
+      if (existsSync(defaultFile)) {
+        const data = JSON.parse(readFileSync(defaultFile, "utf8"))
+        return Array.isArray(data) ? data : []
+      }
+      return []
+    }
+    const data = JSON.parse(readFileSync(reviewsFile, "utf8"))
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+function saveReviews(newReviews) {
+  try {
+    mkdirSync(writableDataDir, { recursive: true })
+    writeFileSync(reviewsFile, JSON.stringify(newReviews, null, 2))
+  } catch (err) {
+    console.warn("Warning: Could not persist reviews to disk:", err.message)
+  }
+}
+
+let reviews = loadReviews()
+
+function calculateReviewStats(targetReviews) {
+  if (!Array.isArray(targetReviews) || targetReviews.length === 0) {
+    return {
+      averageRating: 0,
+      totalReviews: 0,
+      averageFarmerRating: 0,
+      breakdown: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    }
+  }
+  let sumRating = 0
+  let sumFarmer = 0
+  const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+  targetReviews.forEach(r => {
+    const star = Math.min(5, Math.max(1, Math.round(Number(r.rating || 5))))
+    breakdown[star] = (breakdown[star] || 0) + 1
+    sumRating += Number(r.rating || 5)
+    sumFarmer += Number(r.farmerRating || r.rating || 5)
+  })
+  return {
+    averageRating: Number((sumRating / targetReviews.length).toFixed(1)),
+    averageFarmerRating: Number((sumFarmer / targetReviews.length).toFixed(1)),
+    totalReviews: targetReviews.length,
+    breakdown
+  }
+}
+
 
 // Active SSE client connections: clientId -> { res, userId, phone, role }
 const sseClients = new Map()
@@ -2281,6 +2337,213 @@ async function handleRequest(req, res) {
     } catch (err) {
       res.writeHead(400).end(JSON.stringify({ error: "Failed to mark all as read: " + err.message }))
     }
+    return
+  }
+
+  
+  // --- REVIEWS & RATINGS APIS ---
+  if (requestUrl.pathname === "/api/reviews" && req.method === "GET") {
+    reviews = loadReviews()
+    const crop = requestUrl.searchParams.get("crop")?.trim()?.toLowerCase()
+    const farmerId = requestUrl.searchParams.get("farmerId")?.trim()
+    const customerId = requestUrl.searchParams.get("customerId")?.trim()
+    const orderId = requestUrl.searchParams.get("orderId")?.trim()
+    const listingId = requestUrl.searchParams.get("listingId")?.trim()
+
+    let filtered = reviews
+    if (crop) {
+      filtered = filtered.filter(r => String(r.crop || "").toLowerCase() === crop || String(r.crop || "").toLowerCase().includes(crop))
+    }
+    if (farmerId) {
+      filtered = filtered.filter(r => String(r.farmerId) === farmerId)
+    }
+    if (customerId) {
+      filtered = filtered.filter(r => String(r.customerId) === customerId)
+    }
+    if (orderId) {
+      filtered = filtered.filter(r => String(r.orderId) === orderId)
+    }
+    if (listingId) {
+      filtered = filtered.filter(r => String(r.listingId) === listingId)
+    }
+
+    // Build crop breakdown stats
+    const allCropStats = {}
+    reviews.forEach(r => {
+      const c = String(r.crop || "").toLowerCase()
+      if (!allCropStats[c]) allCropStats[c] = []
+      allCropStats[c].push(r)
+    })
+    const cropStatsMap = {}
+    for (const [k, list] of Object.entries(allCropStats)) {
+      cropStatsMap[k] = calculateReviewStats(list)
+    }
+
+    // Build farmer breakdown stats
+    const allFarmerStats = {}
+    reviews.forEach(r => {
+      const f = String(r.farmerId || "")
+      if (!allFarmerStats[f]) allFarmerStats[f] = []
+      allFarmerStats[f].push(r)
+    })
+    const farmerStatsMap = {}
+    for (const [k, list] of Object.entries(allFarmerStats)) {
+      farmerStatsMap[k] = calculateReviewStats(list)
+    }
+
+    res.writeHead(200).end(JSON.stringify({
+      reviews: filtered,
+      stats: calculateReviewStats(filtered),
+      cropStats: cropStatsMap,
+      farmerStats: farmerStatsMap
+    }))
+    return
+  }
+
+  if (requestUrl.pathname === "/api/reviews" && req.method === "POST") {
+    try {
+      const data = await parseBody(req)
+      const required = ["orderId", "crop", "rating", "reviewText", "customerId"]
+      const missing = required.filter(f => !String(data[f] ?? "").trim())
+      if (missing.length) {
+        res.writeHead(400).end(JSON.stringify({ error: "Missing required fields: " + missing.join(", ") }))
+        return
+      }
+
+      reviews = loadReviews()
+
+      // Prevent duplicate review for the same order
+      const existing = reviews.find(r => String(r.orderId) === String(data.orderId))
+      if (existing) {
+        res.writeHead(400).end(JSON.stringify({ error: "You have already reviewed this purchase." }))
+        return
+      }
+
+      // Verify that order actually exists in orders.json
+      orders = loadOrders()
+      const verifiedOrder = orders.find(o => String(o.id) === String(data.orderId))
+
+      const ratingNum = Math.min(5, Math.max(1, Number(data.rating) || 5))
+      const farmerRatingNum = Math.min(5, Math.max(1, Number(data.farmerRating || data.rating) || 5))
+
+      const newReview = {
+        id: "rev_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+        orderId: String(data.orderId),
+        listingId: String(data.listingId || verifiedOrder?.listingId || ""),
+        crop: String(data.crop || verifiedOrder?.crop || ""),
+        farmerId: String(data.farmerId || verifiedOrder?.farmerId || ""),
+        farmerName: String(data.farmerName || verifiedOrder?.farmerName || "Farmer"),
+        customerId: String(data.customerId),
+        customerName: String(data.customerName || verifiedOrder?.customerName || "Customer"),
+        rating: ratingNum,
+        farmerRating: farmerRatingNum,
+        reviewText: String(data.reviewText || "").trim(),
+        verifiedPurchase: Boolean(verifiedOrder),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+
+      reviews = [newReview, ...reviews]
+      saveReviews(reviews)
+
+      res.writeHead(201).end(JSON.stringify({ success: true, review: newReview }))
+    } catch (err) {
+      res.writeHead(400).end(JSON.stringify({ error: "Invalid review submission: " + err.message }))
+    }
+    return
+  }
+
+  if (requestUrl.pathname.startsWith("/api/reviews/") && req.method === "PUT") {
+    try {
+      const id = requestUrl.pathname.split("/").pop()
+      const data = await parseBody(req)
+      reviews = loadReviews()
+      const review = reviews.find(r => r.id === id)
+      if (!review) {
+        res.writeHead(404).end(JSON.stringify({ error: "Review not found." }))
+        return
+      }
+
+      if (data.rating !== undefined) {
+        review.rating = Math.min(5, Math.max(1, Number(data.rating) || 5))
+      }
+      if (data.farmerRating !== undefined) {
+        review.farmerRating = Math.min(5, Math.max(1, Number(data.farmerRating) || 5))
+      }
+      if (data.reviewText !== undefined) {
+        review.reviewText = String(data.reviewText).trim()
+      }
+      review.updatedAt = new Date().toISOString()
+      saveReviews(reviews)
+
+      res.writeHead(200).end(JSON.stringify({ success: true, review }))
+    } catch (err) {
+      res.writeHead(400).end(JSON.stringify({ error: "Invalid review update: " + err.message }))
+    }
+    return
+  }
+
+  if (requestUrl.pathname.startsWith("/api/reviews/") && req.method === "DELETE") {
+    try {
+      const id = requestUrl.pathname.split("/").pop()
+      reviews = loadReviews()
+      const beforeCount = reviews.length
+      reviews = reviews.filter(r => r.id !== id)
+      if (reviews.length === beforeCount) {
+        res.writeHead(404).end(JSON.stringify({ error: "Review not found." }))
+        return
+      }
+      saveReviews(reviews)
+      res.writeHead(200).end(JSON.stringify({ success: true }))
+    } catch (err) {
+      res.writeHead(400).end(JSON.stringify({ error: "Could not delete review: " + err.message }))
+    }
+    return
+  }
+
+  // --- INVOICE DETAILS API ---
+  if (requestUrl.pathname.startsWith("/api/invoices/") && req.method === "GET") {
+    const orderId = requestUrl.pathname.split("/").pop()
+    orders = loadOrders()
+    const order = orders.find(o => String(o.id) === String(orderId))
+    if (!order) {
+      res.writeHead(404).end(JSON.stringify({ error: "Order not found for invoice." }))
+      return
+    }
+
+    const qty = Number(order.quantity) || 1
+    const price = Number(order.price) || 0
+    const subtotal = qty * price
+    const delivery = 0
+    const discount = 0
+    const grandTotal = subtotal + delivery - discount
+
+    const invoice = {
+      invoiceNumber: order.invoiceNumber || ("INV-" + String(order.id).slice(-6).toUpperCase()),
+      orderId: order.id,
+      date: order.createdAt,
+      crop: order.crop,
+      quantity: order.quantity,
+      unit: order.unit || "kg",
+      price: order.price,
+      subtotal,
+      delivery,
+      discount,
+      grandTotal,
+      farmerId: order.farmerId,
+      farmerName: order.farmerName,
+      farmerPhone: order.farmerPhone || "",
+      farmerAddress: order.farmerAddress || order.address || "Farmgate, India",
+      customerId: order.customerId,
+      customerName: order.customerName,
+      customerPhone: order.customerPhone || "",
+      customerLocation: order.customerLocation || "Direct Farmgate Pickup",
+      paymentMethod: order.paymentMethod || "Direct Farmgate Pay on Delivery / UPI",
+      paymentStatus: order.status === "Completed" ? "Paid" : "Pending on Delivery",
+      status: order.status
+    }
+
+    res.writeHead(200).end(JSON.stringify({ invoice }))
     return
   }
 
