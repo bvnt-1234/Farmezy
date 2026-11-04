@@ -7,6 +7,7 @@ import "./App.css"
 
 export const translations = {
   English: {
+    notifications: "Notifications",
     home: "Home",
     prices: "Market prices",
     outlook: "Price outlook",
@@ -785,6 +786,14 @@ function App() {
   const [roleAuthError, setRoleAuthError] = useState("")
   const [roleAuthLoading, setRoleAuthLoading] = useState(false)
   const [customerNotifications, setCustomerNotifications] = useState([])
+
+  const [notifications, setNotifications] = useState([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false)
+  const [notifFilter, setNotifFilter] = useState("all") // "all" | "unread" | "read"
+  const [highlightedOrderId, setHighlightedOrderId] = useState(null)
+  const notifDropdownRef = useRef(null)
+
   const orderStatusesRef = useRef(new Map())
   const initialOrdersLoadedRef = useRef(false)
   const notifiedKeysRef = useRef(new Set())
@@ -902,6 +911,197 @@ function App() {
       .catch(error => setListingError(error.message))
       .finally(() => setListingLoading(false))
   }, [role])
+
+  
+  // Active notification user identification
+  const activeNotifUserId = role === "Farmer" ? farmerId : customerId
+  const activeNotifPhone = profile?.phone || ""
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target)) {
+        setShowNotifDropdown(false)
+      }
+    }
+    document.addEventListener("mousedown", handleOutsideClick)
+    return () => document.removeEventListener("mousedown", handleOutsideClick)
+  }, [])
+
+  // Load persisted notifications
+  const loadNotifications = async () => {
+    if (!activeNotifUserId) return
+    try {
+      const params = new URLSearchParams({
+        userId: activeNotifUserId,
+        role: role,
+        phone: activeNotifPhone
+      })
+      const res = await fetch("/api/notifications?" + params.toString())
+      if (!res.ok) return
+      const data = await res.json()
+      if (Array.isArray(data.notifications)) {
+        setNotifications(data.notifications)
+        setUnreadCount(typeof data.unreadCount === "number" ? data.unreadCount : data.notifications.filter(n => !n.read).length)
+      }
+    } catch (err) {
+      console.warn("Could not load notifications:", err.message)
+    }
+  }
+
+  useEffect(() => {
+    loadNotifications()
+  }, [role, activeNotifUserId, activeNotifPhone])
+
+  // Real-time notification SSE listener
+  useEffect(() => {
+    if (!activeNotifUserId) return
+
+    const params = new URLSearchParams({
+      userId: activeNotifUserId,
+      role: role,
+      phone: activeNotifPhone
+    })
+    const eventSource = new EventSource("/api/notifications/stream?" + params.toString())
+
+    eventSource.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data)
+        if (payload.type === "init") {
+          if (typeof payload.unreadCount === "number") {
+            setUnreadCount(payload.unreadCount)
+          }
+        } else if (payload.type === "notification" && payload.notification) {
+          const incoming = payload.notification
+          setNotifications(prev => {
+            if (prev.some(n => n.id === incoming.id)) return prev
+            return [incoming, ...prev]
+          })
+          setUnreadCount(prev => prev + 1)
+
+          // Refresh orders list so UI updates instantly
+          loadOrders()
+
+          // Show floating toast banner
+          setCustomerNotifications(prev => [
+            {
+              id: incoming.id,
+              title: incoming.title,
+              message: incoming.message,
+              orderId: incoming.orderId,
+              status: incoming.status,
+              crop: incoming.crop,
+              quantity: incoming.quantity,
+              unit: incoming.unit,
+              farmerName: incoming.farmerName,
+              customerName: incoming.customerName,
+              timestamp: Date.now()
+            },
+            ...prev
+          ])
+        }
+      } catch (err) {
+        console.warn("Error parsing notification SSE payload:", err.message)
+      }
+    }
+
+    return () => {
+      eventSource.close()
+    }
+  }, [role, activeNotifUserId, activeNotifPhone])
+
+  const handleMarkSingleRead = async (notifId) => {
+    try {
+      setNotifications(prev => prev.map(n => n.id === notifId ? { ...n, read: true } : n))
+      setUnreadCount(prev => Math.max(0, prev - 1))
+      await fetch("/api/notifications/" + notifId + "/read", { method: "PATCH" })
+    } catch (err) {
+      console.warn("Failed marking notification read:", err.message)
+    }
+  }
+
+  const handleMarkAllRead = async () => {
+    try {
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+      setUnreadCount(0)
+      await fetch("/api/notifications/read-all", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: activeNotifUserId,
+          role: role,
+          phone: activeNotifPhone
+        })
+      })
+    } catch (err) {
+      console.warn("Failed marking all notifications read:", err.message)
+    }
+  }
+
+  const handleNotificationClick = (notif) => {
+    if (!notif.read) {
+      handleMarkSingleRead(notif.id)
+    }
+    setShowNotifDropdown(false)
+    if (role === "Farmer") {
+      setPage("Requests")
+    } else {
+      setPage("Orders")
+    }
+    if (notif.orderId) {
+      setHighlightedOrderId(notif.orderId)
+      setTimeout(() => {
+        const el = document.getElementById("order-" + notif.orderId)
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" })
+        }
+      }, 120)
+    }
+  }
+
+  const getNotifIcon = (type, status) => {
+    switch (type) {
+      case "ORDER_RECEIVED": return "📦"
+      case "ORDER_ACCEPTED": return "✅"
+      case "ORDER_PREPARING": return "👨‍🍳"
+      case "ORDER_READY": return "🔔"
+      case "ORDER_DISPATCHED": return "🛵"
+      case "ORDER_COMPLETED": return "🎉"
+      case "ORDER_CANCELLED":
+      case "ORDER_REJECTED": return "❌"
+      default:
+        if (status === "Accepted") return "✅"
+        if (status === "Preparing") return "👨‍🍳"
+        if (status === "Ready") return "🔔"
+        if (status === "Dispatched") return "🛵"
+        if (status === "Completed") return "🎉"
+        if (status === "Cancelled" || status === "Rejected") return "❌"
+        return "🔔"
+    }
+  }
+
+  const formatNotifTime = (dateStr) => {
+    if (!dateStr) return ""
+    try {
+      const date = new Date(dateStr)
+      const now = new Date()
+      const diffMs = now - date
+      const diffMins = Math.floor(diffMs / 60000)
+      if (diffMins < 1) return "Just now"
+      if (diffMins < 60) return diffMins + "m ago"
+      const diffHours = Math.floor(diffMins / 60)
+      if (diffHours < 24) return diffHours + "h ago"
+      return date.toLocaleDateString("en-IN", { day: "numeric", month: "short" }) + " " + date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true })
+    } catch {
+      return String(dateStr)
+    }
+  }
+
+  const filteredNotifications = notifications.filter(n => {
+    if (notifFilter === "unread") return !n.read
+    if (notifFilter === "read") return n.read
+    return true
+  })
 
   const farmerId = profile?.farmerId || profile?.phone?.replace(/\D/g, "") || profile?.name || "farmer"
   const customerId = profile?.customerId || profile?.phone?.replace(/\D/g, "") || profile?.name || "customer"
@@ -1765,7 +1965,8 @@ function App() {
     [t("prices"), "Prices", "↗"],
     ...(role === "Farmer" ? [[t("outlook"), "Forecast", "◷"]] : []),
     ...(role === "Farmer" ? [[t("sell"), "Sell", "+"]] : [[t("browse"), "Browse", "🧺"]]),
-    ...(role === "Farmer" ? [[t("requests"), "Requests", "✓"]] : [[t("myRequests"), "Orders", "▣"]])
+    ...(role === "Farmer" ? [[t("requests"), "Requests", "✓"]] : [[t("myRequests"), "Orders", "▣"]]),
+    [t("notifications") || "Notifications", "Notifications", "🔔"]
   ]
 
   const askPrice = async question => {
@@ -1912,6 +2113,162 @@ function App() {
             <span className="supabase-pill" title="Supabase User Authorization Active">
               ⚡ {role}: {profile?.email || profile?.name}
             </span>
+            
+            {/* Notification Bell with Badge & Dropdown Panel */}
+            <div className="notification-bell-wrapper" ref={notifDropdownRef}>
+              <button
+                type="button"
+                className={"notification-bell-btn" + (unreadCount > 0 ? " has-unread" : "")}
+                onClick={() => setShowNotifDropdown(prev => !prev)}
+                aria-label={"Notifications (" + unreadCount + " unread)"}
+                title={"Notifications (" + unreadCount + " unread)"}
+              >
+                <span className="bell-emoji">🔔</span>
+                {unreadCount > 0 && (
+                  <span className="notification-badge-counter">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {showNotifDropdown && (
+                <div className="notification-dropdown-panel">
+                  <div className="notification-dropdown-header">
+                    <div className="notif-header-title">
+                      <b>Notifications</b>
+                      {unreadCount > 0 ? (
+                        <span className="notif-unread-pill">{unreadCount} new</span>
+                      ) : (
+                        <span className="notif-allread-pill">All caught up</span>
+                      )}
+                    </div>
+                    <div className="notif-header-actions">
+                      {unreadCount > 0 && (
+                        <button
+                          type="button"
+                          className="notif-mark-all-btn"
+                          onClick={handleMarkAllRead}
+                          title="Mark all notifications as read"
+                        >
+                          ✓ Mark all as read
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="notif-close-btn"
+                        onClick={() => setShowNotifDropdown(false)}
+                        aria-label="Close notifications"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="notif-dropdown-tabs">
+                    <button
+                      type="button"
+                      className={"notif-tab" + (notifFilter === "all" ? " active" : "")}
+                      onClick={() => setNotifFilter("all")}
+                    >
+                      All ({notifications.length})
+                    </button>
+                    <button
+                      type="button"
+                      className={"notif-tab" + (notifFilter === "unread" ? " active" : "")}
+                      onClick={() => setNotifFilter("unread")}
+                    >
+                      Unread ({unreadCount})
+                    </button>
+                    <button
+                      type="button"
+                      className={"notif-tab" + (notifFilter === "read" ? " active" : "")}
+                      onClick={() => setNotifFilter("read")}
+                    >
+                      Read ({notifications.length - unreadCount})
+                    </button>
+                  </div>
+
+                  <div className="notification-list-scroll">
+                    {filteredNotifications.length === 0 ? (
+                      <div className="notification-empty">
+                        <span className="notif-empty-icon">🔕</span>
+                        <p>No {notifFilter === "unread" ? "unread " : ""}notifications yet</p>
+                        <small>You will see real-time order updates here.</small>
+                      </div>
+                    ) : (
+                      filteredNotifications.map(notif => (
+                        <div
+                          key={notif.id}
+                          className={"notification-item-card " + (!notif.read ? "unread" : "read")}
+                          onClick={() => handleNotificationClick(notif)}
+                        >
+                          <div className="notif-card-avatar">
+                            {getNotifIcon(notif.type, notif.status)}
+                          </div>
+                          <div className="notif-card-body">
+                            <div className="notif-card-top">
+                              <span className="notif-card-title">{notif.title}</span>
+                              <span className="notif-card-time">{formatNotifTime(notif.createdAt)}</span>
+                            </div>
+                            <p className="notif-card-message">{notif.message}</p>
+                            
+                            <div className="notif-meta-tags">
+                              {notif.crop && (
+                                <span className="notif-tag crop-tag">🌾 {notif.crop} {notif.quantity ? "(" + notif.quantity + " " + (notif.unit || "kg") + ")" : ""}</span>
+                              )}
+                              {notif.customerName && (
+                                <span className="notif-tag customer-tag">👤 {notif.customerName}</span>
+                              )}
+                              {notif.farmerName && (
+                                <span className="notif-tag farmer-tag">👨‍🌾 {notif.farmerName}</span>
+                              )}
+                              {notif.status && (
+                                <span className={"notif-tag status-tag status-" + String(notif.status).toLowerCase()}>
+                                  ● {notif.status}
+                                </span>
+                              )}
+                              {notif.orderId && (
+                                <span className="notif-tag orderid-tag">#{String(notif.orderId).slice(-6)}</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="notif-card-actions">
+                            {!notif.read && (
+                              <button
+                                type="button"
+                                className="notif-mark-single-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleMarkSingleRead(notif.id)
+                                }}
+                                title="Mark as read"
+                              >
+                                ✓
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="notification-dropdown-footer">
+                    <button
+                      type="button"
+                      className="notif-view-history-btn"
+                      onClick={() => {
+                        setShowNotifDropdown(false)
+                        setPage("Notifications")
+                      }}
+                    >
+                      View full notification history →
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <select value={lang} onChange={e => setLang(e.target.value)} aria-label="Language">
               {Object.keys(translations).map(x => <option key={x} value={x}>{x}</option>)}
             </select>
@@ -2860,7 +3217,7 @@ function App() {
               <section className="panel farmer-listings">
                 {orders.length ? (
                   orders.map(order => (
-                    <article className="listing-card" key={order.id}>
+                    <article id={"order-" + order.id} className={"listing-card" + (highlightedOrderId === order.id ? " highlight-order-card" : "")} key={order.id}>
                       <div>
                         <small>CROP</small>
                         <b>{order.crop}</b>
@@ -2931,6 +3288,150 @@ function App() {
                 ) : (
                   <p className="empty-list">You have not requested any crops yet. Browse farmer produce to start.</p>
                 )}
+              </section>
+            </>
+          )}
+
+          
+          {page === "Notifications" && (
+            <>
+              <Title
+                eyebrow={role === "Farmer" ? "FARMER NOTIFICATIONS" : "CUSTOMER NOTIFICATIONS"}
+                title="Notification History"
+                sub="View all your past and real-time order alerts, status updates, and customer requests."
+              />
+
+              <section className="panel notification-history-panel">
+                <div className="notif-history-toolbar">
+                  <div className="notif-history-tabs">
+                    <button
+                      type="button"
+                      className={"notif-tab" + (notifFilter === "all" ? " active" : "")}
+                      onClick={() => setNotifFilter("all")}
+                    >
+                      All ({notifications.length})
+                    </button>
+                    <button
+                      type="button"
+                      className={"notif-tab" + (notifFilter === "unread" ? " active" : "")}
+                      onClick={() => setNotifFilter("unread")}
+                    >
+                      Unread ({unreadCount})
+                    </button>
+                    <button
+                      type="button"
+                      className={"notif-tab" + (notifFilter === "read" ? " active" : "")}
+                      onClick={() => setNotifFilter("read")}
+                    >
+                      Read ({notifications.length - unreadCount})
+                    </button>
+                  </div>
+
+                  <div className="notif-history-right-tools">
+                    {unreadCount > 0 && (
+                      <button
+                        type="button"
+                        className="btn-mark-all-read"
+                        onClick={handleMarkAllRead}
+                      >
+                        ✓ Mark All as Read
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="notif-history-cards-container">
+                  {filteredNotifications.length === 0 ? (
+                    <div className="notification-empty">
+                      <span className="notif-empty-icon">🔕</span>
+                      <p>No {notifFilter === "unread" ? "unread " : ""}notifications found</p>
+                      <small>When orders are created or updated, alerts appear here automatically in real time.</small>
+                    </div>
+                  ) : (
+                    filteredNotifications.map(notif => (
+                      <article
+                        key={notif.id}
+                        className={"notif-history-card " + (!notif.read ? "unread" : "read")}
+                        onClick={() => handleNotificationClick(notif)}
+                      >
+                        <div className="notif-card-avatar large">
+                          {getNotifIcon(notif.type, notif.status)}
+                        </div>
+
+                        <div className="notif-card-main-content">
+                          <div className="notif-card-header">
+                            <h4 className="notif-title">{notif.title}</h4>
+                            <span className="notif-time-badge">{formatNotifTime(notif.createdAt)}</span>
+                          </div>
+
+                          <p className="notif-description">{notif.message}</p>
+
+                          <div className="notif-meta-details-grid">
+                            {notif.customerName && (
+                              <div className="meta-box">
+                                <small>CUSTOMER</small>
+                                <b>{notif.customerName}</b>
+                              </div>
+                            )}
+                            {notif.farmerName && (
+                              <div className="meta-box">
+                                <small>FARMER</small>
+                                <b>{notif.farmerName}</b>
+                              </div>
+                            )}
+                            {notif.crop && (
+                              <div className="meta-box">
+                                <small>PRODUCT & QTY</small>
+                                <b>{notif.crop} {notif.quantity ? "(" + notif.quantity + " " + (notif.unit || "kg") + ")" : ""}</b>
+                              </div>
+                            )}
+                            {notif.status && (
+                              <div className="meta-box">
+                                <small>ORDER STATUS</small>
+                                <span className={"order-status-badge status-" + String(notif.status).toLowerCase()}>
+                                  {notif.status}
+                                </span>
+                              </div>
+                            )}
+                            {notif.orderId && (
+                              <div className="meta-box">
+                                <small>ORDER ID</small>
+                                <code>#{notif.orderId}</code>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="notif-card-side-actions">
+                          <button
+                            type="button"
+                            className="btn-view-order-link"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleNotificationClick(notif)
+                            }}
+                          >
+                            View Order Details →
+                          </button>
+                          {!notif.read ? (
+                            <button
+                              type="button"
+                              className="btn-mark-read-pill"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleMarkSingleRead(notif.id)
+                              }}
+                            >
+                              Mark Read
+                            </button>
+                          ) : (
+                            <span className="read-status-label">✓ Read</span>
+                          )}
+                        </div>
+                      </article>
+                    ))
+                  )}
+                </div>
               </section>
             </>
           )}

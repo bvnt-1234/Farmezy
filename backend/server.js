@@ -31,6 +31,7 @@ const writableDataDir = isVercel
   : dataDir
 const listingsFile = path.join(writableDataDir, "listings.json")
 const ordersFile = path.join(writableDataDir, "orders.json")
+const notificationsFile = path.join(writableDataDir, "notifications.json")
 const imageCacheFile = path.join(writableDataDir, "image-cache.json")
 const catalogueFile = path.join(dataDir, "agmarknet-catalogue.json")
 const masterFile = path.join(dataDir, "commodity-master.json")
@@ -479,6 +480,139 @@ function saveOrders(newOrders) {
 }
 
 let orders = loadOrders()
+
+function loadNotifications() {
+  try {
+    if (!existsSync(notificationsFile)) {
+      const defaultFile = path.join(dataDir, "notifications.json")
+      if (existsSync(defaultFile)) {
+        const data = JSON.parse(readFileSync(defaultFile, "utf8"))
+        return Array.isArray(data) ? data : []
+      }
+      return []
+    }
+    const data = JSON.parse(readFileSync(notificationsFile, "utf8"))
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+function saveNotifications(newNotifications) {
+  try {
+    mkdirSync(writableDataDir, { recursive: true })
+    writeFileSync(notificationsFile, JSON.stringify(newNotifications, null, 2))
+  } catch (err) {
+    console.warn("Warning: Could not persist notifications to disk:", err.message)
+  }
+}
+
+let notifications = loadNotifications()
+
+// Active SSE client connections: clientId -> { res, userId, phone, role }
+const sseClients = new Map()
+
+function cleanId(id) {
+  return String(id || "").trim().toLowerCase()
+}
+
+function cleanDigits(val) {
+  return String(val || "").replace(/\D/g, "")
+}
+
+function matchesUser(notification, userId, phone) {
+  if (!notification) return false
+  const nUserId = cleanId(notification.userId)
+  const qUserId = cleanId(userId)
+  if (qUserId && nUserId && (nUserId === qUserId || nUserId.includes(qUserId) || qUserId.includes(nUserId))) {
+    return true
+  }
+  const qPhoneDigits = cleanDigits(phone || userId)
+  const nPhoneDigits = cleanDigits(notification.userPhone || notification.userId)
+  if (qPhoneDigits.length >= 10 && nPhoneDigits.length >= 10) {
+    if (nPhoneDigits.slice(-10) === qPhoneDigits.slice(-10)) return true
+  }
+  return false
+}
+
+function createAndDispatchNotification({
+  userId,
+  userPhone,
+  role,
+  orderId,
+  type,
+  title,
+  message,
+  customerName,
+  farmerName,
+  crop,
+  quantity,
+  unit,
+  price,
+  status
+}) {
+  const recentDuplicate = notifications.find(n => 
+    n.orderId === String(orderId) && 
+    (n.type === type || n.status === status) && 
+    (Date.now() - new Date(n.createdAt).getTime()) < 4000
+  )
+  if (recentDuplicate) return recentDuplicate
+
+  const notif = {
+    id: "notif_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+    userId: String(userId || ""),
+    userPhone: String(userPhone || ""),
+    role: String(role || ""),
+    orderId: String(orderId || ""),
+    type: String(type || "GENERAL"),
+    title: String(title || "🔔 Notification"),
+    message: String(message || ""),
+    customerName: String(customerName || ""),
+    farmerName: String(farmerName || ""),
+    crop: String(crop || ""),
+    quantity: String(quantity || ""),
+    unit: String(unit || "kg"),
+    price: String(price || ""),
+    status: String(status || ""),
+    read: false,
+    createdAt: new Date().toISOString()
+  }
+
+  notifications = [notif, ...notifications]
+  if (notifications.length > 500) {
+    notifications = notifications.slice(0, 500)
+  }
+  saveNotifications(notifications)
+
+  // Real-time dispatch via SSE
+  const payload = "data: " + JSON.stringify({ type: "notification", notification: notif }) + "\n\n"
+  for (const [clientId, client] of sseClients.entries()) {
+    if (matchesUser(notif, client.userId, client.phone)) {
+      try {
+        client.res.write(payload)
+      } catch (err) {
+        console.warn("Failed writing to SSE client " + clientId + ":", err.message)
+        sseClients.delete(clientId)
+      }
+    }
+  }
+
+  return notif
+}
+
+// Heartbeat ping every 25 seconds to keep SSE connections open through load balancers
+setInterval(() => {
+  if (sseClients.size === 0) return
+  const pingPayload = ": ping\n\n"
+  for (const [clientId, client] of sseClients.entries()) {
+    try {
+      client.res.write(pingPayload)
+    } catch {
+      sseClients.delete(clientId)
+    }
+  }
+}, 25000)
+
 
 function startHistoricalCollector() {
   if (isVercel || !(process.env.DATA_GOV_API_KEY || process.env.DATA_GOVIN_API_KEY)) return
@@ -1948,6 +2082,103 @@ async function handleRequest(req, res) {
     return
   }
 
+  
+  if (requestUrl.pathname === "/api/notifications/stream" && req.method === "GET") {
+    const userId = requestUrl.searchParams.get("userId") || ""
+    const phone = requestUrl.searchParams.get("phone") || ""
+    const role = requestUrl.searchParams.get("role") || ""
+
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      "Connection": "keep-alive",
+      "Access-Control-Allow-Origin": "*",
+      "X-Accel-Buffering": "no"
+    })
+
+    const clientId = "sse_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7)
+    sseClients.set(clientId, { res, userId, phone, role })
+
+    res.write(": connection established\n\n")
+
+    notifications = loadNotifications()
+    const userNotifs = notifications.filter(n => matchesUser(n, userId, phone))
+    const unreadCount = userNotifs.filter(n => !n.read).length
+    res.write("data: " + JSON.stringify({ type: "init", unreadCount }) + "\n\n")
+
+    req.on("close", () => {
+      sseClients.delete(clientId)
+    })
+    return
+  }
+
+  if (requestUrl.pathname === "/api/notifications" && req.method === "GET") {
+    notifications = loadNotifications()
+    const userId = requestUrl.searchParams.get("userId")
+    const phone = requestUrl.searchParams.get("phone")
+    const role = requestUrl.searchParams.get("role")
+
+    let result = notifications
+    if (userId || phone) {
+      result = result.filter(n => matchesUser(n, userId, phone))
+    }
+    if (role) {
+      result = result.filter(n => !n.role || n.role === role)
+    }
+
+    const unreadCount = result.filter(n => !n.read).length
+    res.writeHead(200).end(JSON.stringify({ notifications: result, unreadCount }))
+    return
+  }
+
+  if (requestUrl.pathname.startsWith("/api/notifications/") && requestUrl.pathname.endsWith("/read") && req.method === "PATCH") {
+    const parts = requestUrl.pathname.split("/")
+    const notifId = parts[3]
+    notifications = loadNotifications()
+    const notif = notifications.find(n => n.id === notifId)
+    if (!notif) {
+      res.writeHead(404).end(JSON.stringify({ error: "Notification not found" }))
+      return
+    }
+    notif.read = true
+    notif.readAt = new Date().toISOString()
+    saveNotifications(notifications)
+    res.writeHead(200).end(JSON.stringify({ success: true, notification: notif }))
+    return
+  }
+
+  if (requestUrl.pathname === "/api/notifications/read-all" && req.method === "POST") {
+    try {
+      let body = ""
+      for await (const chunk of req) body += chunk
+      const data = JSON.parse(body || "{}")
+      const { userId, phone, role } = data
+
+      notifications = loadNotifications()
+      let updatedCount = 0
+      notifications.forEach(n => {
+        if (matchesUser(n, userId, phone)) {
+          if (!role || n.role === role) {
+            if (!n.read) {
+              n.read = true
+              n.readAt = new Date().toISOString()
+              updatedCount++
+            }
+          }
+        }
+      })
+
+      if (updatedCount > 0) {
+        saveNotifications(notifications)
+      }
+
+      res.writeHead(200).end(JSON.stringify({ success: true, updatedCount }))
+    } catch (err) {
+      res.writeHead(400).end(JSON.stringify({ error: "Failed to mark all as read: " + err.message }))
+    }
+    return
+  }
+
   if (requestUrl.pathname === "/api/orders" && req.method === "GET") {
     const farmerId = requestUrl.searchParams.get("farmerId")
     const customerId = requestUrl.searchParams.get("customerId")
@@ -1995,6 +2226,28 @@ async function handleRequest(req, res) {
 
       orders = [order, ...orders]
       saveOrders(orders)
+
+      // Notify Farmer in real-time
+      try {
+        createAndDispatchNotification({
+          userId: order.farmerId,
+          userPhone: order.farmerPhone,
+          role: "Farmer",
+          orderId: order.id,
+          type: "ORDER_RECEIVED",
+          title: "🔔 New Order Received!",
+          message: "Customer " + (order.customerName || "Customer") + " has placed an order for " + order.quantity + " " + (order.unit || "kg") + " of " + order.crop + ".",
+          customerName: order.customerName,
+          farmerName: order.farmerName,
+          crop: order.crop,
+          quantity: order.quantity,
+          unit: order.unit || "kg",
+          price: order.price,
+          status: order.status
+        })
+      } catch (notifErr) {
+        console.warn("Failed to create farmer order notification:", notifErr.message)
+      }
       res.writeHead(201).end(JSON.stringify({ order }))
     } catch {
       res.writeHead(400).end(JSON.stringify({ error: "Invalid order data." }))
@@ -2013,13 +2266,69 @@ async function handleRequest(req, res) {
         res.writeHead(404).end(JSON.stringify({ error: "Order not found." }))
         return
       }
-      if (!["Accepted", "Rejected", "Ready", "Completed"].includes(data.status)) {
-        res.writeHead(400).end(JSON.stringify({ error: "Invalid order status." }))
+      const allowedStatuses = ["Accepted", "Preparing", "Ready", "Dispatched", "Completed", "Cancelled", "Rejected"]
+      if (!allowedStatuses.includes(data.status)) {
+        res.writeHead(400).end(JSON.stringify({ error: "Invalid order status. Allowed: " + allowedStatuses.join(", ") }))
         return
       }
-      order.status = data.status
+      const prevStatus = order.status
+      const nextStatus = data.status
+      order.status = nextStatus
       order.updatedAt = new Date().toISOString()
       saveOrders(orders)
+
+      if (prevStatus !== nextStatus) {
+        try {
+          let notifType = "ORDER_STATUS_CHANGED"
+          let title = "🔔 Order " + nextStatus + "!"
+          let message = "Your order for " + order.quantity + " " + (order.unit || "kg") + " of " + order.crop + " has been updated to " + nextStatus + "."
+
+          if (nextStatus === "Accepted") {
+            notifType = "ORDER_ACCEPTED"
+            title = "🔔 Order Accepted!"
+            message = "Great news! Your order for " + order.quantity + " " + (order.unit || "kg") + " of " + order.crop + " has been accepted by the farmer."
+          } else if (nextStatus === "Preparing") {
+            notifType = "ORDER_PREPARING"
+            title = "🔔 Order Preparation Started!"
+            message = "Your order is now being prepared by the farmer."
+          } else if (nextStatus === "Ready") {
+            notifType = "ORDER_READY"
+            title = "🔔 Order Ready!"
+            message = "Your order is ready! You can proceed with the next step."
+          } else if (nextStatus === "Dispatched") {
+            notifType = "ORDER_DISPATCHED"
+            title = "🔔 Order Dispatched!"
+            message = "Your order has been dispatched and is on its way."
+          } else if (nextStatus === "Completed") {
+            notifType = "ORDER_COMPLETED"
+            title = "🔔 Order Completed!"
+            message = "Your order has been successfully completed. Thank you for shopping with FarmZey!"
+          } else if (nextStatus === "Cancelled" || nextStatus === "Rejected") {
+            notifType = "ORDER_CANCELLED"
+            title = "🔔 Order Cancelled!"
+            message = "Your order has been cancelled. Please check the order details for more information."
+          }
+
+          createAndDispatchNotification({
+            userId: order.customerId,
+            userPhone: order.customerPhone,
+            role: "Customer",
+            orderId: order.id,
+            type: notifType,
+            title,
+            message,
+            customerName: order.customerName,
+            farmerName: order.farmerName,
+            crop: order.crop,
+            quantity: order.quantity,
+            unit: order.unit || "kg",
+            price: order.price,
+            status: nextStatus
+          })
+        } catch (notifErr) {
+          console.warn("Failed to create customer status notification:", notifErr.message)
+        }
+      }
       res.writeHead(200).end(JSON.stringify({ order }))
     } catch {
       res.writeHead(400).end(JSON.stringify({ error: "Invalid order update." }))
