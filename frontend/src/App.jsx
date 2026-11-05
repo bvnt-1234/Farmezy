@@ -2361,6 +2361,21 @@ function App() {
                       type="button"
                       className="banner-link"
                       onClick={() => {
+                        const matchedOrder = orders.find(o => String(o.id) === String(notification.orderId))
+                        if (matchedOrder) {
+                          openInvoiceModal(matchedOrder)
+                        } else {
+                          setPage("Orders")
+                        }
+                        dismissNotification(notification.id)
+                      }}
+                    >
+                      📄 Download Invoice →
+                    </button>
+                    <button
+                      type="button"
+                      className="banner-link"
+                      onClick={() => {
                         setPage("Orders")
                         dismissNotification(notification.id)
                       }}
@@ -3147,6 +3162,7 @@ function App() {
                               farmerId: buyItem.farmerId,
                               farmerName: buyItem.farmerName,
                               farmerPhone: phone,
+                              farmerAddress: buyItem.address || buyItem.location || "",
                               customerId,
                               customerName: profile?.name || "Customer",
                               customerPhone: profile?.phone || "",
@@ -3162,16 +3178,14 @@ function App() {
                             alert("Request saved, but this farmer has not added a valid WhatsApp number yet.")
                           } else {
                             try {
-                              const win = window.open(url, "_blank", "noopener,noreferrer")
-                              if (!win || win.closed || typeof win.closed === "undefined") {
-                                window.location.href = url
-                              }
-                            } catch {
-                              window.location.href = url
-                            }
+                              window.open(url, "_blank", "noopener,noreferrer")
+                            } catch {}
                           }
                           setBuyItem(null)
                           setBuyQuantity("")
+                          if (data.order) {
+                            openInvoiceModal(data.order)
+                          }
                         } catch (error) {
                           setListingError(error.message)
                         } finally {
@@ -3211,7 +3225,7 @@ function App() {
                         <span>{formatIndiaTime(order.createdAt)}</span>
                       </div>
                       <div>
-                        <small>ACTIONS</small>
+                        <small>ACTIONS & INVOICE</small>
                         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                           {order.status === "Requested" && (
                             <>
@@ -3221,6 +3235,22 @@ function App() {
                           )}
                           {order.status === "Accepted" && <button onClick={() => updateOrder(order.id, "Ready")}>Mark ready</button>}
                           {order.status === "Ready" && <button onClick={() => updateOrder(order.id, "Completed")}>Complete</button>}
+                          <button
+                            type="button"
+                            className="btn-action-invoice"
+                            onClick={() => openInvoiceModal(order)}
+                            title="View Tax Invoice"
+                          >
+                            📄 {t("invoice") || "Invoice"}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-action-download-pdf"
+                            onClick={() => generateInvoicePDF(order)}
+                            title="Download Invoice PDF"
+                          >
+                            📥 PDF
+                          </button>
                         </div>
                       </div>
                     </article>
@@ -3234,11 +3264,11 @@ function App() {
 
           {page === "Orders" && (
             <>
-              <Title eyebrow="MY REQUESTS" title="Track your purchases." sub="See requests you have sent to farmers." />
+              <Title eyebrow="MY REQUESTS" title="Track your purchases." sub="See requests you have sent to farmers and download invoices." />
               <section className="panel farmer-listings">
                 {orders.length ? (
                   orders.map(order => (
-                    <article className="listing-card" key={order.id}>
+                    <article id={"order-" + order.id} className={"listing-card" + (highlightedOrderId === order.id ? " highlight-order-card" : "")} key={order.id}>
                       <div>
                         <small>CROP</small>
                         <b>{order.crop}</b>
@@ -3251,14 +3281,44 @@ function App() {
                       </div>
                       <div>
                         <small>STATUS</small>
-                        <b>{order.status}</b>
+                        <b style={{ color: order.status === "Completed" ? "#15803d" : order.status === "Accepted" ? "#0284c7" : "#b45309" }}>{order.status}</b>
                         <span>Request #{order.id}</span>
                       </div>
                       <div>
-                        <small>CONTACT</small>
-                        {order.farmerPhone && (
-                          <a href={whatsappUrl(order.farmerPhone)} target="_blank" rel="noreferrer" className="link">WhatsApp farmer ↗</a>
-                        )}
+                        <small>INVOICE & ACTIONS</small>
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "4px" }}>
+                          <button
+                            type="button"
+                            className="btn-action-invoice"
+                            onClick={() => openInvoiceModal(order)}
+                            title="View Tax Invoice"
+                          >
+                            📄 {t("invoice") || "Invoice"}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-action-download-pdf"
+                            onClick={() => generateInvoicePDF(order)}
+                            title="Download Invoice PDF directly"
+                          >
+                            📥 {t("downloadInvoice") || "Download PDF"}
+                          </button>
+                          {order.farmerPhone && (
+                            <a href={whatsappUrl(order.farmerPhone)} target="_blank" rel="noreferrer" className="link" style={{ alignSelf: "center", fontSize: "12px" }}>
+                              WhatsApp farmer ↗
+                            </a>
+                          )}
+                          {order.status === "Completed" && (
+                            <button
+                              type="button"
+                              className={"btn-action-rate" + (customerHasReviewedOrder(order.id) ? " reviewed" : "")}
+                              onClick={() => openRatingModal(order)}
+                              title="Rate and review this purchase"
+                            >
+                              ⭐ {customerHasReviewedOrder(order.id) ? "Edit Review" : "Rate & Review"}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </article>
                   ))
