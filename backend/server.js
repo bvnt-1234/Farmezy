@@ -57,13 +57,30 @@ function supplementOfficialStateSources(rows) {
     }
   }
 
-  // 1. Karnataka official source
-  if (!centralStates.has("karnataka")) {
-    const ktkRecords = loadSourceFile(karnatakaPricesFile);
-    if (ktkRecords.length > 0) {
-      extraRows.push(...ktkRecords);
-      centralStates.add("karnataka");
+    // 1. Karnataka official source (KSAMB / ReMS via AGMARKNET)
+  const ktkRecords = loadSourceFile(karnatakaPricesFile);
+  if (ktkRecords.length > 0) {
+    const existingKtkKeys = new Set(
+      rows
+        .filter(r => String(r.state || "").toLowerCase().includes("karnataka"))
+        .map(r => `${String(r.district || "").toLowerCase()}_${String(r.market || "").toLowerCase()}_${String(r.commodity || "").toLowerCase()}`)
+    );
+    for (const r of ktkRecords) {
+      const key = `${String(r.district || "").toLowerCase()}_${String(r.market || "").toLowerCase()}_${String(r.commodity || "").toLowerCase()}`;
+      if (!existingKtkKeys.has(key)) {
+        extraRows.push({
+          ...r,
+          state: r.state || "Karnataka",
+          price_type: r.price_type || "Local Mandi Price",
+          source_name: r.source_name || "Government of India (AGMARKNET) / KSAMB",
+          source_type: "wholesale",
+          unit: r.unit || "₹/quintal",
+          price_unit: r.price_unit || "₹/quintal"
+        });
+        existingKtkKeys.add(key);
+      }
     }
+    centralStates.add("karnataka");
   }
 
   // 2. Supplementary official state sources (Delhi, Jharkhand, Goa, Mizoram, Sikkim, Arunachal Pradesh, UTs)
@@ -1992,9 +2009,20 @@ const curatedCropImages = {
 function findCuratedCropImage(name) {
   const clean = cleanCropName(name)
   if (!clean) return null
+
+  // Check taxonomy definition for canonical name resolution (supports regional/Indic aliases)
+  const def = findProduceDefinition(name)
+  const canonical = def ? cleanCropName(def.canonicalName) : clean
+
   const sorted = Object.entries(curatedCropImages).sort((a, b) => b[0].length - a[0].length)
   for (const [key, image] of sorted) {
-    if (clean === key || (" " + clean + " ").includes(" " + key + " ")) {
+    const keyClean = cleanCropName(key)
+    if (
+      clean === keyClean ||
+      canonical === keyClean ||
+      (" " + clean + " ").includes(" " + keyClean + " ") ||
+      (" " + canonical + " ").includes(" " + keyClean + " ")
+    ) {
       return { ...image, link: image.link || "https://unsplash.com" }
     }
   }
@@ -2420,14 +2448,12 @@ async function resolveProduceImage(cropName) {
   if (!clean) return null
   const cacheKey = clean.toLowerCase()
 
-  // 1. Highest Priority: Curated verified produce library for sensitive crops (Radish, Knol Khol, Gourds, Pulses, Millets, Spices, etc.)
-  if (isBotanicallySensitiveCrop(clean)) {
-    const curated = findCuratedCropImage(clean)
-    if (curated) {
-      imageCache.set(cacheKey, { data: curated, savedAt: Date.now() })
-      saveImageCache()
-      return curated
-    }
+  // 1. Highest Priority: Curated verified produce library (guaranteed authentic local product assets)
+  const curated = findCuratedCropImage(clean)
+  if (curated) {
+    imageCache.set(cacheKey, { data: curated, savedAt: Date.now() })
+    saveImageCache()
+    return curated
   }
 
   // 2. Check cached images (validate candidates before serving)
@@ -2507,9 +2533,9 @@ async function resolveProduceImage(cropName) {
 
   // 6. Fallback placeholder (do not cache placeholder so it can be re-resolved)
   return {
-    url: "/placeholder.png",
+    url: "/placeholder.svg",
     alt: `${clean} produce`,
-    photographer: "Farmezy",
+    photographer: "Farmezy Verified Fallback",
     link: "",
   }
 }
@@ -2580,13 +2606,7 @@ async function auditAndPurgeCache() {
       continue
     }
 
-    // 2. Evict local fallback stubs so authentic images resolve
-    if (localStubs.includes(entry.data.url)) {
-      console.log(`Evicting local fallback stub for "${key}"`)
-      imageCache.delete(key)
-      changed = true
-      continue
-    }
+    // 2. Verified local product assets are authentic and preserved
 
     // 3. Evict broken thumbnail URLs
     if (entry.data.url.includes("/thumb/")) {
@@ -5127,7 +5147,7 @@ async function syncAgmarknetPrices() {
         }, null, 2))
       } catch {}
     } else if (fetchedRecords.length > 0 && (fetchedRecords.length >= reportedTotal || (reportedTotal === Infinity && fetchedRecords.length >= 1000))) {
-      currentAgmarknetPricesCache = fetchedRecords
+      currentAgmarknetPricesCache = supplementOfficialStateSources(fetchedRecords)
       lastSuccessfulPriceRefresh = new Date().toISOString()
       cachedDiagnostics = null
       try {

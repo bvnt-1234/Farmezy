@@ -126,9 +126,13 @@ export const PRODUCE_TAXONOMY = {
   drumstick: {
     category: "vegetables",
     canonicalName: "Drumstick",
-    aliases: ["drumstick", "drumsticks", "moringa", "sahjan", "nuggekayi", "murungakkai", "munakkaya"],
+    aliases: [
+      "drumstick", "drumsticks", "moringa", "sahjan", "nuggekayi", "nuggekai",
+      "murungakkai", "munakkaya", "munaga", "sahjana",
+      "सहजन", "ढोलकी", "ঢোলকী", "നുಗ್ಗೆಕಾಯಿ", "ಮುರುங்கைக்காய்", "முருங்கை", "మునక్కాయ", "మునగ", "ସଜನಾ"
+    ],
     searchQuery: "fresh moringa pods isolated on a clean background",
-    requiredKeywords: ["moringa", "drumstick", "drumsticks", "oleifera"],
+    requiredKeywords: ["moringa", "drumstick", "drumsticks", "oleifera", "sahjan", "murungakkai"],
     forbiddenKeywords: ["tree", "trees", "hanging on tree", "hanging from tree", "sambar", "curry", "powder", "tea", "supplement"]
   },
   "bitter gourd": {
@@ -584,24 +588,17 @@ export const PRODUCE_TAXONOMY = {
   // ==================== 6. SPICES ====================
   ginger: {
     category: "spices",
-    canonicalName: "Ginger",
+    canonicalName: "Ginger / Green Ginger",
     aliases: [
-      "ginger", "ginger green", "ginger dry", "adrak", "shunti", "inji", "allam",
-      "zingiber officinale", "fresh ginger", "dry ginger"
+      "ginger", "green ginger", "ginger(green)", "ginger green", "dry ginger", "ginger(dry)",
+      "adrak", "shunti", "inji", "allam", "zingiber officinale", "fresh ginger",
+      "अदरक", "आले", "ಶುಂಠಿ", "இஞ்சி", "అల్లం", "আদা", "આદુ", "ഇഞ്ചി", "ଅଦಾ"
     ],
     searchQuery: "fresh raw ginger rhizome root isolated on a clean background",
     requiredKeywords: ["ginger", "rhizome", "zingiber", "adrak", "shunti", "inji", "allam"],
-    forbiddenKeywords: ["gingerbread", "cookie", "cookies", "ale", "tea", "candy", "snap", "powder", "capsule"]
-  },
-  ginger: {
-    category: "spices",
-    canonicalName: "Ginger / Green Ginger",
-    aliases: ["ginger", "green ginger", "ginger green", "adrak", "shunti", "inji", "allam", "zingiber officinale"],
-    searchQuery: "fresh raw ginger rhizome root isolated on a clean background",
-    requiredKeywords: ["ginger", "rhizome", "zingiber", "adrak", "shunti"],
     forbiddenKeywords: [
       "forest", "tree", "plant only", "landscape", "wild", "foliage", "tea",
-      "beer", "ale", "cookie", "bread", "candy", "powder", "oil", "dish", "curry"
+      "beer", "ale", "cookie", "bread", "candy", "powder", "oil", "dish", "curry", "gingerbread", "snap"
     ]
   },
 
@@ -677,6 +674,39 @@ export const PRODUCE_TAXONOMY = {
     requiredKeywords: ["yam", "amorphophallus", "suran", "tuber"],
     forbiddenKeywords: ["curry", "cooked", "fried", "dish", "stew"]
   },
+  "water chestnut": {
+    category: "vegetables",
+    canonicalName: "Water Chestnut",
+    aliases: [
+      "water chestnut", "water chestnuts", "singhada", "singhara", "pani phal",
+      "trapa natans", "सिंघाड़ा", "পানিফল", "சிங்காரா"
+    ],
+    searchQuery: "fresh raw water chestnut singhada isolated on a clean background",
+    requiredKeywords: ["singhada", "water chestnut", "trapa", "singhara"],
+    forbiddenKeywords: ["cooked", "curry", "flour", "atta", "boiled", "tree"]
+  },
+  almond: {
+    category: "dry fruits",
+    canonicalName: "Almond",
+    aliases: [
+      "almond", "almonds", "almond(badam)", "badam", "badami", "prunus dulcis",
+      "बादाम", "बदाम", "বাদাম", "બદામ", "ಬಾದಾಮಿ", "பாதாம்", "బాదం"
+    ],
+    searchQuery: "raw whole almonds nuts isolated on a clean background",
+    requiredKeywords: ["almond", "almonds", "badam", "dulcis"],
+    forbiddenKeywords: ["milk", "chocolate", "cookie", "cake", "oil", "croissant", "butter", "dessert", "tree"]
+  },
+  cashew: {
+    category: "dry fruits",
+    canonicalName: "Cashewnuts",
+    aliases: [
+      "cashew", "cashews", "cashewnuts", "kaju", "anacardium occidentale",
+      "काजू", "কাজু", "કાજુ", "ಗೋಡಂಬಿ", "ಮುந்திரி", "జీడిపప్పు"
+    ],
+    searchQuery: "raw whole cashew nuts isolated on a clean background",
+    requiredKeywords: ["cashew", "cashews", "cashewnuts", "kaju", "anacardium"],
+    forbiddenKeywords: ["curry", "cooked", "gravy", "sweet", "barfi", "dessert", "tree", "apple", "fruit"]
+  },
   radish: {
     category: "roots",
     canonicalName: "Radish",
@@ -719,7 +749,7 @@ export function cleanCropName(raw) {
     .replace(/[()[\]{}/\\,._-]/g, " ")
     .replace(/\b(fresh|common|local|hybrid|grade\s*[a-c]?|desi|dry|wholesale)\b/gi, " ")
     .replace(/(?<!banana\s+)\braw\b(?!\s+(?:banana|plantain))/gi, " ")
-    .replace(/[^a-zA-Z0-9\s]/g, " ")
+    .replace(/[^\p{L}\p{M}\p{N}\s]/gu, " ")
     .replace(/\s+/g, " ")
     .trim()
     .toLowerCase()
@@ -992,12 +1022,15 @@ export function findProduceDefinition(cropName, explicitCategory = "") {
     }
   }
 
-  // 4. Token-based exact token match (only for meaningful tokens > 3 chars)
-  const tokens = clean.split(/\s+/).filter(tok => tok.length > 3)
-  for (const { def, alias } of allEntries) {
-    const aliasTokens = alias.split(/\s+/).filter(tok => tok.length > 3)
-    if (tokens.some(tok => aliasTokens.includes(tok))) {
-      return def
+  // 4. Token-based exact token match (only for meaningful commodity tokens > 3 chars, ignoring common modifiers)
+  const genericModifiers = new Set(["water", "fresh", "green", "white", "black", "sweet", "wild", "round", "long", "small", "large", "common", "local", "hybrid", "whole", "split", "dried"]);
+  const tokens = clean.split(/\s+/).filter(tok => tok.length > 3 && !genericModifiers.has(tok));
+  if (tokens.length > 0) {
+    for (const { def, alias } of allEntries) {
+      const aliasTokens = alias.split(/\s+/).filter(tok => tok.length > 3 && !genericModifiers.has(tok));
+      if (tokens.some(tok => aliasTokens.includes(tok))) {
+        return def;
+      }
     }
   }
 

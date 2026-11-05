@@ -1,296 +1,13 @@
 import { generateInvoicePDF, printInvoice, getInvoiceNumber, formatINR } from "./invoicePdf.js"
 import { useEffect, useState, useRef, useMemo } from "react"
+import { useLanguageTranslator, translations as i18nTranslations, t as i18nTranslate, translateCrop, translateCategory, translateStatus, translateUnit, CROP_TRANSLATIONS, CATEGORY_TRANSLATIONS, STATUS_TRANSLATIONS, UNIT_TRANSLATIONS } from "./i18n.js"
 import OfficialPrices from "./OfficialPrices.jsx"
 import { supabase, isSupabaseConfigured } from "./supabase.js"
 import commodityMaster from "../../backend/data/commodity-master.json"
 import agmarknetCatalogue from "../../backend/data/agmarknet-catalogue.json"
 import "./App.css"
 
-export const translations = {
-  English: {
-    notifications: "Notifications",
-    home: "Home",
-    prices: "Market prices",
-    outlook: "Price outlook",
-    mandi: "Find a mandi",
-    sell: "List your harvest",
-    browse: "Browse produce",
-    requests: "Requests",
-    myRequests: "My requests",
-    greeting: "Good Morning!",
-    tagline: "A fairer market starts here.",
-    farmerWorkspace: "FARMER WORKSPACE",
-    customerWorkspace: "CUSTOMER MARKETPLACE",
-    farmer: "Farmer",
-    customer: "Customer",
-    yourWorkspace: "YOUR WORKSPACE",
-    menu: "MENU",
-    needHelp: "Here to help",
-    askFarmezy: "Ask Farmezy about crop prices or mandis.",
-    chatWithUs: "Chat with us",
-    signOut: "Sign out",
-    logOut: "Log out",
-    buyRequest: "Buy / Request",
-    call: "Call",
-    whatsapp: "WhatsApp",
-    bestRoute: "Best route",
-    delete: "Delete",
-    crop: "CROP",
-    available: "AVAILABLE",
-    askingPrice: "ASKING PRICE",
-    farmerPickup: "FARMER / PICKUP",
-    nearby: "Nearby in your area (< 1 km)",
-    kmAway: "km away",
-    officialGovtPrices: "Official mandi prices",
-    allVegetables: "All vegetables & crops",
-    welcomeTitleFarmer: "Your harvest, your business.",
-    welcomeTitleCustomer: "Find fresh crops from Indian mandis.",
-    welcomeSubFarmer: "Add your crops with real camera photos and check live official market prices in your district.",
-    welcomeSubCustomer: "Browse daily reported mandi prices from the Government of India.",
-    authTitle: "FARMEZY AUTHORIZATION & LOGIN",
-    authWelcome: "Welcome to Farmezy.",
-    authSub: "Sign in or register your account to access real-time market prices, sell crops, or purchase directly.",
-    signIn: "Sign In",
-    signUp: "Create Account (Sign Up)",
-    demoFarmer: "Sign In as Demo Farmer (Ramesh)",
-    demoCustomer: "Sign In as Demo Customer (Priya)"
-  },
-  "हिन्दी": {
-    home: "होम",
-    prices: "मंडी भाव",
-    outlook: "भाव का अनुमान",
-    mandi: "मंडी खोजें",
-    sell: "फसल बेचें",
-    browse: "फसलें देखें",
-    requests: "ऑर्डर अनुरोध",
-    myRequests: "मेरे अनुरोध",
-    greeting: "नमस्ते",
-    tagline: "बेहतर बाज़ार, बेहतर कमाई।",
-    farmerWorkspace: "किसान कार्यक्षेत्र",
-    customerWorkspace: "ग्राहक बाज़ार",
-    farmer: "किसान",
-    customer: "ग्राहक",
-    yourWorkspace: "कार्यक्षेत्र",
-    menu: "मेन्यू",
-    needHelp: "सहायता केंद्र",
-    askFarmezy: "मंडी भाव या फसल के बारे में पूछें।",
-    chatWithUs: "बातचीत करें",
-    signOut: "साइन आउट",
-    logOut: "लॉग आउट",
-    buyRequest: "खरीदें / अनुरोध",
-    call: "कॉल करें",
-    whatsapp: "व्हाट्सएप",
-    bestRoute: "रास्ता देखें",
-    delete: "हटाएं",
-    crop: "फसल",
-    available: "उपलब्ध मात्रा",
-    askingPrice: "मांग मूल्य",
-    farmerPickup: "किसान / स्थान",
-    nearby: "आपके नज़दीक (< 1 किमी)",
-    kmAway: "किमी दूर",
-    officialGovtPrices: "सरकारी मंडी भाव",
-    allVegetables: "सभी सब्जियां व फसलें",
-    welcomeTitleFarmer: "आपकी उपज, आपका अधिकार।",
-    welcomeTitleCustomer: "सीधे किसानों व मंडियों से ताज़ा फसलें पाएं।",
-    welcomeSubFarmer: "कैमरा से अपनी फसल की फोटो जोड़ें और अपने जिले के ताज़ा सरकारी भाव देखें।",
-    welcomeSubCustomer: "भारत सरकार द्वारा प्रतिदिन जारी किए जाने वाले मंडी भाव देखें।",
-    authTitle: "फ़ार्मेज़ी लॉगिन व प्रमाणीकरण",
-    authWelcome: "फ़ार्मेज़ी में आपका स्वागत है।",
-    authSub: "ताज़ा मंडी भाव देखने, फसल बेचने या खरीदने के लिए साइन इन करें।",
-    signIn: "साइन इन करें",
-    signUp: "नया खाता बनाएं",
-    demoFarmer: "डेमो किसान लॉगिन (रमेश)",
-    demoCustomer: "डेमो ग्राहक लॉगिन (प्रिया)"
-  },
-  "ಕನ್ನಡ": {
-    home: "ಮುಖಪುಟ",
-    prices: "ಮಾರುಕಟ್ಟೆ ಬೆಲೆಗಳು",
-    outlook: "ಬೆಲೆ ಮುನ್ಸೂಚನೆ",
-    mandi: "ಮಂಡಿ ಹುಡುಕಿ",
-    sell: "ಬೆಳೆ ಮಾರಾಟ ಮಾಡಿ",
-    browse: "ಬೆಳೆಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
-    requests: "ವಿನಂತಿಗಳು",
-    myRequests: "ನನ್ನ ವಿನಂತಿಗಳು",
-    greeting: "ನಮಸ್ಕಾರ",
-    tagline: "ನ್ಯಾಯಯುತ ಮಾರುಕಟ್ಟೆ, ಉತ್ತಮ ಆದಾಯ.",
-    farmerWorkspace: "ರೈತ ಕಾರ್ಯಕ್ಷೇತ್ರ",
-    customerWorkspace: "ಗ್ರಾಹಕ ಮಾರುಕಟ್ಟೆ",
-    farmer: "ರೈತ",
-    customer: "ಗ್ರಾಹಕ",
-    yourWorkspace: "ಕಾರ್ಯಕ್ಷೇತ್ರ",
-    menu: "ಪಟ್ಟಿ",
-    needHelp: "ಸಹಾಯ ಕೇಂದ್ರ",
-    askFarmezy: "ಬೆಲೆ ಅಥವಾ ಮಂಡಿ ಬಗ್ಗೆ ವಿಚಾರಿಸಿ.",
-    chatWithUs: "ಸಂಪರ್ಕಿಸಿ",
-    signOut: "ಸೈನ್ ಔಟ್",
-    logOut: "ಲಾಗ್ ಔಟ್",
-    buyRequest: "ಖರೀದಿಸಿ / ವಿನಂತಿಸಿ",
-    call: "ಕರೆ ಮಾಡಿ",
-    whatsapp: "ವಾಟ್ಸಾಪ್",
-    bestRoute: "ದಾರಿ ನಕ್ಷೆ",
-    delete: "ಅಳಿಸಿ",
-    crop: "ಬೆಳೆ",
-    available: "ಲಭ್ಯತೆ",
-    askingPrice: "ಬೆಲೆ",
-    farmerPickup: "ರೈತ / ಸ್ಥಳ",
-    nearby: "ನಿಮ್ಮ ಸಮೀಪದಲ್ಲಿ (< 1 ಕಿ.ಮೀ)",
-    kmAway: "ಕಿ.ಮೀ ದೂರ",
-    officialGovtPrices: "ಸರ್ಕಾರಿ ಮಂಡಿ ಬೆಲೆಗಳು",
-    allVegetables: "ಎಲ್ಲಾ ತರಕಾರಿಗಳು ಮತ್ತು ಬೆಳೆಗಳು",
-    welcomeTitleFarmer: "ನಿಮ್ಮ ಬೆಳೆ, ನಿಮ್ಮ ವ್ಯಾಪಾರ.",
-    welcomeTitleCustomer: "ಭಾರತದ ಮಂಡಿಗಳಿಂದ ತಾಜಾ ಬೆಳೆಗಳನ್ನು ಪಡೆಯಿರಿ.",
-    welcomeSubFarmer: "ಕ್ಯಾಮೆರಾದಿಂದ ಬೆಳೆಯ ನೈಜ ಫೋಟೋ ಸೇರಿಸಿ ಮತ್ತು ಮಾರುಕಟ್ಟೆ ಬೆಲೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.",
-    welcomeSubCustomer: "ಸರ್ಕಾರದ ಅಧಿಕೃತ ಮಂಡಿ ಬೆಲೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.",
-    authTitle: "ಫಾರ್ಮೆಜಿ ಲಾಗಿನ್ ಮತ್ತು ದೃಢೀಕರಣ",
-    authWelcome: "ಫಾರ್ಮೆಜಿಗೆ ಸುಸ್ವಾಗತ.",
-    authSub: "ಬೆಲೆಗಳನ್ನು ನೋಡಲು, ಬೆಳೆ ಮಾರಾಟ ಮಾಡಲು ಅಥವಾ ಖರೀದಿಸಲು ಲಾಗಿನ್ ಮಾಡಿ.",
-    signIn: "ಸೈನ್ ಇನ್",
-    signUp: "ಖಾತೆ ರಚಿಸಿ",
-    demoFarmer: "ಡೆಮೊ ರೈತ ಲಾಗಿನ್ (ರಮೇಶ್)",
-    demoCustomer: "ಡೆಮೊ ಗ್ರಾಹಕ ಲಾಗಿನ್ (ಪ್ರಿಯಾ)"
-  },
-  "తెలుగు": {
-    home: "హోమ్",
-    prices: "మార్కెట్ ధరలు",
-    outlook: "ధర అంచనా",
-    mandi: "మండి వెతకండి",
-    sell: "పంట అమ్మండి",
-    browse: "పంటలను చూడండి",
-    requests: "ఆర్డర్ అభ్యర్థనలు",
-    myRequests: "నా అభ్యర్థనలు",
-    greeting: "నమస్కారం",
-    tagline: "సరసమైన మార్కెట్, మెరుగైన ఆదాయం.",
-    farmerWorkspace: "రైతు వర్క్‌స్పేస్",
-    customerWorkspace: "వినియోగదారుల మార్కెట్",
-    farmer: "రైతు",
-    customer: "వినియోగదారుడు",
-    yourWorkspace: "మీ వర్క్‌స్పేస్",
-    menu: "మెనూ",
-    needHelp: "సహాయం కావాలా",
-    askFarmezy: "పంట ధరలు లేదా మండీల గురించి అడగండి.",
-    chatWithUs: "మాట్లాడండి",
-    signOut: "సైన్ అవుట్",
-    logOut: "లాగ్ అవుట్",
-    buyRequest: "కొనండి / అభ్యర్థించండి",
-    call: "కాల్ చేయండి",
-    whatsapp: "వాట్సాప్",
-    bestRoute: "మార్గం చూడండి",
-    delete: "తొలగించు",
-    crop: "పంట",
-    available: "లభ్యత",
-    askingPrice: "ధర",
-    farmerPickup: "రైతు / ప్రదేశం",
-    nearby: "మీ సమీపంలో (< 1 కి.మీ)",
-    kmAway: "కి.మీ దూరం",
-    officialGovtPrices: "ప్రభుత్వ మండి ధరలు",
-    allVegetables: "అన్ని కూరగాయలు & పంటలు",
-    welcomeTitleFarmer: "మీ పంట, మీ వ్యాపారం.",
-    welcomeTitleCustomer: "తాజా కూరగాయలు మరియు పంటలు పొందండి.",
-    welcomeSubFarmer: "కెమెరాతో పంట ఫోటోలు జతచేయండి మరియు లైవ్ మార్కెట్ ధరలు చూడండి.",
-    welcomeSubCustomer: "భారత ప్రభుత్వం ద్వారా నివేదించబడిన మండి ధరలను చూడండి.",
-    authTitle: "ఫార్మెజీ ప్రామాణీకరణ & లాగిన్",
-    authWelcome: "ఫార్మెజీకి స్వాగతం.",
-    authSub: "మార్కెట్ ధరలు చూడటానికి, పంట అమ్మడానికి ఖాతాలోకి ప్రవేశించండి.",
-    signIn: "సైన్ ఇన్",
-    signUp: "కొత్త ఖాతా సృష్టించండి",
-    demoFarmer: "డెమో రైతు లాగిన్ (రమేష్)",
-    demoCustomer: "డెమో కస్టమర్ లాగిన్ (ప్రియ)"
-  },
-  "தமிழ்": {
-    home: "முகப்பு",
-    prices: "சந்தை விலை",
-    outlook: "விலை கணிப்பு",
-    mandi: "சந்தையை காண்க",
-    sell: "பயிர் விற்கவும்",
-    browse: "விளைபொருட்கள்",
-    requests: "கோரிக்கைகள்",
-    myRequests: "என் கோரிக்கைகள்",
-    greeting: "வணக்கம்",
-    tagline: "நியாயமான சந்தை இங்கே தொடங்குகிறது.",
-    farmerWorkspace: "விவசாயி பணியிடம்",
-    customerWorkspace: "வாடிக்கையாளர் சந்தை",
-    farmer: "விவசாயி",
-    customer: "வாடிக்கையாளர்",
-    yourWorkspace: "பணியிடம்",
-    menu: "பட்டி",
-    needHelp: "உதவி மையம்",
-    askFarmezy: "சந்தை விலை பற்றி கேட்கவும்.",
-    chatWithUs: "உரையாடுங்கள்",
-    signOut: "வெளியேறு",
-    logOut: "வெளியேறு",
-    buyRequest: "வாங்க / கோர",
-    call: "அழைக்க",
-    whatsapp: "வாட்ஸ்அப்",
-    bestRoute: "வழித்தடம்",
-    delete: "நீக்கு",
-    crop: "பயிர்",
-    available: "கிடைப்பது",
-    askingPrice: "விலை",
-    farmerPickup: "விவசாயி / இடம்",
-    nearby: "உங்கள் அருகில் (< 1 கி.மீ)",
-    kmAway: "கி.மீ தூரம்",
-    officialGovtPrices: "அரசு சந்தை விலைகள்",
-    allVegetables: "அனைத்து காய்கறிகள்",
-    welcomeTitleFarmer: "உங்கள் விளைபொருள், உங்கள் வணிகம்.",
-    welcomeTitleCustomer: "இந்திய சந்தைகளில் இருந்து புதிய விளைபொருட்கள்.",
-    welcomeSubFarmer: "கேமராவில் நேரடி படம் எடுத்து சந்தை விலைகளை அறியவும்.",
-    welcomeSubCustomer: "இந்திய அரசின் தினசரி சந்தை விலைகளை அறியவும்.",
-    authTitle: "பார்மெசி உள்நுழைவு",
-    authWelcome: "பார்மெசிக்கு நல்வரவு.",
-    authSub: "சந்தை விலைகள் அறிய, பயிர் விற்க அல்லது வாங்க உள்நுழையவும்.",
-    signIn: "உள்நுழைவு",
-    signUp: "புதிய கணக்கு",
-    demoFarmer: "மாதிரி விவசாயி (ரமேஷ்)",
-    demoCustomer: "மாதிரி வாடிக்கையாளர் (பிரியா)"
-  },
-  "मराठी": {
-    home: "मुख्यपृष्ठ",
-    prices: "बाजार भाव",
-    outlook: "भावाचा अंदाज",
-    mandi: "मंडी शोधा",
-    sell: "पीक विका",
-    browse: "पीक पहा",
-    requests: "मागण्या",
-    myRequests: "माझ्या मागण्या",
-    greeting: "नमस्कार",
-    tagline: "योग्य बाजार, उत्तम नफा.",
-    farmerWorkspace: "शेतकरी कार्यक्षेत्र",
-    customerWorkspace: "ग्राहक बाजार",
-    farmer: "शेतकरी",
-    customer: "ग्राहक",
-    yourWorkspace: "कार्यक्षेत्र",
-    menu: "मेनू",
-    needHelp: "मदत केंद्र",
-    askFarmezy: "मंडी भाव किंवा पिकांबद्दल विचारा.",
-    chatWithUs: "संवाद साधा",
-    signOut: "साइन आउट",
-    logOut: "लॉग आउट",
-    buyRequest: "खरेदी करा / मागणी",
-    call: "कॉल करा",
-    whatsapp: "व्हॉट्सअ‍ॅप",
-    bestRoute: "मार्ग पहा",
-    delete: "हटवा",
-    crop: "पीक",
-    available: "उपलब्ध",
-    askingPrice: "मागणी किंमत",
-    farmerPickup: "शेतकरी / ठिकाण",
-    nearby: "तुमच्या जवळ (< १ किमी)",
-    kmAway: "किमी अंतरावर",
-    officialGovtPrices: "सरकारी बाजार भाव",
-    allVegetables: "सर्व भाज्या व पिके",
-    welcomeTitleFarmer: "तुमचे पीक, तुमचा व्यवसाय.",
-    welcomeTitleCustomer: "ताजी पिके व बाजार भाव मिळवा.",
-    welcomeSubFarmer: "कॅमेराने पिकाचा फोटो जोडा व जिल्ह्याचे थेट सरकारी भाव तपासा.",
-    welcomeSubCustomer: "भारत सरकारच्या अधिकृत मंडीतील रोजचे भाव तपासा.",
-    authTitle: "फार्मइझी प्रमाणीकरण व लॉगिन",
-    authWelcome: "फार्मइझीमध्ये आपले स्वागत आहे.",
-    authSub: "बाजार भाव पाहण्यासाठी, पीक विक्री किंवा खरेदीसाठी लॉगिन करा.",
-    signIn: "साइन इन",
-    signUp: "नवीन खाते तयार करा",
-    demoFarmer: "डेमो शेतकरी लॉगिन (रमेश)",
-    demoCustomer: "डेमो ग्राहक लॉगिन (प्रिया)"
-  }
-}
+export const translations = i18nTranslations
 
 export function getGreeting(timeInput = new Date(), language = "English") {
   let hour
@@ -709,6 +426,8 @@ function CropCameraCapture({ image, onCapture, onClear }) {
 }
 
 function App() {
+  const [lang, setLang] = useState("English")
+  useLanguageTranslator(lang)
   const [role, setRole] = useState(null)
   const [profile, setProfile] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -767,7 +486,6 @@ function App() {
   const [addressSearchResults, setAddressSearchResults] = useState([])
   const [searchingAddress, setSearchingAddress] = useState(false)
   const [page, setPage] = useState("Home")
-  const [lang, setLang] = useState("English")
   const [listed, setListed] = useState(false)
   const [chat, setChat] = useState(false)
   const [msg, setMsg] = useState("")
@@ -858,7 +576,7 @@ function App() {
 
   const t = (key) => {
     if (key === "greeting") return greeting || getTimeGreeting(lang)
-    return translations[lang]?.[key] || translations.English[key] || key
+    return i18nTranslate(key, lang)
   }
 
   // Supabase Authentication & Session Management
@@ -2712,9 +2430,9 @@ function App() {
                               alt={item.crop}
                               style={{ width: 28, height: 28, borderRadius: 5, objectFit: "cover" }}
                               onError={e => {
-                                if (e.currentTarget.src !== "/placeholder.png") {
+                                if (e.currentTarget.src !== "/placeholder.svg") {
                                   e.currentTarget.onerror = null
-                                  e.currentTarget.src = "/placeholder.png"
+                                  e.currentTarget.src = "/placeholder.svg"
                                 }
                               }}
                             />
@@ -2750,11 +2468,11 @@ function App() {
               )}
 
               {/* Show prices for all vegetables of user's district and state */}
-              <OfficialPrices location={profile} preview onViewAll={() => setPage("Prices")} farmerListings={listings} onSelectListing={openListingDetails} />
+              <OfficialPrices location={profile} preview onViewAll={() => setPage("Prices")} farmerListings={listings} onSelectListing={openListingDetails} lang={lang} t={t} />
             </>
           )}
 
-          {page === "Prices" && <OfficialPrices location={profile} farmerListings={listings} onSelectListing={openListingDetails} />}
+          {page === "Prices" && <OfficialPrices location={profile} farmerListings={listings} onSelectListing={openListingDetails} lang={lang} t={t} />}
 
           {page === "Browse" && (
             <>
@@ -3209,9 +2927,9 @@ function App() {
                                 src={item.image}
                                 alt={item.crop}
                                 onError={e => {
-                                  if (e.currentTarget.src !== "/placeholder.png") {
+                                  if (e.currentTarget.src !== "/placeholder.svg") {
                                     e.currentTarget.onerror = null
-                                    e.currentTarget.src = "/placeholder.png"
+                                    e.currentTarget.src = "/placeholder.svg"
                                   }
                                 }}
                               />
@@ -3698,7 +3416,7 @@ function App() {
           {page === "Forecast" && (
             <>
               <Title eyebrow="MARKET OUTLOOK" title="Predict upcoming mandi prices." sub="Analyze short-term price momentum and 7-day upcoming daily forecasts for major crops and APMC mandis across India." />
-              <PriceForecast location={profile} onPrices={() => setPage("Prices")} />
+              <PriceForecast location={profile} onPrices={() => setPage("Prices")} lang={lang} t={t} />
             </>
           )}
 
@@ -3723,9 +3441,9 @@ function App() {
                         alt={listing.crop}
                         style={{ width: 120, height: 120, borderRadius: 8, objectFit: "cover" }}
                         onError={e => {
-                          if (e.currentTarget.src !== "/placeholder.png") {
+                          if (e.currentTarget.src !== "/placeholder.svg") {
                             e.currentTarget.onerror = null
-                            e.currentTarget.src = "/placeholder.png"
+                            e.currentTarget.src = "/placeholder.svg"
                           }
                         }}
                       />
@@ -4534,9 +4252,9 @@ function App() {
                                 src={item.image}
                                 alt={item.crop}
                                 onError={e => {
-                                  if (e.currentTarget.src !== "/placeholder.png") {
+                                  if (e.currentTarget.src !== "/placeholder.svg") {
                                     e.currentTarget.onerror = null
-                                    e.currentTarget.src = "/placeholder.png"
+                                    e.currentTarget.src = "/placeholder.svg"
                                   }
                                 }}
                               />
@@ -5229,9 +4947,9 @@ function App() {
                       alt={viewingListing.crop}
                       className="crop-details-image"
                       onError={e => {
-                        if (e.currentTarget.src !== "/placeholder.png") {
+                        if (e.currentTarget.src !== "/placeholder.svg") {
                           e.currentTarget.onerror = null
-                          e.currentTarget.src = "/placeholder.png"
+                          e.currentTarget.src = "/placeholder.svg"
                         }
                       }}
                     />
