@@ -2504,11 +2504,11 @@ async function resolveProduceImage(cropName) {
   }
 
   // 3. Curated high-resolution photo library fallback
-  const curated = findCuratedCropImage(clean)
-  if (curated) {
-    imageCache.set(cacheKey, { data: curated, savedAt: Date.now() })
+  const curatedFallback = findCuratedCropImage(clean)
+  if (curatedFallback) {
+    imageCache.set(cacheKey, { data: curatedFallback, savedAt: Date.now() })
     saveImageCache()
-    return curated
+    return curatedFallback
   }
 
   // 4. Primary open fallback: Wikimedia Commons search with scoring
@@ -3585,9 +3585,13 @@ async function handleRequest(req, res) {
     const farmerId = requestUrl.searchParams.get("farmerId")
     const customerId = requestUrl.searchParams.get("customerId")
     let result = orders
-    if (farmerId) result = result.filter(order => order.farmerId === farmerId)
-    if (customerId) result = result.filter(order => order.customerId === customerId)
-    res.writeHead(200).end(JSON.stringify({ orders: result }))
+    if (farmerId) {
+      result = result.filter(order => order.farmerId === farmerId || (order.farmerPhone && farmerId && order.farmerPhone.replace(/\D/g, "") === farmerId.replace(/\D/g, "")))
+    }
+    if (customerId) {
+      result = result.filter(order => order.customerId === customerId || (order.customerPhone && customerId && order.customerPhone.replace(/\D/g, "") === customerId.replace(/\D/g, "")))
+    }
+    res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ orders: result }))
     return
   }
 
@@ -3610,6 +3614,7 @@ async function handleRequest(req, res) {
 
       const order = {
         id: Date.now().toString(),
+        invoiceNumber: "INV-" + Date.now().toString().slice(-6),
         listingId: String(data.listingId),
         crop: String(data.crop || ""),
         unit: String(data.unit || ""),
@@ -3618,6 +3623,7 @@ async function handleRequest(req, res) {
         farmerId: String(data.farmerId),
         farmerName: String(data.farmerName),
         farmerPhone: String(data.farmerPhone || ""),
+        farmerAddress: String(data.farmerAddress || data.address || ""),
         customerId: String(data.customerId),
         customerName: String(data.customerName),
         customerPhone: String(data.customerPhone || ""),

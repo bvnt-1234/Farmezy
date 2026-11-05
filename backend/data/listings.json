@@ -105,7 +105,7 @@
     "farmerState": "Karnataka",
     "farmerLat": "",
     "farmerLng": "",
-    "image": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=640&q=75",
+    "image": "/tomato.jpg",
     "createdAt": "2026-10-29T08:34:16.882Z",
     "imageSource": "auto-fallback"
   },
@@ -127,9 +127,9 @@
     "farmerState": "Karnataka",
     "farmerLat": "12.9845285",
     "farmerLng": "77.782574",
-    "image": "https://images.unsplash.com/photo-1683355739329-cea18ba93f02?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8M3x8cmVkJTIwb25pb24lMjBidWxiJTIwZnJlc2glMjBmYXJtJTIwaGFydmVzdCUyMHJhd3xlbnwxfDB8fHwxNzkzNTM4NzU1fDA&ixlib=rb-4.1.0&q=80&w=400",
+    "image": "/onion.jpg",
     "createdAt": "2026-10-28T17:17:06.323Z",
-    "imageSource": "auto-unsplash"
+    "imageSource": "auto-fallback"
   },
   {
     "id": "1793207722430",
@@ -149,7 +149,7 @@
     "farmerState": "Karnataka",
     "farmerLat": "12.9845285",
     "farmerLng": "77.782574",
-    "image": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=640&q=75",
+    "image": "/tomato.jpg",
     "createdAt": "2026-10-28T17:15:22.431Z",
     "imageSource": "auto-fallback"
   }
