@@ -2430,9 +2430,9 @@ function App() {
                               alt={item.crop}
                               style={{ width: 28, height: 28, borderRadius: 5, objectFit: "cover" }}
                               onError={e => {
-                                if (e.currentTarget.src !== "/placeholder.png") {
+                                if (e.currentTarget.src !== "/placeholder.svg") {
                                   e.currentTarget.onerror = null
-                                  e.currentTarget.src = "/placeholder.png"
+                                  e.currentTarget.src = "/placeholder.svg"
                                 }
                               }}
                             />
@@ -2927,9 +2927,9 @@ function App() {
                                 src={item.image}
                                 alt={item.crop}
                                 onError={e => {
-                                  if (e.currentTarget.src !== "/placeholder.png") {
+                                  if (e.currentTarget.src !== "/placeholder.svg") {
                                     e.currentTarget.onerror = null
-                                    e.currentTarget.src = "/placeholder.png"
+                                    e.currentTarget.src = "/placeholder.svg"
                                   }
                                 }}
                               />
@@ -3441,9 +3441,9 @@ function App() {
                         alt={listing.crop}
                         style={{ width: 120, height: 120, borderRadius: 8, objectFit: "cover" }}
                         onError={e => {
-                          if (e.currentTarget.src !== "/placeholder.png") {
+                          if (e.currentTarget.src !== "/placeholder.svg") {
                             e.currentTarget.onerror = null
-                            e.currentTarget.src = "/placeholder.png"
+                            e.currentTarget.src = "/placeholder.svg"
                           }
                         }}
                       />
@@ -4252,9 +4252,9 @@ function App() {
                                 src={item.image}
                                 alt={item.crop}
                                 onError={e => {
-                                  if (e.currentTarget.src !== "/placeholder.png") {
+                                  if (e.currentTarget.src !== "/placeholder.svg") {
                                     e.currentTarget.onerror = null
-                                    e.currentTarget.src = "/placeholder.png"
+                                    e.currentTarget.src = "/placeholder.svg"
                                   }
                                 }}
                               />
@@ -4947,9 +4947,9 @@ function App() {
                       alt={viewingListing.crop}
                       className="crop-details-image"
                       onError={e => {
-                        if (e.currentTarget.src !== "/placeholder.png") {
+                        if (e.currentTarget.src !== "/placeholder.svg") {
                           e.currentTarget.onerror = null
-                          e.currentTarget.src = "/placeholder.png"
+                          e.currentTarget.src = "/placeholder.svg"
                         }
                       }}
                     />

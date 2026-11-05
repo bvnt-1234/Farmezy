@@ -12,8 +12,311 @@
  */
 
 function norm(str) {
-  return String(str || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+  return String(str || "").toLowerCase().replace(/[^\p{L}\p{M}\p{N}]/gu, "")
 }
+
+// Comprehensive regional Indian aliases, spellings, and transliterations
+export const COMMODITY_REGIONAL_ALIASES = {
+  // Drumstick / Moringa
+  "drumstick": "drumstick",
+  "drumsticks": "drumstick",
+  "moringa": "drumstick",
+  "sahjan": "drumstick",
+  "nuggekayi": "drumstick",
+  "nuggekai": "drumstick",
+  "murungakkai": "drumstick",
+  "murungai": "drumstick",
+  "munakkaya": "drumstick",
+  "munaga": "drumstick",
+  "सहजन": "drumstick",
+  "ढोलकी": "drumstick",
+  "ঢোলকী": "drumstick",
+  "ഡ്രം സ്റ്റിക്ക്": "drumstick",
+  "ડ્રમસ્ટિક": "drumstick",
+  "முரட்டுத்தனம்": "drumstick",
+  "முருங்கை": "drumstick",
+  "முருங்கைக்காய்": "drumstick",
+  "ನುಗ್ಗೆಕಾಯಿ": "drumstick",
+  "మునక్కాయ": "drumstick",
+  "మునగ": "drumstick",
+  "ସଜನಾ": "drumstick",
+
+  // Ginger
+  "ginger": "ginger",
+  "green ginger": "ginger(green)",
+  "ginger(green)": "ginger(green)",
+  "ginger green": "ginger(green)",
+  "dry ginger": "ginger(dry)",
+  "ginger(dry)": "ginger(dry)",
+  "adrak": "ginger",
+  "shunti": "ginger",
+  "inji": "ginger",
+  "allam": "ginger",
+  "अदरक": "ginger",
+  "अदरक हरा": "ginger(green)",
+  "अदरक सूखा": "ginger(dry)",
+  "आले": "ginger",
+  "আদা": "ginger",
+  "આદુ": "ginger",
+  "ഇഞ്ചി": "ginger",
+  "இஞ்சி": "ginger",
+  "ಶುಂಠಿ": "ginger",
+  "ಅಲ್ಲಂ": "ginger",
+  "ଅଦಾ": "ginger",
+
+  // Almond
+  "almond": "almond(badam)",
+  "almonds": "almond(badam)",
+  "badam": "almond(badam)",
+  "almond(badam)": "almond(badam)",
+  "बादाम": "almond(badam)",
+  "बदाम": "almond(badam)",
+  "বাদাম": "almond(badam)",
+  "બદામ": "almond(badam)",
+  "ಬಾದಾಮಿ": "almond(badam)",
+  "பாதாம்": "almond(badam)",
+  "బాదం": "almond(badam)",
+
+  // Cashew
+  "cashew": "cashewnuts",
+  "cashews": "cashewnuts",
+  "cashewnuts": "cashewnuts",
+  "kaju": "cashewnuts",
+  "काजू": "cashewnuts",
+  "কাজু": "cashewnuts",
+  "કાજુ": "cashewnuts",
+  "ಗೋಡಂಬಿ": "cashewnuts",
+  "முந்திரி": "cashewnuts",
+  "జీడిపప్పు": "cashewnuts",
+
+  // Water chestnut
+  "water chestnut": "water chestnut",
+  "waterchestnut": "water chestnut",
+  "singhada": "water chestnut",
+  "singhara": "water chestnut",
+  "सिंघाड़ा": "water chestnut",
+  "পানিফল": "water chestnut",
+  "சிங்காரா": "water chestnut",
+
+  // Tomato
+  "tomato": "tomato",
+  "tomatoes": "tomato",
+  "tamatar": "tomato",
+  "thakkali": "tomato",
+  "tamata": "tomato",
+  "टमाटर": "tomato",
+  "টমেটো": "tomato",
+  "ટમેટા": "tomato",
+  "തക്കാളി": "tomato",
+  "தக்காளி": "tomato",
+  "ಟೊಮೆಟೊ": "tomato",
+  "టమోటా": "tomato",
+
+  // Onion
+  "onion": "onion",
+  "onions": "onion",
+  "red onion": "onion",
+  "pyaz": "onion",
+  "kanda": "onion",
+  "eerulli": "onion",
+  "vengayam": "onion",
+  "ullipayalu": "onion",
+  "प्याज": "onion",
+  "प्याज़": "onion",
+  "कांदा": "onion",
+  "कांदे": "onion",
+  "পিয়াঁজ": "onion",
+  "ડુંગળી": "onion",
+  "സവാള": "onion",
+  "வெங்காயம்": "onion",
+  "ಈರುಳ್ಳಿ": "onion",
+  "ఉల్లిపాయ": "onion",
+
+  // Potato
+  "potato": "potato",
+  "potatoes": "potato",
+  "aloo": "potato",
+  "alu": "potato",
+  "alugadde": "potato",
+  "batata": "potato",
+  "urulaikizhangu": "potato",
+  "bangaladumpa": "potato",
+  "आलू": "potato",
+  "আলু": "potato",
+  "બટાટા": "potato",
+  "உருளைக்கிழங்கு": "potato",
+  "ಆಲೂಗಡ್ಡೆ": "potato",
+  "బంగాళాದುంప": "potato",
+
+  // Garlic
+  "garlic": "garlic",
+  "lehsun": "garlic",
+  "lasun": "garlic",
+  "bellulli": "garlic",
+  "poondu": "garlic",
+  "vellulli": "garlic",
+  "लहसुन": "garlic",
+  "রসুন": "garlic",
+  "લસણ": "garlic",
+  "വെളുത്തുള്ളി": "garlic",
+  "பூண்டு": "garlic",
+  "ಬೆಳ್ಳುಳ್ಳಿ": "garlic",
+  "వెల్లుల్లి": "garlic",
+
+  // Okra / Ladies finger
+  "okra": "bhindi(ladies finger)",
+  "ladies finger": "bhindi(ladies finger)",
+  "lady finger": "bhindi(ladies finger)",
+  "bhindi": "bhindi(ladies finger)",
+  "bhendi": "bhindi(ladies finger)",
+  "vendakkai": "bhindi(ladies finger)",
+  "bendakaya": "bhindi(ladies finger)",
+  "bende": "bhindi(ladies finger)",
+  "भिंडी": "bhindi(ladies finger)",
+  "ভেন্ডি": "bhindi(ladies finger)",
+  "ભીંડા": "bhindi(ladies finger)",
+  "வெண்டைக்காய்": "bhindi(ladies finger)",
+  "ಬೆಂಡೆಕಾಯಿ": "bhindi(ladies finger)",
+  "బెండకాయ": "bhindi(ladies finger)",
+
+  // Gourds
+  "bottle gourd": "bottle gourd",
+  "lauki": "bottle gourd",
+  "doodhi": "bottle gourd",
+  "sorekayi": "bottle gourd",
+  "surakkai": "bottle gourd",
+  "sorakaya": "bottle gourd",
+  "लौकी": "bottle gourd",
+  "दूधी": "bottle gourd",
+  "ಸೋರೆಕಾಯಿ": "bottle gourd",
+  "சுரைக்காய்": "bottle gourd",
+  "సొరకాయ": "bottle gourd",
+
+  "bitter gourd": "bitter gourd",
+  "karela": "bitter gourd",
+  "hagalakayi": "bitter gourd",
+  "pavakkai": "bitter gourd",
+  "kakarakaya": "bitter gourd",
+  "करेला": "bitter gourd",
+  "ಕರೋಲ": "bitter gourd",
+  "ಹಾಗಲಕಾಯಿ": "bitter gourd",
+  "பாகற்காய்": "bitter gourd",
+  "కాకరకాయ": "bitter gourd",
+
+  "ridge gourd": "ridge gourd",
+  "ridgeguard": "ridge gourd",
+  "ridgeguard(tori)": "ridge gourd",
+  "tori": "ridge gourd",
+  "turai": "ridge gourd",
+  "heerekayi": "ridge gourd",
+  "beerakaya": "ridge gourd",
+  "peerkangai": "ridge gourd",
+  "तोरी": "ridge gourd",
+  "तुराई": "ridge gourd",
+  "ಹೀರೇಕಾಯಿ": "ridge gourd",
+  "பீர்க்கங்காய்": "ridge gourd",
+  "బీరకాయ": "ridge gourd",
+
+  "snake gourd": "snake gourd",
+  "snakeguard": "snake gourd",
+  "chichinda": "snake gourd",
+  "padavalakai": "snake gourd",
+  "padavalkayi": "snake gourd",
+  "pudalangai": "snake gourd",
+  "potlakaya": "snake gourd",
+  "चिचिंडा": "snake gourd",
+  "ಪಡವಲಕಾಯಿ": "snake gourd",
+  "புடலங்காய்": "snake gourd",
+  "పొట్లకాయ": "snake gourd",
+
+  "ash gourd": "ash gourd",
+  "ashgourd": "ash gourd",
+  "petha": "ash gourd",
+  "kumbalakai": "ash gourd",
+  "boodu kumbalakai": "ash gourd",
+  "white pumpkin": "ash gourd",
+  "पेठा": "ash gourd",
+  "ಬೂದು ಕುಂಬಳಕಾಯಿ": "ash gourd",
+  "சாம்பல் பூசணி": "ash gourd",
+  "బూడిద గుమ్మడికాయ": "ash gourd",
+
+  "knol khol": "knool khol",
+  "knool khol": "knool khol",
+  "kohlrabi": "knool khol",
+  "ganth gobi": "knool khol",
+  "navil kosu": "knool khol",
+  "noolkol": "knool khol",
+  "ಗಂಟು ಕೋಸು": "knool khol",
+  "ನವಿಲು ಕೋಸು": "knool khol",
+  "நூல்கோல்": "knool khol",
+
+  // Staples
+  "ragi": "ragi (finger millet)",
+  "finger millet": "ragi (finger millet)",
+  "nachni": "ragi (finger millet)",
+  "mandua": "ragi (finger millet)",
+  "रागी": "ragi (finger millet)",
+  "ರಾಗಿ": "ragi (finger millet)",
+  "ராகி": "ragi (finger millet)",
+  "రాగులు": "ragi (finger millet)",
+
+  "watermelon": "water melon",
+  "tarbooz": "water melon",
+  "kallangadi": "water melon",
+  "tharpoos": "water melon",
+  "puchakaya": "water melon",
+  "तरबूज": "water melon",
+  "ಕಲ್ಲಂಗಡಿ": "water melon",
+  "தர்பூசணி": "water melon",
+  "పుచ్చకాయ": "water melon",
+
+  // Pulses
+  "bengal gram": "bengal gram(gram)(whole)",
+  "chana": "bengal gram(gram)(whole)",
+  "chana dal": "bengal gram dal (chana dal)",
+  "चना": "bengal gram(gram)(whole)",
+  "ಕಡಲೆ": "bengal gram(gram)(whole)",
+  "கடலை": "bengal gram(gram)(whole)",
+  "శనగలు": "bengal gram(gram)(whole)",
+
+  "green gram": "green gram (moong)(whole)",
+  "moong": "green gram (moong)(whole)",
+  "moong dal": "green gram dal (moong dal)",
+  "मूंग": "green gram (moong)(whole)",
+  "ಹೆಸರು ಕಾಳು": "green gram (moong)(whole)",
+  "பயறு": "green gram (moong)(whole)",
+  "పెసలు": "green gram (moong)(whole)",
+
+  "black gram": "black gram (urad dal)(whole)",
+  "urad": "black gram (urad dal)(whole)",
+  "urad dal": "black gram dal (urad dal)",
+  "उड़द": "black gram (urad dal)(whole)",
+  "ಉದ್ದಿನ ಬೇಳೆ": "black gram (urad dal)(whole)",
+  "உளுந்து": "black gram (urad dal)(whole)",
+  "మినపప్పు": "black gram (urad dal)(whole)",
+
+  "red gram": "red gram/arhar/tur(whole)",
+  "toor": "red gram/arhar/tur(whole)",
+  "tur": "red gram/arhar/tur(whole)",
+  "arhar": "red gram/arhar/tur(whole)",
+  "toor dal": "red gram split/arhar dal/tur dal",
+  "tur dal": "red gram split/arhar dal/tur dal",
+  "अरहर": "red gram/arhar/tur(whole)",
+  "तूर": "red gram/arhar/tur(whole)",
+  "ತೊಗರಿ": "red gram/arhar/tur(whole)",
+  "துவரை": "red gram/arhar/tur(whole)",
+  "కందులు": "red gram/arhar/tur(whole)"
+};
+
+export function getCanonicalCommodityName(rawName) {
+  if (!rawName) return ""
+  const lower = String(rawName).trim().toLowerCase()
+  const cleaned = norm(rawName)
+  return COMMODITY_REGIONAL_ALIASES[cleaned] ||
+         COMMODITY_REGIONAL_ALIASES[lower] ||
+         rawName
+}
+
 
 // 1. Direct Local & Curated Exact Variety Images (Strictly verified official AGMARKNET pairs)
 const exactVarietyMap = {
@@ -92,14 +395,18 @@ const exactVarietyMap = {
   "jasmine::other": { url: "/jasmine.jpg", alt: "Jasmine", source: "Farmzy Local Asset" },
 
   // Dry Fruits registered varieties
-  "almond(badam)::almond(badam)": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Almond(Badam)", source: "Curated Variety Library" },
-  "almond(badam)::other": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Almond(Badam)", source: "Curated Variety Library" },
-  "cashewnuts::kernel": { url: "https://images.unsplash.com/photo-1536591375315-1b83687e2f57?auto=format&fit=crop&w=640&q=75", alt: "Cashewnuts - Kernel", source: "Curated Variety Library" },
-  "cashewnuts::local": { url: "https://images.unsplash.com/photo-1536591375315-1b83687e2f57?auto=format&fit=crop&w=640&q=75", alt: "Cashewnuts", source: "Curated Variety Library" },
-  "cashewnuts::american(raw) without shell": { url: "https://images.unsplash.com/photo-1536591375315-1b83687e2f57?auto=format&fit=crop&w=640&q=75", alt: "Cashewnuts", source: "Curated Variety Library" },
-  "water chestnut::water chestnut": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Water chestnut", source: "Curated Variety Library" },
-  "water chestnut::organic": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Water chestnut", source: "Curated Variety Library" },
-  "water chestnut::other": { url: "https://images.unsplash.com/photo-1508061252445-8450f65609da?auto=format&fit=crop&w=640&q=75", alt: "Water chestnut", source: "Curated Variety Library" },
+  "almond(badam)::almond(badam)": { url: "/almond.jpg", alt: "Almond (Badam)", source: "Farmzy Local Asset" },
+  "almond(badam)::other": { url: "/almond.jpg", alt: "Almond (Badam)", source: "Farmzy Local Asset" },
+  "cashewnuts::kernel": { url: "/cashewnuts.jpg", alt: "Cashewnuts - Kernel", source: "Farmzy Local Asset" },
+  "cashewnuts::local": { url: "/cashewnuts.jpg", alt: "Cashewnuts", source: "Farmzy Local Asset" },
+  "cashewnuts::american(raw) without shell": { url: "/cashewnuts.jpg", alt: "Cashewnuts", source: "Farmzy Local Asset" },
+  "water chestnut::water chestnut": { url: "/water_chestnut.jpg", alt: "Water chestnut", source: "Farmzy Local Asset" },
+  "water chestnut::organic": { url: "/water_chestnut.jpg", alt: "Water chestnut", source: "Farmzy Local Asset" },
+  "water chestnut::other": { url: "/water_chestnut.jpg", alt: "Water chestnut", source: "Farmzy Local Asset" },
+  "drumstick::drumstick": { url: "/drumstick.jpg", alt: "Drumstick", source: "Farmzy Local Asset" },
+  "drumstick::other": { url: "/drumstick.jpg", alt: "Drumstick", source: "Farmzy Local Asset" },
+  "ginger::ginger": { url: "/ginger.jpg", alt: "Ginger", source: "Farmzy Local Asset" },
+  "ginger::other": { url: "/ginger.jpg", alt: "Ginger", source: "Farmzy Local Asset" },
 
   // Beverages registered varieties
   "coffee::plantation a": { url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=640&q=75", alt: "Coffee", source: "Curated Variety Library" },
@@ -2532,10 +2839,10 @@ export const categoryFallbackImages = {
 }
 
 const genericFallback = {
-  url: "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&w=640&q=75",
+  url: "/placeholder.svg",
   alt: "Agricultural produce",
   symbol: "🌾",
-  source: "Curated Photography"
+  source: "Farmezy Verified Fallback"
 }
 
 export const categorySymbols = {
@@ -2655,7 +2962,8 @@ function matchesWholePhrase(targetName, queryKey, targetCategory) {
  * The official commodity and variety identity is NEVER altered by the image.
  */
 export function resolveVarietyImage(commodityName, varietyName, categoryName) {
-  const cClean = norm(commodityName)
+  const canonical = getCanonicalCommodityName(commodityName)
+  const cClean = norm(canonical)
   const vClean = norm(varietyName)
   const exactKey = `${cClean}::${vClean}`
   const cleanAlt = varietyName ? `${commodityName} - ${varietyName}` : String(commodityName || "")
@@ -2671,7 +2979,7 @@ export function resolveVarietyImage(commodityName, varietyName, categoryName) {
       isCategoryFallback: false,
       label: "Exact Variety Image",
       source: item.source,
-      symbol: getCommoditySymbol(commodityName, categoryName)
+      symbol: getCommoditySymbol(canonical, categoryName)
     }
   }
 
@@ -2687,13 +2995,13 @@ export function resolveVarietyImage(commodityName, varietyName, categoryName) {
       isCategoryFallback: false,
       label: isDirectLocal ? "Exact Crop Match" : "Representative Image",
       source: item.source,
-      symbol: getCommoditySymbol(commodityName, categoryName)
+      symbol: getCommoditySymbol(canonical, categoryName)
     }
   }
 
   // 3. Whole-word / alias commodity match
   for (const { key, item } of sortedCuratedNormCommodities) {
-    if (matchesWholePhrase(commodityName, key, categoryName)) {
+    if (matchesWholePhrase(canonical, key, categoryName) || matchesWholePhrase(commodityName, key, categoryName)) {
       return {
         url: item.url,
         alt: cleanAlt,
@@ -2702,7 +3010,7 @@ export function resolveVarietyImage(commodityName, varietyName, categoryName) {
         isCategoryFallback: false,
         label: "Representative Image",
         source: item.source,
-        symbol: getCommoditySymbol(commodityName, categoryName)
+        symbol: getCommoditySymbol(canonical, categoryName)
       }
     }
   }
@@ -2725,7 +3033,8 @@ export function resolveVarietyImage(commodityName, varietyName, categoryName) {
  * Resolves the visual image representation for a commodity.
  */
 export function resolveCommodityImage(commodityName, categoryName) {
-  const cClean = norm(commodityName)
+  const canonical = getCanonicalCommodityName(commodityName)
+  const cClean = norm(canonical)
   const cleanAlt = String(commodityName || "")
 
   if (curatedCommoditiesNormMap.has(cClean)) {
@@ -2738,12 +3047,12 @@ export function resolveCommodityImage(commodityName, categoryName) {
       isCategoryFallback: false,
       label: item.url.startsWith("/") ? "Exact Crop Match" : "Curated Commodity Photo",
       source: item.source,
-      symbol: getCommoditySymbol(commodityName, categoryName)
+      symbol: getCommoditySymbol(canonical, categoryName)
     }
   }
 
   for (const { key, item } of sortedCuratedNormCommodities) {
-    if (matchesWholePhrase(commodityName, key, categoryName)) {
+    if (matchesWholePhrase(canonical, key, categoryName) || matchesWholePhrase(commodityName, key, categoryName)) {
       return {
         url: item.url,
         alt: cleanAlt,
@@ -2752,7 +3061,7 @@ export function resolveCommodityImage(commodityName, categoryName) {
         isCategoryFallback: false,
         label: "Representative Image",
         source: item.source,
-        symbol: getCommoditySymbol(commodityName, categoryName)
+        symbol: getCommoditySymbol(canonical, categoryName)
       }
     }
   }

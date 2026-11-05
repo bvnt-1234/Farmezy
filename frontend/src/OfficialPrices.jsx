@@ -1928,7 +1928,7 @@ function cropSymbol(name) {
   return "🌱"
 }
 
-const genericCropImage = "/placeholder.png"
+const genericCropImage = "/placeholder.svg"
 
 function cropPhoto(name) {
   const n = String(name || "").toLowerCase()
@@ -2015,7 +2015,7 @@ function cropPhoto(name) {
   if (n.includes("moong") || n.includes("green gram") || n.includes("mung")) return "https://upload.wikimedia.org/wikipedia/commons/8/86/Mung_beans_%28Vigna_radiata%29.jpg"
   if (n.includes("avare") || n.includes("hyacinth") || n.includes("field bean")) return "https://upload.wikimedia.org/wikipedia/commons/4/4d/Lablab_purpureus_257105665.jpg"
   if (n.includes("sesame") || n.includes("til") || n.includes("gingelly") || n.includes("sesamum")) return "https://upload.wikimedia.org/wikipedia/commons/9/9e/Black_sesame.jpg"
-  return "/placeholder.png"
+  return "/placeholder.svg"
 }
 
 function money(value) {
