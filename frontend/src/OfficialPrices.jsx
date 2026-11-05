@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { translateCrop, translateCategory, translateUnit, t as defaultTranslate } from "./i18n.js"
 import agmarknetCatalogue from "../../backend/data/agmarknet-catalogue.json"
 import {
   resolveVarietyImage,
@@ -23,7 +24,7 @@ const fallbackCategories = [
   "Dry Fruits", "Oils and Fats", "Fibre Crops", "Beverages", "Others"
 ]
 
-export default function OfficialPrices({ location, preview = false, onViewAll, farmerListings = [], onSelectListing }) {
+export default function OfficialPrices({ location, preview = false, onViewAll, farmerListings = [], onSelectListing, lang = "English", t = (k) => defaultTranslate(k, lang) }) {
   const defaultState = "All India"
   const defaultDistrict = ""
 
@@ -1165,17 +1166,17 @@ export default function OfficialPrices({ location, preview = false, onViewAll, f
           <table className="official-table" style={{ minWidth: 1180 }}>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Commodity</th>
-                <th>Variety</th>
-                <th>Grade</th>
-                <th>State</th>
-                <th>District</th>
-                <th>Market / APMC</th>
+                <th>{t("Date")}</th>
+                <th>{t("Commodity")}</th>
+                <th>{t("Variety")}</th>
+                <th>{t("Grade")}</th>
+                <th>{t("State")}</th>
+                <th>{t("District")}</th>
+                <th>{t("Market / Mandi")}</th>
                 <th>Price Type / Source</th>
-                <th>Min</th>
-                <th>Max</th>
-                <th>Modal Price / Unit</th>
+                <th>{t("Min Price")}</th>
+                <th>{t("Max Price")}</th>
+                <th>{t("Modal Price")} / {t("Unit")}</th>
                 <th>Market &amp; Farmer Details</th>
               </tr>
             </thead>
