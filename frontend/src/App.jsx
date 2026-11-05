@@ -1,6 +1,6 @@
 import { generateInvoicePDF, printInvoice, getInvoiceNumber, formatINR } from "./invoicePdf.js"
 import { useEffect, useState, useRef, useMemo } from "react"
-import { translations as i18nTranslations, t as i18nTranslate, translateCrop, translateCategory, translateStatus, translateUnit, CROP_TRANSLATIONS, CATEGORY_TRANSLATIONS, STATUS_TRANSLATIONS, UNIT_TRANSLATIONS } from "./i18n.js"
+import { useLanguageTranslator, translations as i18nTranslations, t as i18nTranslate, translateCrop, translateCategory, translateStatus, translateUnit, CROP_TRANSLATIONS, CATEGORY_TRANSLATIONS, STATUS_TRANSLATIONS, UNIT_TRANSLATIONS } from "./i18n.js"
 import OfficialPrices from "./OfficialPrices.jsx"
 import { supabase, isSupabaseConfigured } from "./supabase.js"
 import commodityMaster from "../../backend/data/commodity-master.json"
@@ -426,6 +426,8 @@ function CropCameraCapture({ image, onCapture, onClear }) {
 }
 
 function App() {
+  const [lang, setLang] = useState("English")
+  useLanguageTranslator(lang)
   const [role, setRole] = useState(null)
   const [profile, setProfile] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -484,7 +486,6 @@ function App() {
   const [addressSearchResults, setAddressSearchResults] = useState([])
   const [searchingAddress, setSearchingAddress] = useState(false)
   const [page, setPage] = useState("Home")
-  const [lang, setLang] = useState("English")
   const [listed, setListed] = useState(false)
   const [chat, setChat] = useState(false)
   const [msg, setMsg] = useState("")
