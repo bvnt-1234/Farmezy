@@ -2335,14 +2335,13 @@
   },
   "tomato": {
     "data": {
-      "url": "https://images.unsplash.com/photo-1576856497337-4f2be24683da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByZWQlMjB0b21hdG9lcyUyMGlzb2xhdGVkJTIwb24lMjBhJTIwY2xlYW4lMjBiYWNrZ3JvdW5kfGVufDF8MHx8fDE3OTM4MDIyMTd8MA&ixlib=rb-4.1.0&q=80&w=400",
-      "alt": "two red tomatoes in green background",
-      "photographer": "Suri Huang (Unsplash)",
-      "link": "https://unsplash.com/photos/two-red-tomatoes-in-green-background-Cp1LK6zNEZ8?utm_source=farmezy&utm_medium=referral",
-      "downloadLocation": "https://api.unsplash.com/photos/Cp1LK6zNEZ8/download?ixid=M3wxMTE5MzQ2fDB8MXxzZWFyY2h8MXx8ZnJlc2glMjByZWQlMjB0b21hdG9lcyUyMGlzb2xhdGVkJTIwb24lMjBhJTIwY2xlYW4lMjBiYWNrZ3JvdW5kfGVufDF8MHx8fDE3OTM4MDIyMTd8MA",
-      "source": "unsplash"
+      "url": "/tomato.jpg",
+      "alt": "Fresh red vine tomatoes",
+      "photographer": "Wikimedia Commons",
+      "source": "Farmzy Local Asset",
+      "link": "https://unsplash.com"
     },
-    "savedAt": 1793802218207
+    "savedAt": 1793898305816
   },
   "chicory": {
     "data": {
@@ -2379,7 +2378,7 @@
       "source": "Farmzy Local Asset",
       "link": "https://unsplash.com"
     },
-    "savedAt": 1793817771446
+    "savedAt": 1793898305813
   },
   "orsevi": {
     "data": {

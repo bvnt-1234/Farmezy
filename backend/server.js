@@ -2504,11 +2504,11 @@ async function resolveProduceImage(cropName) {
   }
 
   // 3. Curated high-resolution photo library fallback
-  const curated = findCuratedCropImage(clean)
-  if (curated) {
-    imageCache.set(cacheKey, { data: curated, savedAt: Date.now() })
+  const curatedFallback = findCuratedCropImage(clean)
+  if (curatedFallback) {
+    imageCache.set(cacheKey, { data: curatedFallback, savedAt: Date.now() })
     saveImageCache()
-    return curated
+    return curatedFallback
   }
 
   // 4. Primary open fallback: Wikimedia Commons search with scoring
