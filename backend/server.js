@@ -57,13 +57,30 @@ function supplementOfficialStateSources(rows) {
     }
   }
 
-  // 1. Karnataka official source
-  if (!centralStates.has("karnataka")) {
-    const ktkRecords = loadSourceFile(karnatakaPricesFile);
-    if (ktkRecords.length > 0) {
-      extraRows.push(...ktkRecords);
-      centralStates.add("karnataka");
+    // 1. Karnataka official source (KSAMB / ReMS via AGMARKNET)
+  const ktkRecords = loadSourceFile(karnatakaPricesFile);
+  if (ktkRecords.length > 0) {
+    const existingKtkKeys = new Set(
+      rows
+        .filter(r => String(r.state || "").toLowerCase().includes("karnataka"))
+        .map(r => `${String(r.district || "").toLowerCase()}_${String(r.market || "").toLowerCase()}_${String(r.commodity || "").toLowerCase()}`)
+    );
+    for (const r of ktkRecords) {
+      const key = `${String(r.district || "").toLowerCase()}_${String(r.market || "").toLowerCase()}_${String(r.commodity || "").toLowerCase()}`;
+      if (!existingKtkKeys.has(key)) {
+        extraRows.push({
+          ...r,
+          state: r.state || "Karnataka",
+          price_type: r.price_type || "Local Mandi Price",
+          source_name: r.source_name || "Government of India (AGMARKNET) / KSAMB",
+          source_type: "wholesale",
+          unit: r.unit || "₹/quintal",
+          price_unit: r.price_unit || "₹/quintal"
+        });
+        existingKtkKeys.add(key);
+      }
     }
+    centralStates.add("karnataka");
   }
 
   // 2. Supplementary official state sources (Delhi, Jharkhand, Goa, Mizoram, Sikkim, Arunachal Pradesh, UTs)
@@ -5127,7 +5144,7 @@ async function syncAgmarknetPrices() {
         }, null, 2))
       } catch {}
     } else if (fetchedRecords.length > 0 && (fetchedRecords.length >= reportedTotal || (reportedTotal === Infinity && fetchedRecords.length >= 1000))) {
-      currentAgmarknetPricesCache = fetchedRecords
+      currentAgmarknetPricesCache = supplementOfficialStateSources(fetchedRecords)
       lastSuccessfulPriceRefresh = new Date().toISOString()
       cachedDiagnostics = null
       try {

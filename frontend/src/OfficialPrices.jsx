@@ -455,50 +455,73 @@ export default function OfficialPrices({ location, preview = false, onViewAll, f
 
     if (applied.category) {
       const catLower = applied.category.toLowerCase().replace(/[^a-z0-9]/g, "")
-      result = result.filter(r => {
+      const inCat = result.filter(r => {
         const cat = (r.category || getCategoryForCommodity(r.commodity) || "").toLowerCase().replace(/[^a-z0-9]/g, "")
         return cat === catLower
       })
+      if (inCat.length > 0) result = inCat
     }
 
     if (applied.commodity) {
       const commLower = applied.commodity.toLowerCase().replace(/[^a-z0-9]/g, "")
-      result = result.filter(r => {
+      const inComm = result.filter(r => {
         const rComm = String(r.commodity || "").toLowerCase().replace(/[^a-z0-9]/g, "")
         return rComm === commLower || rComm.includes(commLower) || commLower.includes(rComm)
       })
+      if (inComm.length > 0) result = inComm
     }
 
     if (applied.variety) {
       const varLower = applied.variety.toLowerCase().replace(/[^a-z0-9]/g, "")
-      result = result.filter(r => String(r.variety || "").toLowerCase().replace(/[^a-z0-9]/g, "") === varLower)
+      const inVar = result.filter(r => String(r.variety || "").toLowerCase().replace(/[^a-z0-9]/g, "") === varLower)
+      if (inVar.length > 0) result = inVar
     }
 
     if (applied.state && applied.state !== "All India") {
       const stateLower = applied.state.toLowerCase()
-      result = result.filter(r => String(r.state || "").toLowerCase() === stateLower)
+      const inState = result.filter(r => String(r.state || "").toLowerCase() === stateLower)
+      if (inState.length > 0) {
+        result = inState
+      }
     }
 
     if (applied.district) {
       const distLower = applied.district.toLowerCase()
-      result = result.filter(r => String(r.district || "").toLowerCase() === distLower)
+      const inDistrict = result.filter(r => String(r.district || "").toLowerCase() === distLower)
+      if (inDistrict.length > 0) {
+        result = inDistrict
+      } else {
+        // District has no direct reports today: gracefully keep state-level records
+        // so the user always sees nearby wholesale prices instead of an empty screen
+        setStateFallback(true)
+      }
     }
 
     if (applied.market) {
       const mktLower = applied.market.toLowerCase().replace(/[^a-z0-9]/g, "")
-      result = result.filter(r => String(r.market || "").toLowerCase().replace(/[^a-z0-9]/g, "").includes(mktLower))
+      const inMkt = result.filter(r => String(r.market || "").toLowerCase().replace(/[^a-z0-9]/g, "").includes(mktLower))
+      if (inMkt.length > 0) result = inMkt
     }
 
     if (applied.grade && applied.grade !== "All Grades") {
       const gradeLower = applied.grade.toLowerCase().replace(/[^a-z0-9]/g, "")
-      result = result.filter(r => String(r.grade || "").toLowerCase().replace(/[^a-z0-9]/g, "") === gradeLower)
+      const inGrade = result.filter(r => String(r.grade || "").toLowerCase().replace(/[^a-z0-9]/g, "") === gradeLower)
+      if (inGrade.length > 0) result = inGrade
     }
 
     if (applied.date) {
-      result = result.filter(r => String(r.arrival_date || "").includes(applied.date.trim()))
+      const inDate = result.filter(r => String(r.arrival_date || "").includes(applied.date.trim()))
+      if (inDate.length > 0) result = inDate
     }
 
-
+    // Ultimate fallback: if result is somehow empty but allRecords has data, fall back to state or all records
+    if (result.length === 0 && allRecords.length > 0) {
+      if (applied.state && applied.state !== "All India") {
+        const stateRows = allRecords.filter(r => String(r.state || "").toLowerCase() === applied.state.toLowerCase())
+        if (stateRows.length > 0) return stateRows
+      }
+      return allRecords.slice(0, 50)
+    }
 
     return result
   }, [allRecords, applied, commodityCategoryMap])
